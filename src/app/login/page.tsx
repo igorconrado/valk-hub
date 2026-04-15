@@ -153,18 +153,19 @@ export default function LoginPage() {
           est. 2026
         </motion.span>
 
-        {/* Right edge divider */}
-        <div
-          className="absolute right-0 top-[15%] h-[70%] w-px"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent, #1F1F1F 30%, #1F1F1F 70%, transparent)",
-          }}
-        />
       </div>
 
+      {/* ── CENTER DIVIDER ── */}
+      <div
+        className="hidden w-px self-stretch md:block"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, #1F1F1F 15%, #1F1F1F 85%, transparent)",
+        }}
+      />
+
       {/* ── RIGHT SIDE (form) ── */}
-      <div className="relative flex w-full flex-col items-center justify-center border-l border-[#1F1F1F] md:w-[380px]">
+      <div className="relative flex w-full flex-col items-center justify-center md:w-[380px]">
         {/* Mobile background glow */}
         <div
           className="pointer-events-none absolute inset-0 md:hidden"
