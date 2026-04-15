@@ -22,9 +22,10 @@ Premium craft inspired by Linear, Vercel, and Raycast. Dark mode only. No generi
 - Border: #1F1F1F | Border hover: #2A2A2A
 - Muted foreground: #888888
 
-### Typography
-- Sans-serif: Manrope (400, 500, 600, 700)
-- Monospace: JetBrains Mono
+### Typography (CDN-loaded, no next/font)
+- Display: Clash Display (font-display) — headings, titles, logos, project names, page titles, greeting
+- Sans: General Sans (font-sans, default body font) — navigation, body text, labels, descriptions, badges, buttons, form fields, metadata
+- Mono: Geist Mono (font-mono) — version numbers, metric values, numeric data, code
 - Labels: text-xs, font-weight 500/600, uppercase, tracking-wider, color #888
 
 ### UI Patterns
