@@ -107,7 +107,7 @@ export default function LoginPage() {
         {/* Center content */}
         <div className="relative z-10 flex flex-col items-center">
           <motion.h1
-            className="font-sans text-[42px] font-bold tracking-[0.35em] text-white"
+            className="font-display text-[42px] font-bold tracking-[0.35em] text-white"
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -176,7 +176,7 @@ export default function LoginPage() {
         />
 
         {/* Version badge */}
-        <span className="absolute right-4 top-4 text-[9px] uppercase tracking-[0.12em] text-[#222]">
+        <span className="absolute right-4 top-4 font-mono text-[9px] uppercase tracking-[0.12em] text-[#222]">
           v1.0
         </span>
 
@@ -190,7 +190,7 @@ export default function LoginPage() {
               {/* Mobile logo */}
               <div className="mb-10 flex flex-col items-center md:hidden">
                 <motion.h1
-                  className="font-sans text-[42px] font-bold tracking-[0.35em] text-white"
+                  className="font-display text-[42px] font-bold tracking-[0.35em] text-white"
                   variants={fadeUp}
                   initial="hidden"
                   animate="visible"
@@ -224,7 +224,7 @@ export default function LoginPage() {
                 custom={0.1}
               >
                 <div className="flex items-center">
-                  <span className="font-sans text-base font-bold tracking-[0.18em] text-white">
+                  <span className="font-display text-base font-bold tracking-[0.18em] text-white">
                     VALK
                   </span>
                   <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-[#E24B4A]" />
