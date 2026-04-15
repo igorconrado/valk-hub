@@ -56,7 +56,7 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0A0A0A]">
       {/* ── LEFT SIDE (brand) ── */}
-      <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-[#050505] md:flex">
+      <div className="relative hidden w-1/2 items-center justify-center overflow-hidden bg-[#050505] md:flex">
         {/* Forge glow background */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -165,7 +165,7 @@ export default function LoginPage() {
       />
 
       {/* ── RIGHT SIDE (form) ── */}
-      <div className="relative flex w-full flex-col items-center justify-center md:w-[380px]">
+      <div className="relative flex w-full flex-col items-center justify-center md:w-1/2">
         {/* Mobile background glow */}
         <div
           className="pointer-events-none absolute inset-0 md:hidden"
