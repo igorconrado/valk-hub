@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createProject } from "./actions";
+import { LogoUpload } from "@/components/logo-upload";
 
 const phases = [
   { value: "discovery", label: "Discovery" },
@@ -39,6 +40,7 @@ export function CreateProjectDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [logoUrl, setLogoUrl] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -52,6 +54,7 @@ export function CreateProjectDialog({
         thesis_type: formData.get("thesis_type") as string,
         thesis_hypothesis: formData.get("thesis_hypothesis") as string,
         launch_target: formData.get("launch_target") as string,
+        logo_url: logoUrl,
       });
 
       if (result.error) {
@@ -61,6 +64,7 @@ export function CreateProjectDialog({
 
       toast.success("Produto criado. Bora.");
       setOpen(false);
+      setLogoUrl("");
     });
   }
 
@@ -83,19 +87,26 @@ export function CreateProjectDialog({
         <div className="my-5 h-px bg-[#141414]" />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4.5">
-          {/* Nome */}
-          <div>
-            <label htmlFor="name" className={labelClass}>
-              Nome
-            </label>
-            <input
-              id="name"
-              name="name"
-              required
-              placeholder="Ex: Vecto"
-              disabled={isPending}
-              className={inputClass}
+          {/* Logo + Nome */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-4">
+            <LogoUpload
+              value={logoUrl || null}
+              onChange={setLogoUrl}
+              projectId={`new-${Date.now()}`}
             />
+            <div className="flex-1">
+              <label htmlFor="name" className={labelClass}>
+                Nome
+              </label>
+              <input
+                id="name"
+                name="name"
+                required
+                placeholder="Ex: Vecto"
+                disabled={isPending}
+                className={inputClass}
+              />
+            </div>
           </div>
 
           {/* Descrição */}

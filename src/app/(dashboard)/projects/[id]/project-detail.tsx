@@ -20,6 +20,7 @@ import { RoleGate } from "@/components/role-gate";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 import { AddMemberDialog } from "./add-member-dialog";
+import { ProjectLogo } from "@/components/project-logo";
 
 type Project = {
   id: string;
@@ -30,6 +31,7 @@ type Project = {
   thesis_type: string | null;
   thesis_hypothesis: string | null;
   launch_target: string | null;
+  logo_url: string | null;
   created_at: string;
   owner: { id: string; name: string } | null;
 };
@@ -131,10 +133,12 @@ export function ProjectDetail({
 
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-[24px] font-semibold tracking-tight text-[#eee]">
-            {project.name}
-          </h1>
+        <div className="flex gap-4">
+          <ProjectLogo name={project.name} logoUrl={project.logo_url} size={56} fontSize={22} />
+          <div>
+            <h1 className="font-display text-[24px] font-semibold tracking-tight text-[#eee]">
+              {project.name}
+            </h1>
 
           <div className="mt-2.5 flex items-center gap-2 text-[12px]">
             <span
@@ -165,6 +169,7 @@ export function ProjectDetail({
 
             <span className="text-[#222]">·</span>
             <span className="text-[#444]">{timeAgo}</span>
+          </div>
           </div>
         </div>
 

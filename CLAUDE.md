@@ -36,6 +36,13 @@ Premium craft inspired by Linear, Vercel, and Raycast. Dark mode only. No generi
 - Transitions: 150-200ms ease
 - Animations: framer-motion fade-in + translateY, staggered delays
 
+### Project Logos
+- Supabase Storage bucket: `project-logos` (public, 2MB limit, PNG/JPG/WEBP/SVG)
+- Upload component: `src/components/logo-upload.tsx` (drag-and-drop, 96x96px)
+- Render component: `src/components/project-logo.tsx` (image or letter fallback with hue-based color)
+- Sizes: 40px in listing cards, 56px in detail header, 24px in mini-cards
+- Fallback: first letter of project name with consistent color derived from name hash
+
 ## Auth & Roles
 3 roles: admin, operator, stakeholder
 - Admin (Igor): full access

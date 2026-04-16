@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { CreateProjectDialog } from "./create-project-dialog";
+import { ProjectLogo } from "@/components/project-logo";
 
 type Project = {
   id: string;
@@ -13,6 +14,7 @@ type Project = {
   phase: string;
   status: string;
   thesis_type: string | null;
+  logo_url: string | null;
   created_at: string;
   owner: { name: string } | null;
 };
@@ -123,26 +125,29 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
     >
       <Link
         href={`/projects/${project.id}`}
-        className="group block rounded-xl border border-[#141414] bg-[#0A0A0A] p-5 transition-all duration-[250ms] [transition-timing-function:cubic-bezier(0.25,0.1,0.25,1)] hover:-translate-y-px hover:border-[#1F1F1F] hover:[box-shadow:0_8px_32px_rgba(0,0,0,0.4)]"
+        className="group flex gap-3.5 rounded-xl border border-[#141414] bg-[#0A0A0A] p-5 transition-all duration-[250ms] [transition-timing-function:cubic-bezier(0.25,0.1,0.25,1)] hover:-translate-y-px hover:border-[#1F1F1F] hover:[box-shadow:0_8px_32px_rgba(0,0,0,0.4)]"
       >
-        <h3 className="font-display text-[15px] font-semibold text-[#ddd] transition-colors duration-[250ms] group-hover:text-white">
-          {project.name}
-        </h3>
+        <ProjectLogo name={project.name} logoUrl={project.logo_url} size={40} fontSize={16} />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-[15px] font-semibold text-[#ddd] transition-colors duration-[250ms] group-hover:text-white">
+            {project.name}
+          </h3>
 
-        <div className="mt-2.5 flex gap-1.5">
-          <PhaseBadge phase={project.phase} />
-          {project.thesis_type && <ThesisBadge type={project.thesis_type} />}
-        </div>
+          <div className="mt-2.5 flex gap-1.5">
+            <PhaseBadge phase={project.phase} />
+            {project.thesis_type && <ThesisBadge type={project.thesis_type} />}
+          </div>
 
-        <div className="mt-3.5 flex items-center gap-1.5 text-[11px]">
-          {project.owner && (
-            <>
-              <OwnerAvatar name={project.owner.name} />
-              <span className="text-[#555]">{project.owner.name}</span>
-              <span className="text-[#333]">·</span>
-            </>
-          )}
-          <span className="text-[#333]">{timeAgo}</span>
+          <div className="mt-3.5 flex items-center gap-1.5 text-[11px]">
+            {project.owner && (
+              <>
+                <OwnerAvatar name={project.owner.name} />
+                <span className="text-[#555]">{project.owner.name}</span>
+                <span className="text-[#333]">·</span>
+              </>
+            )}
+            <span className="text-[#333]">{timeAgo}</span>
+          </div>
         </div>
       </Link>
     </motion.div>
