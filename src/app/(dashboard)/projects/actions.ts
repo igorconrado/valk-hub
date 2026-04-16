@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type CreateProjectInput = {
@@ -231,4 +232,47 @@ export async function addMember(
   revalidatePath(`/projects/${projectId}`);
 
   return { error: null, memberName: member?.name };
+}
+
+export async function deleteProject(projectId: string, projectName: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Não autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!dbUser) return { error: "Usuário não encontrado" };
+
+  // Delete activity_log entries for this project first
+  await supabase
+    .from("activity_log")
+    .delete()
+    .eq("entity_type", "project")
+    .eq("entity_id", projectId);
+
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", projectId);
+
+  if (error) return { error: error.message };
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUser.id,
+    action: "deleted_project",
+    entity_type: "project",
+    entity_id: projectId,
+    metadata: { project_name: projectName },
+  });
+
+  revalidatePath("/projects");
+  redirect("/projects");
 }
