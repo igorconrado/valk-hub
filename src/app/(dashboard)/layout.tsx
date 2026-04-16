@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   FolderKanban,
+  CheckSquare,
   FileText,
   BarChart3,
   Video,
@@ -39,6 +40,7 @@ import { createClient } from "@/lib/supabase/client";
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", enabled: true },
   { label: "Projetos", icon: FolderKanban, href: "/projects", enabled: true },
+  { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
 ];
 
 const disabledItems = [
