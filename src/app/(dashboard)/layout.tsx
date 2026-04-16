@@ -287,10 +287,10 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
       <Sidebar />
-      <div className="lg:ml-[240px]">
+      <div className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
         <Topbar />
         <motion.main
-          className="mx-auto max-w-[1080px] px-5 py-7 lg:px-8 lg:py-7"
+          className="mx-auto w-full max-w-[1080px] flex-1 px-5 py-7 lg:px-8 lg:py-7"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
