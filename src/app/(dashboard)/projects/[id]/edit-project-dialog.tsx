@@ -11,8 +11,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { updateProject } from "../actions";
+import { updateProject, deleteProject } from "../actions";
 import { LogoUpload } from "@/components/logo-upload";
+import { RoleGate } from "@/components/role-gate";
 
 type Project = {
   id: string;
@@ -63,6 +64,9 @@ export function EditProjectDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState(project.logo_url ?? "");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -91,8 +95,21 @@ export function EditProjectDialog({
     });
   }
 
+  function handleDelete() {
+    startDeleteTransition(async () => {
+      toast.success("Produto excluído.");
+      await deleteProject(project.id, project.name);
+    });
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => {
+      setOpen(v);
+      if (!v) {
+        setShowDeleteConfirm(false);
+        setDeleteConfirmName("");
+      }
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         showCloseButton={false}
@@ -240,6 +257,74 @@ export function EditProjectDialog({
                 className={inputClass}
               />
             </div>
+
+            {/* Danger zone — admin only */}
+            <RoleGate allowed={["admin"]}>
+              {!showDeleteConfirm ? (
+                <div>
+                  <div className="mt-6 h-px bg-[#141414]" />
+                  <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#E24B4A]">
+                    Zona de perigo
+                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-[12px] text-[#555]">
+                      Excluir este produto permanentemente
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="rounded-lg border border-[rgba(226,75,74,0.2)] bg-transparent px-3.5 py-[7px] text-[12px] text-[#E24B4A] transition-all duration-200 hover:border-[rgba(226,75,74,0.4)] hover:bg-[rgba(226,75,74,0.08)]"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="mt-6 h-px bg-[#141414]" />
+                  <h3 className="mt-4 font-display text-[16px] font-semibold text-[#eee]">
+                    Tem certeza?
+                  </h3>
+                  <p className="mt-2 text-[13px] text-[#888]">
+                    O produto <span className="text-[#ccc]">{project.name}</span> será
+                    excluído permanentemente junto com todos os dados associados.
+                  </p>
+                  <div className="mt-3">
+                    <label className={labelClass}>
+                      Digite o nome do produto para confirmar
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmName}
+                      onChange={(e) => setDeleteConfirmName(e.target.value)}
+                      placeholder={project.name}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteConfirmName("");
+                      }}
+                      className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={deleteConfirmName !== project.name || isDeleting}
+                      className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] disabled:opacity-40"
+                    >
+                      {isDeleting && <Loader2 size={14} className="animate-spin" />}
+                      Excluir permanentemente
+                    </button>
+                  </div>
+                </div>
+              )}
+            </RoleGate>
           </div>
 
           {/* Sticky footer */}

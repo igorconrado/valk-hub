@@ -194,27 +194,29 @@ export function ProjectDetail({
 
       {/* Tabs */}
       <div className="mt-7 border-b border-[#141414]">
-        <div className="-mb-px flex gap-0.5">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative px-3.5 py-2.5 text-[12px] font-medium transition-colors duration-150 ${
-                activeTab === tab.id
-                  ? "text-[#eee]"
-                  : "text-[#444] hover:text-[#888]"
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E24B4A]"
-                  layoutId="tab-underline"
-                  transition={{ duration: 0.2 }}
-                />
-              )}
-            </button>
-          ))}
+        <div className="-mb-px overflow-x-auto pr-5 [-ms-overflow-style:none] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden md:overflow-x-visible md:pr-0">
+          <div className="flex min-w-max gap-0.5 md:min-w-0">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative whitespace-nowrap px-3.5 py-2.5 text-[12px] font-medium transition-colors duration-150 ${
+                  activeTab === tab.id
+                    ? "text-[#eee]"
+                    : "text-[#444] hover:text-[#888]"
+                }`}
+              >
+                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E24B4A]"
+                    layoutId="tab-underline"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
