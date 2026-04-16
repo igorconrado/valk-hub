@@ -54,7 +54,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0A0A0A]">
+    <div className="flex h-dvh w-screen overflow-hidden bg-[#0A0A0A]">
       {/* ── LEFT SIDE (brand) ── */}
       <div className="relative hidden w-1/2 items-center justify-center overflow-hidden bg-[#050505] md:flex">
         {/* Forge glow background */}
