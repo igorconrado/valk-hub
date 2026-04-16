@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         .from("users")
         .select("id, auth_id")
         .eq("email", data.user.email!)
-        .single();
+        .maybeSingle();
 
       if (existingUser && !existingUser.auth_id) {
         await supabase
