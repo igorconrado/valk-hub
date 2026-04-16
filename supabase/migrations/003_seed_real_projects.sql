@@ -24,7 +24,7 @@ VALUES (
 INSERT INTO project_members (project_id, user_id, role_in_project)
 VALUES
   ((SELECT id FROM projects WHERE name = 'Vecto'), (SELECT id FROM users WHERE email = 'igor.conrado@valkbr.com'), 'owner'),
-  ((SELECT id FROM projects WHERE name = 'Vecto'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'member');
+  ((SELECT id FROM projects WHERE name = 'Vecto'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'owner');
 
 INSERT INTO activity_log (user_id, action, entity_type, entity_id, metadata)
 VALUES (
@@ -53,7 +53,7 @@ VALUES (
 INSERT INTO project_members (project_id, user_id, role_in_project)
 VALUES
   ((SELECT id FROM projects WHERE name = 'Pulso'), (SELECT id FROM users WHERE email = 'igor.conrado@valkbr.com'), 'owner'),
-  ((SELECT id FROM projects WHERE name = 'Pulso'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'member');
+  ((SELECT id FROM projects WHERE name = 'Pulso'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'owner');
 
 INSERT INTO activity_log (user_id, action, entity_type, entity_id, metadata)
 VALUES (
@@ -82,7 +82,7 @@ VALUES (
 INSERT INTO project_members (project_id, user_id, role_in_project)
 VALUES
   ((SELECT id FROM projects WHERE name = 'Casa Gestão'), (SELECT id FROM users WHERE email = 'igor.conrado@valkbr.com'), 'owner'),
-  ((SELECT id FROM projects WHERE name = 'Casa Gestão'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'member');
+  ((SELECT id FROM projects WHERE name = 'Casa Gestão'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'owner');
 
 INSERT INTO activity_log (user_id, action, entity_type, entity_id, metadata)
 VALUES (
@@ -111,7 +111,7 @@ VALUES (
 INSERT INTO project_members (project_id, user_id, role_in_project)
 VALUES
   ((SELECT id FROM projects WHERE name = 'DuoPay'), (SELECT id FROM users WHERE email = 'igor.conrado@valkbr.com'), 'owner'),
-  ((SELECT id FROM projects WHERE name = 'DuoPay'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'member');
+  ((SELECT id FROM projects WHERE name = 'DuoPay'), (SELECT id FROM users WHERE email = 'felipe.alves@valkbr.com'), 'owner');
 
 INSERT INTO activity_log (user_id, action, entity_type, entity_id, metadata)
 VALUES (
