@@ -67,7 +67,15 @@ const typeLabels: Record<string, string> = {
   decision: "Decisao",
 };
 
-function KanbanCard({ task, isDragging }: { task: TaskRow; isDragging?: boolean }) {
+function KanbanCard({
+  task,
+  isDragging,
+  onTitleClick,
+}: {
+  task: TaskRow;
+  isDragging?: boolean;
+  onTitleClick?: (taskId: string) => void;
+}) {
   const overdue =
     task.due_date &&
     isPast(parseISO(task.due_date)) &&
@@ -90,7 +98,17 @@ function KanbanCard({ task, isDragging }: { task: TaskRow; isDragging?: boolean 
           : "hover:border-[#1F1F1F]"
       }`}
     >
-      <p className="text-[13px] font-medium leading-snug text-[#ddd]">
+      <p
+        onClick={(e) => {
+          if (onTitleClick) {
+            e.stopPropagation();
+            onTitleClick(task.id);
+          }
+        }}
+        className={`text-[13px] font-medium leading-snug text-[#ddd] ${
+          onTitleClick ? "cursor-pointer hover:text-white" : ""
+        }`}
+      >
         {task.title}
       </p>
       <div className="mt-2 flex items-center gap-2">
@@ -127,7 +145,13 @@ function KanbanCard({ task, isDragging }: { task: TaskRow; isDragging?: boolean 
   );
 }
 
-function SortableCard({ task }: { task: TaskRow }) {
+function SortableCard({
+  task,
+  onTitleClick,
+}: {
+  task: TaskRow;
+  onTitleClick?: (taskId: string) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -145,7 +169,7 @@ function SortableCard({ task }: { task: TaskRow }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <KanbanCard task={task} />
+      <KanbanCard task={task} onTitleClick={onTitleClick} />
     </div>
   );
 }
@@ -153,9 +177,11 @@ function SortableCard({ task }: { task: TaskRow }) {
 function DroppableColumn({
   column,
   tasks,
+  onTitleClick,
 }: {
   column: (typeof COLUMNS)[number];
   tasks: TaskRow[];
+  onTitleClick?: (taskId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
@@ -199,7 +225,7 @@ function DroppableColumn({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: i * 0.04 }}
             >
-              <SortableCard task={task} />
+              <SortableCard task={task} onTitleClick={onTitleClick} />
             </motion.div>
           ))}
         </div>
@@ -211,9 +237,11 @@ function DroppableColumn({
 export function TaskKanbanView({
   tasks,
   users,
+  onTaskClick,
 }: {
   tasks: TaskRow[];
   users: { id: string; name: string }[];
+  onTaskClick?: (taskId: string) => void;
 }) {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [activeTask, setActiveTask] = useState<TaskRow | null>(null);
@@ -307,12 +335,15 @@ export function TaskKanbanView({
               key={col.id}
               column={col}
               tasks={col.tasks}
+              onTitleClick={onTaskClick}
             />
           ))}
         </div>
 
         <DragOverlay>
-          {activeTask ? <KanbanCard task={activeTask} isDragging /> : null}
+          {activeTask ? (
+            <KanbanCard task={activeTask} isDragging />
+          ) : null}
         </DragOverlay>
       </DndContext>
 

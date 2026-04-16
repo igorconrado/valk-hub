@@ -137,9 +137,11 @@ function DueDate({ date }: { date: string | null }) {
 
 export function TaskListView({
   tasks,
+  onTaskClick,
 }: {
   tasks: TaskRow[];
   users: { id: string; name: string }[];
+  onTaskClick?: (taskId: string) => void;
 }) {
   return (
     <div>
@@ -178,7 +180,10 @@ export function TaskListView({
           </div>
 
           {/* Title */}
-          <button className="flex-1 truncate text-left text-[13px] font-medium text-[#ddd] transition-colors duration-150 group-hover:text-white">
+          <button
+            onClick={() => onTaskClick?.(task.id)}
+            className="flex-1 truncate text-left text-[13px] font-medium text-[#ddd] transition-colors duration-150 group-hover:text-white"
+          >
             {task.title}
           </button>
 
