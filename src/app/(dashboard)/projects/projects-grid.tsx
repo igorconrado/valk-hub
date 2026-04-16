@@ -5,6 +5,7 @@ import { FolderKanban } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { CreateProjectDialog } from "./create-project-dialog";
 
 type Project = {
   id: string;
@@ -160,9 +161,11 @@ function EmptyState() {
       <p className="mt-4 text-[13px] text-[#555]">
         Nenhum produto no radar
       </p>
-      <button className="mt-4 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#C73E3D]">
-        Criar primeiro produto
-      </button>
+      <CreateProjectDialog>
+        <button className="mt-4 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#C73E3D]">
+          Criar primeiro produto
+        </button>
+      </CreateProjectDialog>
     </motion.div>
   );
 }
