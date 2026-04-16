@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { RoleGate } from "@/components/role-gate";
+import { EditProjectDialog } from "./edit-project-dialog";
 
 type Project = {
   id: string;
@@ -158,10 +159,12 @@ export function ProjectDetail({
         </div>
 
         <RoleGate allowed={["admin", "operator"]}>
-          <button className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-3 py-1.5 text-[12px] text-[#666] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#ccc]">
-            <Pencil size={13} strokeWidth={1.5} />
-            Editar
-          </button>
+          <EditProjectDialog project={project}>
+            <button className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-3 py-1.5 text-[12px] text-[#666] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#ccc]">
+              <Pencil size={13} strokeWidth={1.5} />
+              Editar
+            </button>
+          </EditProjectDialog>
         </RoleGate>
       </div>
 
