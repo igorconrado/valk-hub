@@ -72,3 +72,66 @@ export async function createProject(input: CreateProjectInput) {
 
   return { error: null };
 }
+
+type UpdateProjectInput = {
+  id: string;
+  name: string;
+  description: string;
+  phase: string;
+  status: string;
+  thesis_type: string;
+  thesis_hypothesis: string;
+  launch_target: string;
+};
+
+export async function updateProject(input: UpdateProjectInput) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!dbUser) {
+    return { error: "Usuário não encontrado" };
+  }
+
+  const { error } = await supabase
+    .from("projects")
+    .update({
+      name: input.name,
+      description: input.description || null,
+      phase: input.phase,
+      status: input.status,
+      thesis_type: input.thesis_type || null,
+      thesis_hypothesis: input.thesis_hypothesis || null,
+      launch_target: input.launch_target || null,
+    })
+    .eq("id", input.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUser.id,
+    action: "updated_project",
+    entity_type: "project",
+    entity_id: input.id,
+    metadata: { name: input.name },
+  });
+
+  revalidatePath(`/projects/${input.id}`);
+  revalidatePath("/projects");
+
+  return { error: null };
+}
