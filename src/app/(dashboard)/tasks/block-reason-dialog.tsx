@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { createTaskBlock } from "./actions";
 
@@ -55,20 +56,26 @@ export function BlockReasonDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="border-[#1A1A1A] bg-[#111] sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle className="font-display text-[16px] font-semibold text-white">
-            Motivo do bloqueio
-          </DialogTitle>
-          <DialogDescription className="text-[12px] text-[#555]">
-            Explique por que essa task esta sendo bloqueada.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-[420px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
+      >
+        <div className="px-7 pt-7">
+          <DialogHeader className="gap-1">
+            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+              O que esta travando?
+            </DialogTitle>
+            <DialogDescription className="text-[12px] text-[#555]">
+              Descreva o motivo do bloqueio desta task.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-5 h-px bg-[#141414]" />
+        </div>
 
-        <div className="mt-2 flex flex-col gap-4">
+        <div className="flex flex-col gap-4.5 px-7 py-5">
           <div>
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]">
-              Motivo *
+              Motivo do bloqueio *
             </label>
             <textarea
               value={reason}
@@ -81,7 +88,7 @@ export function BlockReasonDialog({
 
           <div>
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]">
-              Quem pode desbloquear? (opcional)
+              Quem pode destravar? (opcional)
             </label>
             <select
               value={blockedBy}
@@ -96,20 +103,24 @@ export function BlockReasonDialog({
               ))}
             </select>
           </div>
+        </div>
 
-          <div className="flex items-center justify-end gap-2">
+        <div className="border-t border-[#141414] px-7 py-5">
+          <div className="flex justify-end gap-2.5">
             <button
               onClick={onClose}
-              className="rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={!reason.trim() || isPending}
-              className="rounded-lg bg-[#E24B4A] px-4 py-1.5 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F] disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
             >
-              {isPending ? "Salvando..." : "Bloquear task"}
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Bloquear task
             </button>
           </div>
         </div>

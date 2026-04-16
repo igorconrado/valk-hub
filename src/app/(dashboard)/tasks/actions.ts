@@ -170,6 +170,26 @@ async function syncLinearField(
   }
 }
 
+async function autoResolveBlocks(
+  taskId: string,
+  dbUserId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>
+) {
+  await supabase
+    .from("task_blocks")
+    .update({ resolved: true, resolved_at: new Date().toISOString() })
+    .eq("task_id", taskId)
+    .eq("resolved", false);
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUserId,
+    action: "unblocked_task",
+    entity_type: "task",
+    entity_id: taskId,
+    metadata: {},
+  });
+}
+
 export async function updateTaskField(
   taskId: string,
   field: string,
@@ -177,6 +197,19 @@ export async function updateTaskField(
 ) {
   const { supabase, dbUser, error: authError } = await getAuthUser();
   if (authError || !dbUser) return { error: authError };
+
+  // If changing status, check if moving FROM on_hold to auto-resolve blocks
+  if (field === "status" && typeof value === "string" && value !== "on_hold") {
+    const { data: currentTask } = await supabase
+      .from("tasks")
+      .select("status")
+      .eq("id", taskId)
+      .single();
+
+    if (currentTask?.status === "on_hold") {
+      await autoResolveBlocks(taskId, dbUser.id, supabase);
+    }
+  }
 
   const { error } = await supabase
     .from("tasks")
@@ -294,21 +327,21 @@ export async function getTaskDetail(taskId: string) {
 }
 
 export async function updateTaskStatus(taskId: string, status: string) {
-  const supabase = await createClient();
+  const { supabase, dbUser, error: authError } = await getAuthUser();
+  if (authError || !dbUser) return { error: authError };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // If moving FROM on_hold, auto-resolve blocks
+  if (status !== "on_hold") {
+    const { data: currentTask } = await supabase
+      .from("tasks")
+      .select("status")
+      .eq("id", taskId)
+      .single();
 
-  if (!user) return { error: "Não autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuário não encontrado" };
+    if (currentTask?.status === "on_hold") {
+      await autoResolveBlocks(taskId, dbUser.id, supabase);
+    }
+  }
 
   const { error } = await supabase
     .from("tasks")
@@ -316,6 +349,16 @@ export async function updateTaskStatus(taskId: string, status: string) {
     .eq("id", taskId);
 
   if (error) return { error: error.message };
+
+  // Linear sync
+  const linearStatus = STATUS_TO_LINEAR[status];
+  if (linearStatus) {
+    await syncLinearField(taskId, supabase, async (issueId) => {
+      const states = await linearClient.workflowStates();
+      const target = states.nodes.find((s) => s.name === linearStatus);
+      if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+    });
+  }
 
   await supabase.from("activity_log").insert({
     user_id: dbUser.id,
@@ -335,21 +378,8 @@ export async function createTaskBlock(
   reason: string,
   blockedByUserId: string | null
 ) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Não autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuário não encontrado" };
+  const { supabase, dbUser, error: authError } = await getAuthUser();
+  if (authError || !dbUser) return { error: authError };
 
   const { error: blockError } = await supabase.from("task_blocks").insert({
     task_id: taskId,
@@ -367,9 +397,16 @@ export async function createTaskBlock(
 
   if (statusError) return { error: statusError.message };
 
+  // Linear sync — update status to on_hold equivalent
+  await syncLinearField(taskId, supabase, async (issueId) => {
+    const states = await linearClient.workflowStates();
+    const target = states.nodes.find((s) => s.name === "Blocked" || s.name === "On Hold");
+    if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+  });
+
   await supabase.from("activity_log").insert({
     user_id: dbUser.id,
-    action: "task_blocked",
+    action: "blocked_task",
     entity_type: "task",
     entity_id: taskId,
     metadata: { reason },

@@ -8,6 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useRole } from "@/lib/hooks/use-role";
 import { getTaskDetail, updateTaskField, resolveTaskBlock } from "./actions";
+import { BlockReasonDialog } from "./block-reason-dialog";
 
 type TaskDetail = NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
 
@@ -168,9 +169,12 @@ function getActionText(
     case "task_status_changed":
       return `moveu para ${metadata?.status ?? ""}`;
     case "task_blocked":
+    case "blocked_task":
       return `bloqueou: ${metadata?.reason ?? ""}`;
     case "task_block_resolved":
       return "resolveu um bloqueio";
+    case "unblocked_task":
+      return "desbloqueou a task";
     default:
       return action;
   }
@@ -190,6 +194,7 @@ export function TaskDetailPanel({
   const [titleValue, setTitleValue] = useState("");
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState("");
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
 
@@ -222,6 +227,19 @@ export function TaskDetailPanel({
         await fetchData(taskId);
       }
     });
+  }
+
+  function handleStatusChange(newStatus: string) {
+    if (newStatus === "on_hold") {
+      setBlockDialogOpen(true);
+      return;
+    }
+    handleFieldUpdate("status", newStatus);
+  }
+
+  function handleBlockComplete() {
+    setBlockDialogOpen(false);
+    if (taskId) fetchData(taskId);
   }
 
   function handleTitleSave() {
@@ -262,6 +280,7 @@ export function TaskDetailPanel({
   ];
 
   return (
+    <>
     <AnimatePresence>
       {taskId && (
         <>
@@ -334,7 +353,7 @@ export function TaskDetailPanel({
                     <DropdownPill
                       options={statusOptions}
                       value={task.status}
-                      onChange={(v) => handleFieldUpdate("status", v)}
+                      onChange={handleStatusChange}
                       canEdit={canEdit}
                     />
                     <DropdownPill
@@ -644,5 +663,16 @@ export function TaskDetailPanel({
         </>
       )}
     </AnimatePresence>
+
+      {taskId && (
+        <BlockReasonDialog
+          open={blockDialogOpen}
+          taskId={taskId}
+          users={users}
+          onClose={() => setBlockDialogOpen(false)}
+          onComplete={handleBlockComplete}
+        />
+      )}
+    </>
   );
 }
