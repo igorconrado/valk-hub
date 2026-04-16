@@ -50,11 +50,29 @@ export default async function ProjectDetailPage({
     availableUsers = data ?? [];
   }
 
+  // Fetch tasks for this project
+  const { data: projectTasks } = await supabase
+    .from("tasks")
+    .select(
+      "*, assignee:users!assignee_id(id, name, avatar_url), project:projects!project_id(id, name, logo_url)"
+    )
+    .eq("project_id", id)
+    .order("priority", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  // Fetch all users for task creation
+  const { data: allUsers } = await supabase
+    .from("users")
+    .select("id, name")
+    .order("name");
+
   return (
     <ProjectDetail
       project={project as any}
       members={members}
       availableUsers={availableUsers}
+      tasks={projectTasks ?? []}
+      allUsers={allUsers ?? []}
     />
   );
 }
