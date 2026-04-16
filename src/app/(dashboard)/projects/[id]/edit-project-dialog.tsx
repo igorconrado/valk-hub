@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { updateProject } from "../actions";
+import { LogoUpload } from "@/components/logo-upload";
 
 type Project = {
   id: string;
@@ -22,6 +23,7 @@ type Project = {
   thesis_type: string | null;
   thesis_hypothesis: string | null;
   launch_target: string | null;
+  logo_url: string | null;
 };
 
 const statuses = [
@@ -60,6 +62,7 @@ export function EditProjectDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [logoUrl, setLogoUrl] = useState(project.logo_url ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,6 +78,7 @@ export function EditProjectDialog({
         thesis_type: formData.get("thesis_type") as string,
         thesis_hypothesis: formData.get("thesis_hypothesis") as string,
         launch_target: formData.get("launch_target") as string,
+        logo_url: logoUrl,
       });
 
       if (result.error) {
@@ -126,19 +130,26 @@ export function EditProjectDialog({
             </select>
           </div>
 
-          {/* Nome */}
-          <div>
-            <label htmlFor="name" className={labelClass}>
-              Nome
-            </label>
-            <input
-              id="name"
-              name="name"
-              required
-              defaultValue={project.name}
-              disabled={isPending}
-              className={inputClass}
+          {/* Logo + Nome */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-4">
+            <LogoUpload
+              value={logoUrl || null}
+              onChange={setLogoUrl}
+              projectId={project.id}
             />
+            <div className="flex-1">
+              <label htmlFor="name" className={labelClass}>
+                Nome
+              </label>
+              <input
+                id="name"
+                name="name"
+                required
+                defaultValue={project.name}
+                disabled={isPending}
+                className={inputClass}
+              />
+            </div>
           </div>
 
           {/* Descrição */}

@@ -10,6 +10,7 @@ type CreateProjectInput = {
   thesis_type: string;
   thesis_hypothesis: string;
   launch_target: string;
+  logo_url: string;
 };
 
 export async function createProject(input: CreateProjectInput) {
@@ -43,6 +44,7 @@ export async function createProject(input: CreateProjectInput) {
       thesis_type: input.thesis_type || null,
       thesis_hypothesis: input.thesis_hypothesis || null,
       launch_target: input.launch_target || null,
+      logo_url: input.logo_url || null,
       owner_id: dbUser.id,
     })
     .select("id")
@@ -82,6 +84,7 @@ type UpdateProjectInput = {
   thesis_type: string;
   thesis_hypothesis: string;
   launch_target: string;
+  logo_url: string;
 };
 
 export async function updateProject(input: UpdateProjectInput) {
@@ -115,6 +118,7 @@ export async function updateProject(input: UpdateProjectInput) {
       thesis_type: input.thesis_type || null,
       thesis_hypothesis: input.thesis_hypothesis || null,
       launch_target: input.launch_target || null,
+      logo_url: input.logo_url || null,
     })
     .eq("id", input.id);
 
