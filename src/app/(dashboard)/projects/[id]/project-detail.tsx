@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { RoleGate } from "@/components/role-gate";
 import { EditProjectDialog } from "./edit-project-dialog";
+import { RemoveMemberDialog } from "./remove-member-dialog";
+import { AddMemberDialog } from "./add-member-dialog";
 
 type Project = {
   id: string;
@@ -84,12 +86,20 @@ function Avatar({ name, size = 26 }: { name: string; size?: number }) {
   );
 }
 
+type AvailableUser = {
+  id: string;
+  name: string;
+  company_role: string | null;
+};
+
 export function ProjectDetail({
   project,
   members,
+  availableUsers,
 }: {
   project: Project;
   members: Member[];
+  availableUsers: AvailableUser[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
 
@@ -241,9 +251,16 @@ export function ProjectDetail({
                   {member.role_in_project}
                 </span>
                 <RoleGate allowed={["admin", "operator"]}>
-                  <button className="ml-auto hidden text-[#333] transition-colors hover:text-[#E24B4A] group-hover:block">
-                    <X size={14} strokeWidth={1.5} />
-                  </button>
+                  <RemoveMemberDialog
+                    projectId={project.id}
+                    projectName={project.name}
+                    userId={member.user.id}
+                    memberName={member.user.name}
+                  >
+                    <button className="ml-auto hidden text-[#333] transition-colors hover:text-[#E24B4A] group-hover:block">
+                      <X size={14} strokeWidth={1.5} />
+                    </button>
+                  </RemoveMemberDialog>
                 </RoleGate>
               </div>
             );
@@ -251,10 +268,12 @@ export function ProjectDetail({
         </div>
 
         <RoleGate allowed={["admin", "operator"]}>
-          <button className="mt-3 flex items-center gap-1.5 rounded-lg px-1 py-1.5 text-[12px] text-[#444] transition-colors hover:text-[#888]">
-            <UserPlus size={14} strokeWidth={1.5} />
-            Adicionar ao time
-          </button>
+          <AddMemberDialog projectId={project.id} availableUsers={availableUsers}>
+            <button className="mt-3 flex items-center gap-1.5 rounded-lg px-1 py-1.5 text-[12px] text-[#444] transition-colors hover:text-[#888]">
+              <UserPlus size={14} strokeWidth={1.5} />
+              Adicionar ao time
+            </button>
+          </AddMemberDialog>
         </RoleGate>
       </div>
     </motion.div>
