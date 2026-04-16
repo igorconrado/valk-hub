@@ -35,7 +35,7 @@ export function useUser() {
         .from("users")
         .select("id, auth_id, email, name, role, company_role, avatar_url")
         .eq("auth_id", authUser.id)
-        .single();
+        .maybeSingle();
 
       if (dbError) {
         setError(dbError.message);
