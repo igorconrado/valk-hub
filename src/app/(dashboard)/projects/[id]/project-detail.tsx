@@ -15,10 +15,14 @@ import {
   Clock,
   UserPlus,
   Plus,
+  List,
+  Kanban,
   X,
 } from "lucide-react";
-import { isPast, parseISO, format, isToday } from "date-fns";
 import { CreateTaskDialog } from "@/app/(dashboard)/tasks/create-task-dialog";
+import { TaskListView } from "@/app/(dashboard)/tasks/task-list-view";
+import { TaskKanbanView } from "@/app/(dashboard)/tasks/task-kanban-view";
+import { TaskDetailPanel } from "@/app/(dashboard)/tasks/task-detail-panel";
 import { RoleGate } from "@/components/role-gate";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
@@ -99,11 +103,19 @@ type AvailableUser = {
 
 type TaskRow = {
   id: string;
+  project_id: string | null;
   title: string;
+  description: string | null;
   type: string;
+  assignee_id: string;
   status: string;
   priority: string;
   due_date: string | null;
+  tags: string[];
+  linear_issue_id: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
   assignee: { id: string; name: string; avatar_url: string | null } | null;
   project: { id: string; name: string; logo_url: string | null } | null;
 };
@@ -126,12 +138,13 @@ const statusLabels: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-const priorityColors: Record<string, string> = {
-  urgent: "#E24B4A",
-  high: "#F59E0B",
-  medium: "#3B82F6",
-  low: "#444",
-};
+const STATUS_SUMMARY = [
+  { key: "backlog", label: "backlog" },
+  { key: "doing", label: "doing" },
+  { key: "on_hold", label: "on hold" },
+  { key: "review", label: "review" },
+  { key: "done", label: "done" },
+];
 
 export function ProjectDetail({
   project,
@@ -147,6 +160,8 @@ export function ProjectDetail({
   allUsers: { id: string; name: string }[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
+  const [taskView, setTaskView] = useState<"list" | "kanban">("list");
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const timeAgo = formatDistanceToNow(new Date(project.created_at), {
     addSuffix: true,
@@ -266,11 +281,55 @@ export function ProjectDetail({
       {/* Tab content */}
       {activeTab === "tasks" ? (
         <div className="py-5">
-          {/* Header with create button */}
+          {/* Summary bar */}
+          {tasks.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {STATUS_SUMMARY.map(({ key, label }) => {
+                const count = tasks.filter((t) => t.status === key).length;
+                if (count === 0) return null;
+                const color = statusColors[key] ?? "#444";
+                return (
+                  <span
+                    key={key}
+                    className="text-[11px] font-medium"
+                    style={{ color }}
+                  >
+                    {count} {label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Header with view toggle + create button */}
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
-              {tasks.length} task{tasks.length !== 1 ? "s" : ""}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+                {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+              </span>
+              <div className="flex items-center gap-0.5 rounded-lg border border-[#1A1A1A] p-0.5">
+                <button
+                  onClick={() => setTaskView("list")}
+                  className={`rounded-md p-1 transition-colors duration-150 ${
+                    taskView === "list"
+                      ? "bg-white/[0.06] text-[#ccc]"
+                      : "text-[#444] hover:text-[#666]"
+                  }`}
+                >
+                  <List size={12} strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={() => setTaskView("kanban")}
+                  className={`rounded-md p-1 transition-colors duration-150 ${
+                    taskView === "kanban"
+                      ? "bg-white/[0.06] text-[#ccc]"
+                      : "text-[#444] hover:text-[#666]"
+                  }`}
+                >
+                  <Kanban size={12} strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
             <RoleGate allowed={["admin", "operator"]}>
               <CreateTaskDialog
                 defaultProjectId={project.id}
@@ -296,71 +355,24 @@ export function ProjectDetail({
                 Sem tasks nesse produto ainda.
               </p>
             </div>
+          ) : taskView === "list" ? (
+            <TaskListView
+              tasks={tasks}
+              users={allUsers}
+              onTaskClick={setSelectedTaskId}
+            />
           ) : (
-            <div>
-              {tasks.map((task) => {
-                const overdue =
-                  task.due_date &&
-                  isPast(parseISO(task.due_date)) &&
-                  !isToday(parseISO(task.due_date));
-                const sColor = statusColors[task.status] ?? "#444";
-                const initials = task.assignee
-                  ? task.assignee.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()
-                  : null;
-
-                return (
-                  <div
-                    key={task.id}
-                    className="group flex items-center gap-3 border-b border-[#0F0F0F] px-1 py-2.5 transition-colors duration-150 hover:bg-white/[0.02]"
-                  >
-                    <div
-                      className="h-[6px] w-[6px] shrink-0 rounded-full"
-                      style={{
-                        backgroundColor:
-                          priorityColors[task.priority] ?? "#444",
-                      }}
-                    />
-                    <span className="flex-1 truncate text-[13px] font-medium text-[#ddd]">
-                      {task.title}
-                    </span>
-                    {initials && (
-                      <div className="flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
-                        {initials}
-                      </div>
-                    )}
-                    {task.due_date && (
-                      <span
-                        className={`text-[10px] ${
-                          overdue
-                            ? "font-medium text-[#E24B4A]"
-                            : "text-[#444]"
-                        }`}
-                      >
-                        {format(parseISO(task.due_date), "dd MMM", {
-                          locale: ptBR,
-                        })}
-                      </span>
-                    )}
-                    <span
-                      className="inline-flex shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider"
-                      style={{
-                        backgroundColor: `${sColor}12`,
-                        color: sColor,
-                        border: `1px solid ${sColor}20`,
-                      }}
-                    >
-                      {statusLabels[task.status] ?? task.status}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <TaskKanbanView
+              tasks={tasks}
+              users={allUsers}
+              onTaskClick={setSelectedTaskId}
+            />
           )}
+
+          <TaskDetailPanel
+            taskId={selectedTaskId}
+            onClose={() => setSelectedTaskId(null)}
+          />
         </div>
       ) : (
         <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
