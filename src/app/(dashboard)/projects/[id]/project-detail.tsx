@@ -14,8 +14,11 @@ import {
   Scale,
   Clock,
   UserPlus,
+  Plus,
   X,
 } from "lucide-react";
+import { isPast, parseISO, format, isToday } from "date-fns";
+import { CreateTaskDialog } from "@/app/(dashboard)/tasks/create-task-dialog";
 import { RoleGate } from "@/components/role-gate";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
@@ -94,14 +97,54 @@ type AvailableUser = {
   company_role: string | null;
 };
 
+type TaskRow = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  assignee: { id: string; name: string; avatar_url: string | null } | null;
+  project: { id: string; name: string; logo_url: string | null } | null;
+};
+
+const statusColors: Record<string, string> = {
+  backlog: "#444",
+  doing: "#3B82F6",
+  on_hold: "#F59E0B",
+  review: "#8B5CF6",
+  done: "#10B981",
+  cancelled: "#666",
+};
+
+const statusLabels: Record<string, string> = {
+  backlog: "Backlog",
+  doing: "Doing",
+  on_hold: "On Hold",
+  review: "Review",
+  done: "Done",
+  cancelled: "Cancelled",
+};
+
+const priorityColors: Record<string, string> = {
+  urgent: "#E24B4A",
+  high: "#F59E0B",
+  medium: "#3B82F6",
+  low: "#444",
+};
+
 export function ProjectDetail({
   project,
   members,
   availableUsers,
+  tasks,
+  allUsers,
 }: {
   project: Project;
   members: Member[];
   availableUsers: AvailableUser[];
+  tasks: TaskRow[];
+  allUsers: { id: string; name: string }[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
 
@@ -220,20 +263,122 @@ export function ProjectDetail({
         </div>
       </div>
 
-      {/* Tab content placeholder */}
-      <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
-        <activeTabData.icon
-          size={28}
-          strokeWidth={1.2}
-          className="text-[#1A1A1A]"
-        />
-        <p className="mt-3 text-[13px] text-[#444]">
-          {activeTabData.placeholder}
-        </p>
-        {"sub" in activeTabData && activeTabData.sub && (
-          <p className="mt-1 text-[11px] text-[#333]">{activeTabData.sub}</p>
-        )}
-      </div>
+      {/* Tab content */}
+      {activeTab === "tasks" ? (
+        <div className="py-5">
+          {/* Header with create button */}
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+              {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+            </span>
+            <RoleGate allowed={["admin", "operator"]}>
+              <CreateTaskDialog
+                defaultProjectId={project.id}
+                projects={[{ id: project.id, name: project.name }]}
+                users={allUsers}
+              >
+                <button className="flex items-center gap-1 rounded-lg border border-[#222] bg-transparent px-2.5 py-1 text-[11px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]">
+                  <Plus size={12} strokeWidth={1.5} />
+                  Nova task
+                </button>
+              </CreateTaskDialog>
+            </RoleGate>
+          </div>
+
+          {tasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <CheckCircle
+                size={28}
+                strokeWidth={1.2}
+                className="text-[#1A1A1A]"
+              />
+              <p className="mt-3 text-[13px] text-[#444]">
+                Sem tasks nesse produto ainda.
+              </p>
+            </div>
+          ) : (
+            <div>
+              {tasks.map((task) => {
+                const overdue =
+                  task.due_date &&
+                  isPast(parseISO(task.due_date)) &&
+                  !isToday(parseISO(task.due_date));
+                const sColor = statusColors[task.status] ?? "#444";
+                const initials = task.assignee
+                  ? task.assignee.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()
+                  : null;
+
+                return (
+                  <div
+                    key={task.id}
+                    className="group flex items-center gap-3 border-b border-[#0F0F0F] px-1 py-2.5 transition-colors duration-150 hover:bg-white/[0.02]"
+                  >
+                    <div
+                      className="h-[6px] w-[6px] shrink-0 rounded-full"
+                      style={{
+                        backgroundColor:
+                          priorityColors[task.priority] ?? "#444",
+                      }}
+                    />
+                    <span className="flex-1 truncate text-[13px] font-medium text-[#ddd]">
+                      {task.title}
+                    </span>
+                    {initials && (
+                      <div className="flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
+                        {initials}
+                      </div>
+                    )}
+                    {task.due_date && (
+                      <span
+                        className={`text-[10px] ${
+                          overdue
+                            ? "font-medium text-[#E24B4A]"
+                            : "text-[#444]"
+                        }`}
+                      >
+                        {format(parseISO(task.due_date), "dd MMM", {
+                          locale: ptBR,
+                        })}
+                      </span>
+                    )}
+                    <span
+                      className="inline-flex shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider"
+                      style={{
+                        backgroundColor: `${sColor}12`,
+                        color: sColor,
+                        border: `1px solid ${sColor}20`,
+                      }}
+                    >
+                      {statusLabels[task.status] ?? task.status}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
+          <activeTabData.icon
+            size={28}
+            strokeWidth={1.2}
+            className="text-[#1A1A1A]"
+          />
+          <p className="mt-3 text-[13px] text-[#444]">
+            {activeTabData.placeholder}
+          </p>
+          {"sub" in activeTabData && activeTabData.sub && (
+            <p className="mt-1 text-[11px] text-[#333]">
+              {activeTabData.sub}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Members */}
       <div className="mt-9">
