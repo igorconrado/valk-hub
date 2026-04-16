@@ -126,6 +126,173 @@ export async function createTask(input: CreateTaskInput) {
   return { error: null, synced };
 }
 
+const STATUS_TO_LINEAR: Record<string, string> = {
+  backlog: "Backlog",
+  doing: "In Progress",
+  review: "In Review",
+  done: "Done",
+};
+
+async function getAuthUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase, dbUser: null, error: "Nao autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!dbUser) return { supabase, dbUser: null, error: "Usuario nao encontrado" };
+  return { supabase, dbUser, error: null };
+}
+
+async function syncLinearField(
+  taskId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  updateFn: (issueId: string) => Promise<void>
+) {
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("linear_issue_id")
+    .eq("id", taskId)
+    .single();
+
+  if (task?.linear_issue_id) {
+    try {
+      await updateFn(task.linear_issue_id);
+    } catch {
+      // Linear sync failed silently
+    }
+  }
+}
+
+export async function updateTaskField(
+  taskId: string,
+  field: string,
+  value: string | string[] | null
+) {
+  const { supabase, dbUser, error: authError } = await getAuthUser();
+  if (authError || !dbUser) return { error: authError };
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({ [field]: value, updated_at: new Date().toISOString() })
+    .eq("id", taskId);
+
+  if (error) return { error: error.message };
+
+  // Linear sync for relevant fields
+  if (field === "status" && typeof value === "string") {
+    const linearStatus = STATUS_TO_LINEAR[value];
+    if (linearStatus) {
+      await syncLinearField(taskId, supabase, async (issueId) => {
+        const states = await linearClient.workflowStates();
+        const target = states.nodes.find((s) => s.name === linearStatus);
+        if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+      });
+    }
+  } else if (field === "priority" && typeof value === "string") {
+    const linearPriority = PRIORITY_TO_LINEAR[value];
+    if (linearPriority !== undefined) {
+      await syncLinearField(taskId, supabase, async (issueId) => {
+        await linearClient.updateIssue(issueId, { priority: linearPriority });
+      });
+    }
+  }
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUser.id,
+    action: "task_updated",
+    entity_type: "task",
+    entity_id: taskId,
+    metadata: { field, value: String(value) },
+  });
+
+  revalidatePath("/tasks");
+  return { error: null };
+}
+
+export async function resolveTaskBlock(blockId: string) {
+  const { supabase, dbUser, error: authError } = await getAuthUser();
+  if (authError || !dbUser) return { error: authError };
+
+  const { error } = await supabase
+    .from("task_blocks")
+    .update({ resolved: true, resolved_at: new Date().toISOString() })
+    .eq("id", blockId);
+
+  if (error) return { error: error.message };
+
+  const { data: block } = await supabase
+    .from("task_blocks")
+    .select("task_id")
+    .eq("id", blockId)
+    .single();
+
+  if (block) {
+    await supabase.from("activity_log").insert({
+      user_id: dbUser.id,
+      action: "task_block_resolved",
+      entity_type: "task",
+      entity_id: block.task_id,
+      metadata: {},
+    });
+  }
+
+  revalidatePath("/tasks");
+  return { error: null };
+}
+
+export async function getTaskDetail(taskId: string) {
+  const supabase = await createClient();
+
+  const { data: task } = await supabase
+    .from("tasks")
+    .select(
+      "*, assignee:users!assignee_id(id, name, avatar_url), project:projects!project_id(id, name, logo_url)"
+    )
+    .eq("id", taskId)
+    .single();
+
+  if (!task) return null;
+
+  const { data: blocks } = await supabase
+    .from("task_blocks")
+    .select("*, created_by_user:users!created_by(name), blocked_by:users!blocked_by_user_id(name)")
+    .eq("task_id", taskId)
+    .order("created_at", { ascending: false });
+
+  const { data: activities } = await supabase
+    .from("activity_log")
+    .select("*, user:users!user_id(name)")
+    .eq("entity_type", "task")
+    .eq("entity_id", taskId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id, name")
+    .order("name");
+
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, name")
+    .order("name");
+
+  return {
+    task,
+    blocks: blocks ?? [],
+    activities: activities ?? [],
+    projects: projects ?? [],
+    users: users ?? [],
+  };
+}
+
 export async function updateTaskStatus(taskId: string, status: string) {
   const supabase = await createClient();
 

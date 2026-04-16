@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { List, Kanban } from "lucide-react";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView } from "./task-kanban-view";
+import { TaskDetailPanel } from "./task-detail-panel";
 
 type TaskRow = {
   id: string;
@@ -164,6 +165,7 @@ export function TasksContent({
   const [filterType, setFilterType] = useState("all");
   const [filterAssignee, setFilterAssignee] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("valk-tasks-view");
@@ -277,11 +279,24 @@ export function TasksContent({
             </button>
           </div>
         ) : view === "list" ? (
-          <TaskListView tasks={filtered} users={users} />
+          <TaskListView
+            tasks={filtered}
+            users={users}
+            onTaskClick={setSelectedTaskId}
+          />
         ) : (
-          <TaskKanbanView tasks={filtered} users={users} />
+          <TaskKanbanView
+            tasks={filtered}
+            users={users}
+            onTaskClick={setSelectedTaskId}
+          />
         )}
       </div>
+
+      <TaskDetailPanel
+        taskId={selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+      />
     </div>
   );
 }
