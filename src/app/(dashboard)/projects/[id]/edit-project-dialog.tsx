@@ -263,10 +263,7 @@ export function EditProjectDialog({
               {!showDeleteConfirm ? (
                 <div>
                   <div className="mt-6 h-px bg-[#141414]" />
-                  <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#E24B4A]">
-                    Zona de perigo
-                  </p>
-                  <div className="mt-3 flex items-center justify-between">
+                  <div className="mt-4 flex items-center justify-between">
                     <span className="text-[12px] text-[#555]">
                       Excluir este produto permanentemente
                     </span>
