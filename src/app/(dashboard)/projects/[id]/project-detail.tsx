@@ -11,7 +11,13 @@ import {
   Link as LinkIcon,
   CheckCircle,
   FileText,
+  BookOpen,
+  Code,
+  Lightbulb,
+  FileCheck,
+  Layout,
   BarChart3,
+  PenLine,
   Scale,
   Clock,
   UserPlus,
@@ -369,6 +375,27 @@ type LinearCycle = {
   ends_at: string | null;
 } | null;
 
+type DocRow = {
+  id: string;
+  title: string;
+  type: string;
+  version: number;
+  created_by: string;
+  updated_at: string;
+  author: { id: string; name: string } | null;
+};
+
+const docTypeIcons: Record<string, { icon: typeof FileText; color: string }> = {
+  contexto: { icon: FileText, color: "#5B9BF0" },
+  prd: { icon: BookOpen, color: "#A07EF0" },
+  spec: { icon: Code, color: "#3DC9A0" },
+  aprendizado: { icon: Lightbulb, color: "#E8A840" },
+  ata: { icon: FileCheck, color: "#888" },
+  template: { icon: Layout, color: "#666" },
+  relatorio: { icon: BarChart3, color: "#E86B6A" },
+  livre: { icon: PenLine, color: "#555" },
+};
+
 export function ProjectDetail({
   project,
   members,
@@ -377,6 +404,7 @@ export function ProjectDetail({
   allUsers,
   linearConfig,
   activeCycle,
+  docs,
 }: {
   project: Project;
   members: Member[];
@@ -385,6 +413,7 @@ export function ProjectDetail({
   allUsers: { id: string; name: string }[];
   linearConfig: LinearSyncConfig;
   activeCycle: LinearCycle;
+  docs: DocRow[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -617,6 +646,84 @@ export function ProjectDetail({
             taskId={selectedTaskId}
             onClose={() => setSelectedTaskId(null)}
           />
+        </div>
+      ) : activeTab === "docs" ? (
+        <div className="py-5">
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-[11px] font-medium text-[#555]">
+              {docs.length} documento{docs.length !== 1 ? "s" : ""}
+            </span>
+            <RoleGate allowed={["admin", "operator"]}>
+              <Link
+                href={`/docs/new?project_id=${project.id}`}
+                className="flex items-center gap-1 rounded-lg border border-[#222] bg-transparent px-2.5 py-1 text-[11px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
+              >
+                <Plus size={12} strokeWidth={1.5} />
+                Novo doc
+              </Link>
+            </RoleGate>
+          </div>
+
+          {docs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FileText
+                size={28}
+                strokeWidth={1.2}
+                className="text-[#1A1A1A]"
+              />
+              <p className="mt-3 text-[13px] text-[#444]">
+                Nenhum documento nesse produto ainda.
+              </p>
+            </div>
+          ) : (
+            <div>
+              {docs.map((doc) => {
+                const timeAgo = formatDistanceToNow(
+                  new Date(doc.updated_at),
+                  { addSuffix: true, locale: ptBR }
+                );
+                const typeConfig = docTypeIcons[doc.type] ?? {
+                  icon: FileText,
+                  color: "#555",
+                };
+                const TypeIcon = typeConfig.icon;
+
+                return (
+                  <Link
+                    key={doc.id}
+                    href={`/docs/${doc.id}`}
+                    className="flex items-center gap-4 border-b border-[#0F0F0F] py-3.5 transition-colors duration-150 hover:bg-white/[0.02]"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#141414] bg-[#0A0A0A]">
+                      <TypeIcon
+                        size={18}
+                        strokeWidth={1.5}
+                        style={{ color: typeConfig.color }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-medium text-[#ddd]">
+                        {doc.title}
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
+                        <span className="text-[#444]">
+                          por {doc.author?.name ?? "Desconhecido"}
+                        </span>
+                        <span className="text-[#222]">·</span>
+                        <span className="text-[#333]">
+                          editado {timeAgo}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="shrink-0 font-mono text-[10px] text-[#444]">
+                      v{doc.version}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
