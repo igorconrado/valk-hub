@@ -41,10 +41,10 @@ const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", enabled: true },
   { label: "Projetos", icon: FolderKanban, href: "/projects", enabled: true },
   { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
+  { label: "Docs", icon: FileText, href: "/docs", enabled: true },
 ];
 
 const disabledItems = [
-  { label: "Docs", icon: FileText, tooltip: "Sprint 2B" },
   { label: "Relatórios", icon: BarChart3, tooltip: "Sprint 3" },
   { label: "Reuniões", icon: Video, tooltip: "Sprint 3" },
   { label: "People", icon: Users, tooltip: "Sprint 3" },
