@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, parseISO, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { syncLinearCycles } from "../actions";
 import {
   Pencil,
   Link as LinkIcon,
@@ -146,10 +147,226 @@ const STATUS_SUMMARY = [
   { key: "done", label: "done" },
 ];
 
+const SPRINT_STATUS_ORDER: Record<string, number> = {
+  doing: 0,
+  review: 1,
+  on_hold: 2,
+  backlog: 3,
+  done: 4,
+  cancelled: 5,
+};
+
+function SprintTabContent({
+  linearConfig,
+  activeCycle,
+  tasks,
+  statusColors,
+  statusLabels,
+}: {
+  linearConfig: LinearSyncConfig;
+  activeCycle: LinearCycle;
+  tasks: TaskRow[];
+  statusColors: Record<string, string>;
+  statusLabels: Record<string, string>;
+}) {
+  // No Linear connected
+  if (!linearConfig) {
+    return (
+      <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
+        <LinkIcon size={28} strokeWidth={1.2} className="text-[#1A1A1A]" />
+        <p className="mt-3 text-[13px] text-[#444]">
+          Conecte o Linear nas configuracoes do produto
+        </p>
+      </div>
+    );
+  }
+
+  // No active cycle
+  if (!activeCycle || !activeCycle.starts_at || !activeCycle.ends_at) {
+    return (
+      <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
+        <LinkIcon size={28} strokeWidth={1.2} className="text-[#1A1A1A]" />
+        <p className="mt-3 text-[13px] text-[#444]">
+          Nenhuma sprint ativa no Linear.
+        </p>
+        <p className="mt-1 text-[11px] text-[#333]">
+          Crie um cycle no Linear pra comecar.
+        </p>
+      </div>
+    );
+  }
+
+  // Filter tasks within cycle period
+  const cycleStart = parseISO(activeCycle.starts_at);
+  const cycleEnd = parseISO(activeCycle.ends_at);
+
+  const sprintTasks = tasks
+    .filter((t) => {
+      if (t.status === "cancelled") return false;
+      // Include tasks created within the cycle period
+      const created = parseISO(t.created_at);
+      return isWithinInterval(created, { start: cycleStart, end: cycleEnd });
+    })
+    .sort(
+      (a, b) =>
+        (SPRINT_STATUS_ORDER[a.status] ?? 5) -
+        (SPRINT_STATUS_ORDER[b.status] ?? 5)
+    );
+
+  const doneCount = sprintTasks.filter((t) => t.status === "done").length;
+  const doingCount = sprintTasks.filter((t) => t.status === "doing").length;
+  const blockedCount = sprintTasks.filter(
+    (t) => t.status === "on_hold"
+  ).length;
+  const remainingCount = sprintTasks.filter(
+    (t) => t.status === "backlog" || t.status === "review"
+  ).length;
+  const totalCount = sprintTasks.length;
+  const progressPct = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
+
+  const sprintLabel =
+    activeCycle.name ?? `Sprint ${activeCycle.number ?? ""}`;
+  const dateRange = `${format(cycleStart, "dd MMM", { locale: ptBR })} — ${format(cycleEnd, "dd MMM", { locale: ptBR })}`;
+
+  return (
+    <div className="py-5">
+      {/* Header */}
+      <div>
+        <h2 className="font-display text-[18px] font-semibold text-[#eee]">
+          {sprintLabel}
+        </h2>
+        <p className="mt-0.5 text-[12px] text-[#555]">{dateRange}</p>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#141414]">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${progressPct}%`,
+                background:
+                  progressPct === 100
+                    ? "#10B981"
+                    : "linear-gradient(90deg, #E24B4A, #10B981)",
+              }}
+            />
+          </div>
+          <span className="ml-3 shrink-0 text-[11px] text-[#666]">
+            {doneCount} de {totalCount} tasks
+          </span>
+        </div>
+      </div>
+
+      {/* Task list */}
+      {sprintTasks.length > 0 && (
+        <div className="mt-5">
+          {sprintTasks.map((task) => {
+            const sColor = statusColors[task.status] ?? "#444";
+            const pColor =
+              task.priority === "urgent"
+                ? "#E24B4A"
+                : task.priority === "high"
+                  ? "#F59E0B"
+                  : task.priority === "medium"
+                    ? "#3B82F6"
+                    : "#444";
+            const initials = task.assignee
+              ? task.assignee.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()
+              : null;
+
+            return (
+              <div
+                key={task.id}
+                className="flex items-center gap-3 border-b border-[#0F0F0F] px-1 py-2.5 transition-colors duration-150 hover:bg-white/[0.02]"
+              >
+                <span
+                  className="inline-flex shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider"
+                  style={{
+                    backgroundColor: `${sColor}12`,
+                    color: sColor,
+                    border: `1px solid ${sColor}20`,
+                  }}
+                >
+                  {statusLabels[task.status] ?? task.status}
+                </span>
+                <span className="flex-1 truncate text-[13px] font-medium text-[#ddd]">
+                  {task.title}
+                </span>
+                {initials && (
+                  <div className="flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
+                    {initials}
+                  </div>
+                )}
+                <div
+                  className="h-[6px] w-[6px] shrink-0 rounded-full"
+                  style={{ backgroundColor: pColor }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Stats row */}
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+            Concluidas
+          </span>
+          <p className="mt-1 font-display text-[20px] font-semibold text-[#10B981]">
+            {doneCount}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+            Em andamento
+          </span>
+          <p className="mt-1 font-display text-[20px] font-semibold text-[#3B82F6]">
+            {doingCount}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+            Bloqueadas
+          </span>
+          <p className="mt-1 font-display text-[20px] font-semibold text-[#F59E0B]">
+            {blockedCount}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+            Restantes
+          </span>
+          <p className="mt-1 font-display text-[20px] font-semibold text-[#888]">
+            {remainingCount}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type LinearSyncConfig = {
   team_id: string;
   team_name: string;
   sync_enabled: boolean;
+} | null;
+
+type LinearCycle = {
+  linear_cycle_id: string;
+  project_id: string;
+  linear_team_id: string;
+  name: string | null;
+  number: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
 } | null;
 
 export function ProjectDetail({
@@ -159,6 +376,7 @@ export function ProjectDetail({
   tasks,
   allUsers,
   linearConfig,
+  activeCycle,
 }: {
   project: Project;
   members: Member[];
@@ -166,10 +384,20 @@ export function ProjectDetail({
   tasks: TaskRow[];
   allUsers: { id: string; name: string }[];
   linearConfig: LinearSyncConfig;
+  activeCycle: LinearCycle;
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const cycleSynced = useRef(false);
+
+  // Sync cycles from Linear when Sprint tab is first activated
+  useEffect(() => {
+    if (activeTab === "sprint" && linearConfig && !cycleSynced.current) {
+      cycleSynced.current = true;
+      syncLinearCycles(project.id);
+    }
+  }, [activeTab, linearConfig, project.id]);
 
   const timeAgo = formatDistanceToNow(new Date(project.created_at), {
     addSuffix: true,
@@ -287,7 +515,15 @@ export function ProjectDetail({
       </div>
 
       {/* Tab content */}
-      {activeTab === "tasks" ? (
+      {activeTab === "sprint" ? (
+        <SprintTabContent
+          linearConfig={linearConfig}
+          activeCycle={activeCycle}
+          tasks={tasks}
+          statusColors={statusColors}
+          statusLabels={statusLabels}
+        />
+      ) : activeTab === "tasks" ? (
         <div className="py-5">
           {/* Summary bar */}
           {tasks.length > 0 && (

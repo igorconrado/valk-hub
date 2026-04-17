@@ -73,6 +73,18 @@ export default async function ProjectDetailPage({
     .eq("project_id", id)
     .maybeSingle();
 
+  // Fetch active cycle (where now is between starts_at and ends_at)
+  const now = new Date().toISOString();
+  const { data: activeCycle } = await supabase
+    .from("linear_cycles")
+    .select("*")
+    .eq("project_id", id)
+    .lte("starts_at", now)
+    .gte("ends_at", now)
+    .order("starts_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <ProjectDetail
       project={project as any}
@@ -81,6 +93,7 @@ export default async function ProjectDetailPage({
       tasks={projectTasks ?? []}
       allUsers={allUsers ?? []}
       linearConfig={linearSyncConfig ?? null}
+      activeCycle={activeCycle ?? null}
     />
   );
 }
