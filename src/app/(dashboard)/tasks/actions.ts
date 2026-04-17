@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { linearClient } from "@/lib/linear/client";
+import { getLinearClient } from "@/lib/linear/client";
 
 type CreateTaskInput = {
   title: string;
@@ -77,7 +77,7 @@ export async function createTask(input: CreateTaskInput) {
 
     if (syncConfig?.sync_enabled && syncConfig.team_id) {
       try {
-        const issue = await linearClient.createIssue({
+        const issue = await getLinearClient().createIssue({
           teamId: syncConfig.team_id,
           title: input.title,
           description: input.description || undefined,
@@ -223,16 +223,16 @@ export async function updateTaskField(
     const linearStatus = STATUS_TO_LINEAR[value];
     if (linearStatus) {
       await syncLinearField(taskId, supabase, async (issueId) => {
-        const states = await linearClient.workflowStates();
+        const states = await getLinearClient().workflowStates();
         const target = states.nodes.find((s) => s.name === linearStatus);
-        if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+        if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
       });
     }
   } else if (field === "priority" && typeof value === "string") {
     const linearPriority = PRIORITY_TO_LINEAR[value];
     if (linearPriority !== undefined) {
       await syncLinearField(taskId, supabase, async (issueId) => {
-        await linearClient.updateIssue(issueId, { priority: linearPriority });
+        await getLinearClient().updateIssue(issueId, { priority: linearPriority });
       });
     }
   }
@@ -354,9 +354,9 @@ export async function updateTaskStatus(taskId: string, status: string) {
   const linearStatus = STATUS_TO_LINEAR[status];
   if (linearStatus) {
     await syncLinearField(taskId, supabase, async (issueId) => {
-      const states = await linearClient.workflowStates();
+      const states = await getLinearClient().workflowStates();
       const target = states.nodes.find((s) => s.name === linearStatus);
-      if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+      if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
     });
   }
 
@@ -399,9 +399,9 @@ export async function createTaskBlock(
 
   // Linear sync — update status to on_hold equivalent
   await syncLinearField(taskId, supabase, async (issueId) => {
-    const states = await linearClient.workflowStates();
+    const states = await getLinearClient().workflowStates();
     const target = states.nodes.find((s) => s.name === "Blocked" || s.name === "On Hold");
-    if (target) await linearClient.updateIssue(issueId, { stateId: target.id });
+    if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
   });
 
   await supabase.from("activity_log").insert({

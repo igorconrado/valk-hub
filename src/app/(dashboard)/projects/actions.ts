@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { linearClient } from "@/lib/linear/client";
+import { getLinearClient } from "@/lib/linear/client";
 
 type CreateProjectInput = {
   name: string;
@@ -280,7 +280,7 @@ export async function deleteProject(projectId: string, projectName: string) {
 
 export async function getLinearTeams() {
   try {
-    const teams = await linearClient.teams();
+    const teams = await getLinearClient().teams();
     return {
       teams: teams.nodes.map((t) => ({
         id: t.id,
@@ -319,6 +319,34 @@ export async function connectLinearTeam(
 
   if (error) return { error: error.message };
 
+  // Register webhook with Linear
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+    "http://localhost:3000";
+  const webhookUrl = `${baseUrl.replace(/\/$/, "")}/api/linear/webhook`;
+
+  try {
+    const webhookPayload = await getLinearClient().createWebhook({
+      url: webhookUrl,
+      teamId,
+      resourceTypes: ["Issue", "Cycle"],
+      label: "VALK Hub Sync",
+    });
+
+    const webhook = await webhookPayload.webhook;
+
+    if (webhook) {
+      await supabase
+        .from("linear_sync_config")
+        .update({ webhook_id: webhook.id })
+        .eq("project_id", projectId);
+    }
+  } catch {
+    // Webhook registration failed but connection still works
+    // Outbound sync will work, inbound won't until webhook is set up
+  }
+
   revalidatePath(`/projects/${projectId}`);
   return { error: null };
 }
@@ -354,6 +382,21 @@ export async function disconnectLinear(projectId: string) {
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Nao autenticado" };
+
+  // Delete webhook from Linear if exists
+  const { data: config } = await supabase
+    .from("linear_sync_config")
+    .select("webhook_id")
+    .eq("project_id", projectId)
+    .maybeSingle();
+
+  if (config?.webhook_id) {
+    try {
+      await getLinearClient().deleteWebhook(config.webhook_id);
+    } catch {
+      // Webhook may already be deleted on Linear's side
+    }
+  }
 
   const { error } = await supabase
     .from("linear_sync_config")
