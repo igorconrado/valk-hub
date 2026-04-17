@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getLinearClient } from "@/lib/linear/client";
+import {
+  createLinearIssue,
+  syncTaskFieldToLinear,
+  updateLinearIssue,
+} from "@/lib/linear/sync";
 
 type CreateTaskInput = {
   title: string;
@@ -15,12 +19,45 @@ type CreateTaskInput = {
   tags: string;
 };
 
-const PRIORITY_TO_LINEAR: Record<string, number> = {
-  urgent: 1,
-  high: 2,
-  medium: 3,
-  low: 4,
-};
+async function getAuthUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase, dbUser: null, error: "Nao autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!dbUser)
+    return { supabase, dbUser: null, error: "Usuario nao encontrado" };
+  return { supabase, dbUser, error: null };
+}
+
+async function autoResolveBlocks(
+  taskId: string,
+  dbUserId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>
+) {
+  await supabase
+    .from("task_blocks")
+    .update({ resolved: true, resolved_at: new Date().toISOString() })
+    .eq("task_id", taskId)
+    .eq("resolved", false);
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUserId,
+    action: "unblocked_task",
+    entity_type: "task",
+    entity_id: taskId,
+    metadata: {},
+  });
+}
+
+// --- Create task ---
 
 export async function createTask(input: CreateTaskInput) {
   const supabase = await createClient();
@@ -69,36 +106,28 @@ export async function createTask(input: CreateTaskInput) {
   // Linear sync for dev tasks
   let synced = false;
   if (input.type === "dev" && projectId) {
-    const { data: syncConfig } = await supabase
-      .from("linear_sync_config")
-      .select("team_id, sync_enabled")
-      .eq("project_id", projectId)
-      .maybeSingle();
+    const linearIssueId = await createLinearIssue(
+      {
+        id: task.id,
+        title: input.title,
+        description: input.description || null,
+        priority: input.priority,
+        status: "backlog",
+        assignee_id: input.assignee_id,
+      },
+      projectId
+    );
 
-    if (syncConfig?.sync_enabled && syncConfig.team_id) {
-      try {
-        const issue = await getLinearClient().createIssue({
-          teamId: syncConfig.team_id,
-          title: input.title,
-          description: input.description || undefined,
-          priority: PRIORITY_TO_LINEAR[input.priority] ?? 3,
-        });
-
-        const created = await issue.issue;
-        if (created) {
-          await supabase
-            .from("tasks")
-            .update({ linear_issue_id: created.id })
-            .eq("id", task.id);
-          synced = true;
-        }
-      } catch {
-        // Linear sync failed silently — task is still created locally
-      }
+    if (linearIssueId) {
+      await supabase
+        .from("tasks")
+        .update({ linear_issue_id: linearIssueId })
+        .eq("id", task.id);
+      synced = true;
     }
   }
 
-  // Get project name for activity log metadata
+  // Get project name for activity log
   let projectName: string | null = null;
   if (projectId) {
     const { data: proj } = await supabase
@@ -126,69 +155,7 @@ export async function createTask(input: CreateTaskInput) {
   return { error: null, synced };
 }
 
-const STATUS_TO_LINEAR: Record<string, string> = {
-  backlog: "Backlog",
-  doing: "In Progress",
-  review: "In Review",
-  done: "Done",
-};
-
-async function getAuthUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { supabase, dbUser: null, error: "Nao autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { supabase, dbUser: null, error: "Usuario nao encontrado" };
-  return { supabase, dbUser, error: null };
-}
-
-async function syncLinearField(
-  taskId: string,
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  updateFn: (issueId: string) => Promise<void>
-) {
-  const { data: task } = await supabase
-    .from("tasks")
-    .select("linear_issue_id")
-    .eq("id", taskId)
-    .single();
-
-  if (task?.linear_issue_id) {
-    try {
-      await updateFn(task.linear_issue_id);
-    } catch {
-      // Linear sync failed silently
-    }
-  }
-}
-
-async function autoResolveBlocks(
-  taskId: string,
-  dbUserId: string,
-  supabase: Awaited<ReturnType<typeof createClient>>
-) {
-  await supabase
-    .from("task_blocks")
-    .update({ resolved: true, resolved_at: new Date().toISOString() })
-    .eq("task_id", taskId)
-    .eq("resolved", false);
-
-  await supabase.from("activity_log").insert({
-    user_id: dbUserId,
-    action: "unblocked_task",
-    entity_type: "task",
-    entity_id: taskId,
-    metadata: {},
-  });
-}
+// --- Update single field ---
 
 export async function updateTaskField(
   taskId: string,
@@ -198,7 +165,7 @@ export async function updateTaskField(
   const { supabase, dbUser, error: authError } = await getAuthUser();
   if (authError || !dbUser) return { error: authError };
 
-  // If changing status, check if moving FROM on_hold to auto-resolve blocks
+  // If changing status from on_hold, auto-resolve blocks
   if (field === "status" && typeof value === "string" && value !== "on_hold") {
     const { data: currentTask } = await supabase
       .from("tasks")
@@ -218,23 +185,9 @@ export async function updateTaskField(
 
   if (error) return { error: error.message };
 
-  // Linear sync for relevant fields
-  if (field === "status" && typeof value === "string") {
-    const linearStatus = STATUS_TO_LINEAR[value];
-    if (linearStatus) {
-      await syncLinearField(taskId, supabase, async (issueId) => {
-        const states = await getLinearClient().workflowStates();
-        const target = states.nodes.find((s) => s.name === linearStatus);
-        if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
-      });
-    }
-  } else if (field === "priority" && typeof value === "string") {
-    const linearPriority = PRIORITY_TO_LINEAR[value];
-    if (linearPriority !== undefined) {
-      await syncLinearField(taskId, supabase, async (issueId) => {
-        await getLinearClient().updateIssue(issueId, { priority: linearPriority });
-      });
-    }
+  // Linear sync for scalar fields
+  if (typeof value === "string" || value === null) {
+    await syncTaskFieldToLinear(taskId, field, value);
   }
 
   await supabase.from("activity_log").insert({
@@ -248,6 +201,8 @@ export async function updateTaskField(
   revalidatePath("/tasks");
   return { error: null };
 }
+
+// --- Resolve block ---
 
 export async function resolveTaskBlock(blockId: string) {
   const { supabase, dbUser, error: authError } = await getAuthUser();
@@ -280,6 +235,8 @@ export async function resolveTaskBlock(blockId: string) {
   return { error: null };
 }
 
+// --- Get task detail ---
+
 export async function getTaskDetail(taskId: string) {
   const supabase = await createClient();
 
@@ -295,7 +252,9 @@ export async function getTaskDetail(taskId: string) {
 
   const { data: blocks } = await supabase
     .from("task_blocks")
-    .select("*, created_by_user:users!created_by(name), blocked_by:users!blocked_by_user_id(name)")
+    .select(
+      "*, created_by_user:users!created_by(name), blocked_by:users!blocked_by_user_id(name)"
+    )
     .eq("task_id", taskId)
     .order("created_at", { ascending: false });
 
@@ -326,6 +285,8 @@ export async function getTaskDetail(taskId: string) {
   };
 }
 
+// --- Update status (kanban drag) ---
+
 export async function updateTaskStatus(taskId: string, status: string) {
   const { supabase, dbUser, error: authError } = await getAuthUser();
   if (authError || !dbUser) return { error: authError };
@@ -351,14 +312,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
   if (error) return { error: error.message };
 
   // Linear sync
-  const linearStatus = STATUS_TO_LINEAR[status];
-  if (linearStatus) {
-    await syncLinearField(taskId, supabase, async (issueId) => {
-      const states = await getLinearClient().workflowStates();
-      const target = states.nodes.find((s) => s.name === linearStatus);
-      if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
-    });
-  }
+  await syncTaskFieldToLinear(taskId, "status", status);
 
   await supabase.from("activity_log").insert({
     user_id: dbUser.id,
@@ -369,9 +323,10 @@ export async function updateTaskStatus(taskId: string, status: string) {
   });
 
   revalidatePath("/tasks");
-
   return { error: null };
 }
+
+// --- Create block (on_hold) ---
 
 export async function createTaskBlock(
   taskId: string,
@@ -397,12 +352,8 @@ export async function createTaskBlock(
 
   if (statusError) return { error: statusError.message };
 
-  // Linear sync — update status to on_hold equivalent
-  await syncLinearField(taskId, supabase, async (issueId) => {
-    const states = await getLinearClient().workflowStates();
-    const target = states.nodes.find((s) => s.name === "Blocked" || s.name === "On Hold");
-    if (target) await getLinearClient().updateIssue(issueId, { stateId: target.id });
-  });
+  // Linear sync — set on_hold status
+  await syncTaskFieldToLinear(taskId, "status", "on_hold");
 
   await supabase.from("activity_log").insert({
     user_id: dbUser.id,
@@ -413,6 +364,5 @@ export async function createTaskBlock(
   });
 
   revalidatePath("/tasks");
-
   return { error: null };
 }
