@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, isPast, parseISO, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   TrendingUp,
   Scale,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { ProjectLogo } from "@/components/project-logo";
 
@@ -64,6 +65,8 @@ function getFirstName(name: string): string {
 function getActionText(action: string, metadata: Record<string, string> | null): React.ReactNode {
   const projectName = metadata?.project_name || metadata?.name;
   const memberName = metadata?.member_name;
+  const taskTitle = metadata?.task_title;
+  const reason = metadata?.reason;
 
   switch (action) {
     case "created_project":
@@ -91,6 +94,44 @@ function getActionText(action: string, metadata: Record<string, string> | null):
           removeu <span className="text-[#ccc]">{memberName}</span> do projeto
         </>
       );
+    case "created_task":
+      return (
+        <>
+          criou a task <span className="text-[#ccc]">{taskTitle}</span>
+        </>
+      );
+    case "task_updated":
+      return (
+        <>
+          atualizou <span className="text-[#ccc]">{metadata?.field ?? "task"}</span>
+        </>
+      );
+    case "task_status_changed":
+      return (
+        <>
+          moveu task para <span className="text-[#ccc]">{metadata?.status}</span>
+        </>
+      );
+    case "blocked_task":
+      return (
+        <>
+          bloqueou task{reason && <>: <span className="text-[#ccc]">{reason}</span></>}
+        </>
+      );
+    case "unblocked_task":
+      return "desbloqueou task";
+    case "task_block_resolved":
+      return "resolveu bloqueio de task";
+    case "created_document":
+      return "criou um documento";
+    case "restored_document_version":
+      return "restaurou versao de documento";
+    case "deleted_project":
+      return (
+        <>
+          excluiu o projeto <span className="text-[#ccc]">{projectName ?? metadata?.project_name}</span>
+        </>
+      );
     default:
       return action;
   }
@@ -114,14 +155,31 @@ function Avatar({ name }: { name: string }) {
 const sectionLabel = "text-[10px] font-semibold uppercase tracking-[0.15em] text-[#333]";
 const cardClass = "rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-[18px_20px]";
 
+type PendingTask = {
+  id: string;
+  title: string;
+  due_date: string | null;
+  status: string;
+};
+
+type MetricsSummary = {
+  totalMrr: number;
+  totalClients: number;
+  hasMetrics: boolean;
+};
+
 export function DashboardContent({
   userName,
   projects,
   activities,
+  metrics,
+  pendingTasks,
 }: {
   userName: string;
   projects: Project[];
   activities: Activity[];
+  metrics: MetricsSummary;
+  pendingTasks: PendingTask[];
 }) {
   const today = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
 
@@ -213,25 +271,37 @@ export function DashboardContent({
             <div className="flex items-center gap-1.5">
               <TrendingUp size={14} strokeWidth={1.5} className="text-[#333]" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Métricas
+                Numeros do mes
               </span>
             </div>
             <div className="mt-4 flex flex-col gap-3.5">
-              {[
-                { label: "MRR", value: "R$ 0" },
-                { label: "Clientes", value: "0" },
-                { label: "Runway", value: "—" },
-              ].map((m) => (
-                <div key={m.label}>
-                  <p className="text-[10px] text-[#444]">{m.label}</p>
-                  <p className="font-mono text-[20px] font-semibold text-[#ddd]">
-                    {m.value}
-                  </p>
-                </div>
-              ))}
+              <div>
+                <p className="text-[10px] text-[#444]">MRR</p>
+                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
+                  {metrics.hasMetrics
+                    ? `R$ ${metrics.totalMrr.toLocaleString("pt-BR")}`
+                    : "R$ 0"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#444]">Clientes</p>
+                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
+                  {metrics.hasMetrics
+                    ? metrics.totalClients.toLocaleString("pt-BR")
+                    : "0"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#444]">Runway</p>
+                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
+                  —
+                </p>
+              </div>
             </div>
             <p className="mt-3.5 text-[10px] text-[#222]">
-              Dados disponíveis em breve
+              {metrics.hasMetrics
+                ? "Soma dos produtos ativos"
+                : "Registre nas metricas de cada produto"}
             </p>
           </div>
 
@@ -251,18 +321,59 @@ export function DashboardContent({
             </div>
           </div>
 
-          {/* Pending */}
+          {/* Pending tasks */}
           <div className={cardClass}>
             <div className="flex items-center gap-1.5">
-              <CheckCircle size={14} strokeWidth={1.5} className="text-[#333]" />
+              <AlertCircle size={14} strokeWidth={1.5} className="text-[#333]" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Action items
+                Meus pendentes
               </span>
             </div>
-            <div className="mt-3 flex flex-col items-center py-6">
-              <span className="text-[18px] text-[#222]">✓</span>
-              <p className="mt-2 text-[11px] text-[#333]">Nada pendente</p>
-            </div>
+            {pendingTasks.length === 0 ? (
+              <div className="mt-3 flex flex-col items-center py-6">
+                <CheckCircle size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
+                <p className="mt-2 text-[11px] text-[#333]">Nada pendente</p>
+              </div>
+            ) : (
+              <div className="mt-3 flex flex-col">
+                {pendingTasks.map((task) => {
+                  const overdue =
+                    task.due_date &&
+                    isPast(parseISO(task.due_date)) &&
+                    !isToday(parseISO(task.due_date));
+
+                  return (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between border-b border-[#0F0F0F] py-2 last:border-0"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-[12px] text-[#999]">
+                        {task.title}
+                      </span>
+                      {task.due_date && (
+                        <span
+                          className={`ml-2 shrink-0 text-[10px] ${
+                            overdue
+                              ? "font-medium text-[#E24B4A]"
+                              : "text-[#444]"
+                          }`}
+                        >
+                          {format(parseISO(task.due_date), "dd MMM", {
+                            locale: ptBR,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                <Link
+                  href="/tasks"
+                  className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
