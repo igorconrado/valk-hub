@@ -80,6 +80,13 @@ export default async function ProjectDetailPage({
     .eq("project_id", id)
     .order("updated_at", { ascending: false });
 
+  // Fetch metrics snapshots
+  const { data: metricsSnapshots } = await supabase
+    .from("metrics_snapshots")
+    .select("id, date, data_json, source, created_by")
+    .eq("project_id", id)
+    .order("date", { ascending: false });
+
   // Fetch active cycle (where now is between starts_at and ends_at)
   const now = new Date().toISOString();
   const { data: activeCycle } = await supabase
@@ -102,6 +109,7 @@ export default async function ProjectDetailPage({
       linearConfig={linearSyncConfig ?? null}
       activeCycle={activeCycle ?? null}
       docs={projectDocs ?? []}
+      metricsSnapshots={(metricsSnapshots as any[]) ?? []}
     />
   );
 }

@@ -31,6 +31,7 @@ import { TaskListView } from "@/app/(dashboard)/tasks/task-list-view";
 import { TaskKanbanView } from "@/app/(dashboard)/tasks/task-kanban-view";
 import { TaskDetailPanel } from "@/app/(dashboard)/tasks/task-detail-panel";
 import { RoleGate } from "@/components/role-gate";
+import { MetricsTab } from "./metrics-tab";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 import { AddMemberDialog } from "./add-member-dialog";
@@ -405,6 +406,7 @@ export function ProjectDetail({
   linearConfig,
   activeCycle,
   docs,
+  metricsSnapshots,
 }: {
   project: Project;
   members: Member[];
@@ -414,6 +416,13 @@ export function ProjectDetail({
   linearConfig: LinearSyncConfig;
   activeCycle: LinearCycle;
   docs: DocRow[];
+  metricsSnapshots: {
+    id: string;
+    date: string;
+    data_json: Record<string, number | null>;
+    source: string;
+    created_by: string;
+  }[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -647,6 +656,8 @@ export function ProjectDetail({
             onClose={() => setSelectedTaskId(null)}
           />
         </div>
+      ) : activeTab === "metrics" ? (
+        <MetricsTab projectId={project.id} snapshots={metricsSnapshots} />
       ) : activeTab === "docs" ? (
         <div className="py-5">
           {/* Header */}
