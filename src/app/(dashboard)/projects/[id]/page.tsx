@@ -73,6 +73,13 @@ export default async function ProjectDetailPage({
     .eq("project_id", id)
     .maybeSingle();
 
+  // Fetch documents for this project
+  const { data: projectDocs } = await supabase
+    .from("documents")
+    .select("*, author:users!created_by(id, name)")
+    .eq("project_id", id)
+    .order("updated_at", { ascending: false });
+
   // Fetch active cycle (where now is between starts_at and ends_at)
   const now = new Date().toISOString();
   const { data: activeCycle } = await supabase
@@ -94,6 +101,7 @@ export default async function ProjectDetailPage({
       allUsers={allUsers ?? []}
       linearConfig={linearSyncConfig ?? null}
       activeCycle={activeCycle ?? null}
+      docs={projectDocs ?? []}
     />
   );
 }
