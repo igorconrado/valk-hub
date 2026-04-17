@@ -38,6 +38,7 @@ import { RemoveMemberDialog } from "./remove-member-dialog";
 import { AddMemberDialog } from "./add-member-dialog";
 import { ProjectLogo } from "@/components/project-logo";
 import { ProjectDecisionsTab } from "./project-decisions-tab";
+import { ProjectReportsTab } from "./project-reports-tab";
 
 type Project = {
   id: string;
@@ -85,6 +86,7 @@ const tabs = [
   { id: "metrics", label: "Métricas", icon: BarChart3, placeholder: "Sem números ainda", sub: "Lança, mede, aprende" },
   { id: "decisions", label: "Decisões", icon: Scale, placeholder: "Decisões entram na Sprint 2" },
   { id: "history", label: "Histórico", icon: Clock, placeholder: "Histórico começa na primeira sprint" },
+  { id: "reports", label: "Relatórios", icon: BarChart3, placeholder: "Nenhum relatório pra esse produto." },
 ];
 
 function Avatar({ name, size = 26 }: { name: string; size?: number }) {
@@ -411,6 +413,18 @@ type DecisionRow = {
 
 type MeetingOption = { id: string; title: string };
 
+type ReportRow = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  period_start: string | null;
+  period_end: string | null;
+  ai_generated: boolean | null;
+  created_at: string;
+  author: { name: string } | { name: string }[] | null;
+};
+
 export function ProjectDetail({
   project,
   members,
@@ -423,6 +437,7 @@ export function ProjectDetail({
   metricsSnapshots,
   decisions,
   meetings,
+  reports,
 }: {
   project: Project;
   members: Member[];
@@ -441,6 +456,7 @@ export function ProjectDetail({
   }[];
   decisions: DecisionRow[];
   meetings: MeetingOption[];
+  reports: ReportRow[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -759,6 +775,11 @@ export function ProjectDetail({
           decisions={decisions}
           meetings={meetings}
           users={allUsers}
+        />
+      ) : activeTab === "reports" ? (
+        <ProjectReportsTab
+          projectId={project.id}
+          reports={reports}
         />
       ) : (
         <div className="flex min-h-[200px] flex-col items-center justify-center py-12">

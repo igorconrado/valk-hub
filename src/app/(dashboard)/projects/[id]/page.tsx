@@ -101,6 +101,13 @@ export default async function ProjectDetailPage({
     .eq("project_id", id)
     .order("scheduled_at", { ascending: false });
 
+  // Fetch reports for this project
+  const { data: projectReports } = await supabase
+    .from("reports")
+    .select("id, title, type, status, period_start, period_end, ai_generated, created_at, author:users!created_by(name)")
+    .eq("project_id", id)
+    .order("created_at", { ascending: false });
+
   // Fetch active cycle (where now is between starts_at and ends_at)
   const now = new Date().toISOString();
   const { data: activeCycle } = await supabase
@@ -126,6 +133,7 @@ export default async function ProjectDetailPage({
       metricsSnapshots={(metricsSnapshots as any[]) ?? []}
       decisions={projectDecisions ?? []}
       meetings={(projectMeetings ?? []) as { id: string; title: string }[]}
+      reports={(projectReports as any[]) ?? []}
     />
   );
 }

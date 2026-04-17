@@ -103,8 +103,10 @@ function GeneratingOverlay() {
 
 export function GenerateReportDialog({
   children,
+  defaultProjectId,
 }: {
   children: React.ReactNode;
+  defaultProjectId?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -112,7 +114,7 @@ export function GenerateReportDialog({
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [type, setType] = useState("sprint");
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [aiEnabled, setAiEnabled] = useState(true);
@@ -139,7 +141,7 @@ export function GenerateReportDialog({
 
   function resetForm() {
     setType("sprint");
-    setProjectId("");
+    setProjectId(defaultProjectId ?? "");
     setAiEnabled(true);
     setGenerating(false);
   }
