@@ -44,10 +44,10 @@ const navItems = [
 ];
 
 const disabledItems = [
-  { label: "Docs", icon: FileText },
-  { label: "Relatórios", icon: BarChart3 },
-  { label: "Reuniões", icon: Video },
-  { label: "People", icon: Users },
+  { label: "Docs", icon: FileText, tooltip: "Sprint 2B" },
+  { label: "Relatórios", icon: BarChart3, tooltip: "Sprint 3" },
+  { label: "Reuniões", icon: Video, tooltip: "Sprint 3" },
+  { label: "People", icon: Users, tooltip: "Sprint 3" },
 ];
 
 function NavItems({
@@ -98,7 +98,7 @@ function NavItems({
             </div>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>Sprint 2</p>
+            <p>{item.tooltip}</p>
           </TooltipContent>
         </Tooltip>
       ))}
