@@ -8,14 +8,18 @@ export default async function DashboardPage() {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  let userName = "Usuário";
+  let userName = "Usuario";
+  let dbUserId: string | null = null;
   if (authUser) {
     const { data: dbUser } = await supabase
       .from("users")
-      .select("name")
+      .select("id, name")
       .eq("auth_id", authUser.id)
       .maybeSingle();
-    if (dbUser) userName = dbUser.name;
+    if (dbUser) {
+      userName = dbUser.name;
+      dbUserId = dbUser.id;
+    }
   }
 
   const { data: projects } = await supabase
@@ -40,11 +44,63 @@ export default async function DashboardPage() {
     user: Array.isArray(a.user) ? a.user[0] : a.user,
   }));
 
+  // Fetch latest metrics snapshot per active project for MRR/clients rollup
+  const activeProjectIds = (projects ?? []).map((p) => p.id as string);
+  let totalMrr = 0;
+  let totalClients = 0;
+  let hasMetrics = false;
+
+  if (activeProjectIds.length > 0) {
+    // Get the most recent snapshot for each project using distinct on
+    const { data: snapshots } = await supabase
+      .from("metrics_snapshots")
+      .select("project_id, data_json")
+      .in("project_id", activeProjectIds)
+      .order("date", { ascending: false });
+
+    if (snapshots && snapshots.length > 0) {
+      // Keep only the latest per project
+      const seen = new Set<string>();
+      for (const s of snapshots) {
+        const pid = s.project_id as string;
+        if (seen.has(pid)) continue;
+        seen.add(pid);
+        const data = s.data_json as Record<string, number | null> | null;
+        if (data?.mrr) totalMrr += data.mrr;
+        if (data?.paying_customers) totalClients += data.paying_customers;
+      }
+      if (seen.size > 0) hasMetrics = true;
+    }
+  }
+
+  // Fetch pending tasks for logged-in user
+  let pendingTasks: {
+    id: string;
+    title: string;
+    due_date: string | null;
+    status: string;
+  }[] = [];
+
+  if (dbUserId) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("id, title, due_date, status")
+      .eq("assignee_id", dbUserId)
+      .not("status", "in", "(done,cancelled)")
+      .not("due_date", "is", null)
+      .order("due_date", { ascending: true })
+      .limit(5);
+
+    pendingTasks = (tasks as typeof pendingTasks) ?? [];
+  }
+
   return (
     <DashboardContent
       userName={userName}
       projects={(projects as any) ?? []}
       activities={normalizedActivities}
+      metrics={{ totalMrr, totalClients, hasMetrics }}
+      pendingTasks={pendingTasks}
     />
   );
 }
