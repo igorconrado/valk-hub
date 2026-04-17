@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { CreateDocumentDialog } from "./create-document-dialog";
 
 type DocRow = {
   id: string;
@@ -237,13 +238,12 @@ export function DocsContent({
                 : "Nenhum documento ainda."}
             </p>
             {!searchQuery && (
-              <Link
-                href="/docs/new"
-                className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]"
-              >
-                <Plus size={14} strokeWidth={1.5} />
-                Criar primeiro doc
-              </Link>
+              <CreateDocumentDialog>
+                <button className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]">
+                  <Plus size={14} strokeWidth={1.5} />
+                  Criar primeiro doc
+                </button>
+              </CreateDocumentDialog>
             )}
           </div>
         ) : (

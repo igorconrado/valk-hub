@@ -31,6 +31,7 @@ import { TaskListView } from "@/app/(dashboard)/tasks/task-list-view";
 import { TaskKanbanView } from "@/app/(dashboard)/tasks/task-kanban-view";
 import { TaskDetailPanel } from "@/app/(dashboard)/tasks/task-detail-panel";
 import { RoleGate } from "@/components/role-gate";
+import { CreateDocumentDialog } from "@/app/(dashboard)/docs/create-document-dialog";
 import { MetricsTab } from "./metrics-tab";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
@@ -666,13 +667,12 @@ export function ProjectDetail({
               {docs.length} documento{docs.length !== 1 ? "s" : ""}
             </span>
             <RoleGate allowed={["admin", "operator"]}>
-              <Link
-                href={`/docs/new?project_id=${project.id}`}
-                className="flex items-center gap-1 rounded-lg border border-[#222] bg-transparent px-2.5 py-1 text-[11px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
-              >
-                <Plus size={12} strokeWidth={1.5} />
-                Novo doc
-              </Link>
+              <CreateDocumentDialog defaultProjectId={project.id}>
+                <button className="flex items-center gap-1 rounded-lg border border-[#222] bg-transparent px-2.5 py-1 text-[11px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]">
+                  <Plus size={12} strokeWidth={1.5} />
+                  Novo doc
+                </button>
+              </CreateDocumentDialog>
             </RoleGate>
           </div>
 
