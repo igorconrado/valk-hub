@@ -44,11 +44,10 @@ const navItems = [
   { label: "Docs", icon: FileText, href: "/docs", enabled: true },
   { label: "Reuniões", icon: Video, href: "/meetings", enabled: true },
   { label: "Relatórios", icon: BarChart3, href: "/reports", enabled: true },
+  { label: "People", icon: Users, href: "/people", enabled: true },
 ];
 
-const disabledItems = [
-  { label: "People", icon: Users, tooltip: "Sprint 4" },
-];
+const disabledItems: { label: string; icon: typeof Users; tooltip: string }[] = [];
 
 function NavItems({
   pathname,
