@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { List, Kanban } from "lucide-react";
+import { List, Kanban, Plus } from "lucide-react";
+import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView } from "./task-kanban-view";
 import { TaskDetailPanel } from "./task-detail-panel";
@@ -274,9 +275,12 @@ export function TasksContent({
             <p className="text-[13px] text-[#444]">
               Sem tasks ainda. Cria a primeira.
             </p>
-            <button className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]">
-              Nova task
-            </button>
+            <CreateTaskDialog>
+              <button className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]">
+                <Plus size={14} strokeWidth={1.5} />
+                Nova task
+              </button>
+            </CreateTaskDialog>
           </div>
         ) : view === "list" ? (
           <TaskListView
