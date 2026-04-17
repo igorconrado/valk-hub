@@ -53,7 +53,7 @@ export async function createDocument(
   });
 
   revalidatePath("/docs");
-  redirect(`/docs/${doc.id}`);
+  return { error: null, id: doc.id };
 }
 
 export async function saveDocument(
