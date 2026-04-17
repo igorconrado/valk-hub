@@ -25,10 +25,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 import { useRole } from "@/lib/hooks/use-role";
 import { RoleGate } from "@/components/role-gate";
 import { DocumentEditor } from "@/components/editor/document-editor";
 import { saveReport, publishReport, deleteReport } from "../actions";
+
+type ChartData = {
+  mrr_trend?: Array<{ date: string; value: number }>;
+  tasks_velocity?: Array<{ sprint: string; planned: number; completed: number }>;
+  status_distribution?: Record<string, number>;
+};
 
 type Report = {
   id: string;
@@ -39,6 +57,7 @@ type Report = {
   period_start: string | null;
   period_end: string | null;
   ai_generated: boolean | null;
+  data_json: { charts?: ChartData; summary?: Record<string, number> } | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -77,6 +96,192 @@ function Badge({ label, color }: { label: string; color: string }) {
     >
       {label}
     </span>
+  );
+}
+
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  prefix = "",
+  suffix = "",
+}: {
+  active?: boolean;
+  payload?: Array<{ value: number; name?: string; fill?: string }>;
+  label?: string;
+  prefix?: string;
+  suffix?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-[#1A1A1A] bg-[#111] px-3 py-2 shadow-lg">
+      <p className="text-[10px] text-[#555]">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} className="mt-0.5 text-[13px] font-semibold text-[#eee]">
+          {prefix}{p.value.toLocaleString("pt-BR")}{suffix}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  backlog: "#555",
+  doing: "#3B82F6",
+  on_hold: "#F59E0B",
+  review: "#8B5CF6",
+  done: "#10B981",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  backlog: "Backlog",
+  doing: "Em progresso",
+  on_hold: "Bloqueado",
+  review: "Review",
+  done: "Concluído",
+};
+
+function ReportCharts({ charts }: { charts: ChartData }) {
+  const hasMrr = charts.mrr_trend && charts.mrr_trend.length > 1;
+  const hasVelocity = charts.tasks_velocity && charts.tasks_velocity.length > 0;
+  const hasDistribution =
+    charts.status_distribution &&
+    Object.values(charts.status_distribution).some((v) => v > 0);
+
+  if (!hasMrr && !hasVelocity && !hasDistribution) return null;
+
+  const distData = hasDistribution
+    ? Object.entries(charts.status_distribution!)
+        .filter(([, v]) => v > 0)
+        .map(([key, value]) => ({
+          name: STATUS_LABELS[key] ?? key,
+          value,
+          color: STATUS_COLORS[key] ?? "#555",
+        }))
+    : [];
+
+  const distTotal = distData.reduce((sum, d) => sum + d.value, 0);
+
+  return (
+    <div className="mx-auto mt-8 max-w-[720px]">
+      <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+        Dados do período
+      </h3>
+      <div className="grid grid-cols-1 gap-3">
+        {/* MRR Trend */}
+        {hasMrr && (
+          <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
+            <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+              MRR
+            </h4>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={charts.mrr_trend}>
+                <defs>
+                  <linearGradient id="mrr-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#E24B4A" stopOpacity={0.08} />
+                    <stop offset="100%" stopColor="#E24B4A" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="#141414" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+                  axisLine={{ stroke: "#141414" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<ChartTooltip prefix="R$ " />} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#E24B4A"
+                  strokeWidth={2}
+                  fill="url(#mrr-fill)"
+                  dot={{ fill: "#E24B4A", r: 3, strokeWidth: 0 }}
+                  activeDot={{ fill: "#E24B4A", r: 5, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Velocity */}
+        {hasVelocity && (
+          <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
+            <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+              Velocidade
+            </h4>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={charts.tasks_velocity} barGap={4}>
+                <CartesianGrid stroke="#141414" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="sprint"
+                  tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+                  axisLine={{ stroke: "#141414" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="planned" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Planejadas" />
+                <Bar dataKey="completed" fill="#10B981" radius={[4, 4, 0, 0]} name="Concluídas" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-2 flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-[#3B82F6]" />
+                <span className="text-[10px] text-[#555]">Planejadas</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-[#10B981]" />
+                <span className="text-[10px] text-[#555]">Concluídas</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Status distribution — horizontal bars */}
+        {hasDistribution && distData.length > 0 && (
+          <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
+            <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+              Distribuição
+            </h4>
+            <div className="flex flex-col gap-2.5">
+              {distData.map((d) => {
+                const pct = distTotal > 0 ? (d.value / distTotal) * 100 : 0;
+                return (
+                  <div key={d.name} className="flex items-center gap-3">
+                    <span className="w-[90px] shrink-0 text-[11px] text-[#888]">
+                      {d.name}
+                    </span>
+                    <div className="h-[6px] flex-1 overflow-hidden rounded-full bg-[#141414]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: d.color,
+                        }}
+                      />
+                    </div>
+                    <span className="w-[28px] shrink-0 text-right font-mono text-[10px] text-[#555]">
+                      {d.value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -318,6 +523,11 @@ export function ReportView({
           </RoleGate>
         </div>
       </div>
+
+      {/* Charts */}
+      {report.data_json?.charts && (
+        <ReportCharts charts={report.data_json.charts as ChartData} />
+      )}
 
       {/* Editor area */}
       <div data-print-content className="mx-auto mt-8 max-w-[720px]">

@@ -253,6 +253,72 @@ ${JSON.stringify(data.metrics_snapshots, null, 2)}
 Estruture o relatório com: Resumo executivo do trimestre, Evolução do portfólio, Métricas financeiras consolidadas (MRR, clientes — comparar início vs fim do trimestre), Decisões estratégicas, Aprendizados-chave, OKRs e metas para o próximo trimestre.`;
 }
 
+// ── Chart data builder ─────────────────────────────────
+
+function buildChartData(
+  type: ReportType,
+  rawData: Record<string, unknown>
+) {
+  const charts: Record<string, unknown> = {};
+  const summary: Record<string, unknown> = {};
+
+  // MRR trend from snapshots
+  const snapshots = (rawData.metrics_snapshots ?? rawData.metrics_history ?? []) as Array<{
+    date: string;
+    data_json: Record<string, number | null>;
+    project?: { name: string } | { name: string }[] | null;
+  }>;
+
+  if (snapshots.length > 0) {
+    charts.mrr_trend = snapshots
+      .filter((s) => s.data_json?.mrr != null)
+      .map((s) => ({ date: s.date, value: s.data_json.mrr }))
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }
+
+  // Tasks velocity and status distribution
+  const tasksCreated = (rawData.tasks_created ?? rawData.tasks ?? []) as Array<{
+    status: string;
+    priority?: string;
+  }>;
+  const tasksCompleted = (rawData.tasks_completed ?? []) as Array<unknown>;
+
+  // Status distribution from all tasks in the data
+  const allTasks = tasksCreated;
+  const statusDist: Record<string, number> = {
+    backlog: 0,
+    doing: 0,
+    on_hold: 0,
+    review: 0,
+    done: 0,
+  };
+  for (const t of allTasks) {
+    const s = t.status;
+    if (s in statusDist) statusDist[s]++;
+  }
+  charts.status_distribution = statusDist;
+
+  // Velocity — for sprint/monthly, show planned vs completed
+  const planned = tasksCreated.length;
+  const completed =
+    type === "sprint" || type === "monthly"
+      ? (tasksCompleted as Array<unknown>).length
+      : allTasks.filter((t) => t.status === "done").length;
+
+  charts.tasks_velocity = [
+    { sprint: "Período", planned, completed },
+  ];
+
+  // Summary
+  const decisions = (rawData.decisions ?? []) as Array<unknown>;
+  summary.total_tasks = planned;
+  summary.completed = completed;
+  summary.velocity_pct = planned > 0 ? Math.round((completed / planned) * 100) : 0;
+  summary.decisions = decisions.length;
+
+  return { charts, summary };
+}
+
 // ── Route handler ──────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -365,9 +431,11 @@ export async function POST(request: Request) {
     const textBlock = message.content.find((b) => b.type === "text");
     const contentMd = textBlock?.text ?? "";
 
+    const { charts, summary } = buildChartData(type, data);
+
     return NextResponse.json({
       content_md: contentMd,
-      data_json: data,
+      data_json: { ...data, charts, summary },
     });
   } catch (err) {
     const message =
