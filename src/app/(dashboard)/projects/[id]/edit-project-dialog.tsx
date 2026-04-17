@@ -11,7 +11,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { updateProject, deleteProject } from "../actions";
+import {
+  updateProject,
+  deleteProject,
+  getLinearTeams,
+  connectLinearTeam,
+  updateLinearSyncEnabled,
+  disconnectLinear,
+} from "../actions";
 import { LogoUpload } from "@/components/logo-upload";
 import { RoleGate } from "@/components/role-gate";
 
@@ -26,6 +33,12 @@ type Project = {
   launch_target: string | null;
   logo_url: string | null;
 };
+
+type LinearSyncConfig = {
+  team_id: string;
+  team_name: string;
+  sync_enabled: boolean;
+} | null;
 
 const statuses = [
   { value: "active", label: "Ativo" },
@@ -57,9 +70,11 @@ const labelClass =
 export function EditProjectDialog({
   project,
   children,
+  linearConfig: initialLinearConfig,
 }: {
   project: Project;
   children: React.ReactNode;
+  linearConfig?: LinearSyncConfig;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -67,6 +82,17 @@ export function EditProjectDialog({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
   const [isDeleting, startDeleteTransition] = useTransition();
+
+  // Linear state
+  const [linearConfig, setLinearConfig] = useState(initialLinearConfig ?? null);
+  const [showTeamSelect, setShowTeamSelect] = useState(false);
+  const [linearTeams, setLinearTeams] = useState<
+    { id: string; name: string; key: string }[]
+  >([]);
+  const [selectedTeamId, setSelectedTeamId] = useState("");
+  const [loadingTeams, setLoadingTeams] = useState(false);
+  const [linearPending, startLinearTransition] = useTransition();
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -99,6 +125,70 @@ export function EditProjectDialog({
     startDeleteTransition(async () => {
       toast.success("Produto excluído.");
       await deleteProject(project.id, project.name);
+    });
+  }
+
+  async function handleFetchTeams() {
+    setLoadingTeams(true);
+    const result = await getLinearTeams();
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      setLinearTeams(result.teams);
+      setShowTeamSelect(true);
+    }
+    setLoadingTeams(false);
+  }
+
+  function handleConnectTeam() {
+    const team = linearTeams.find((t) => t.id === selectedTeamId);
+    if (!team) return;
+
+    startLinearTransition(async () => {
+      const result = await connectLinearTeam(
+        project.id,
+        team.id,
+        team.name
+      );
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        setLinearConfig({
+          team_id: team.id,
+          team_name: team.name,
+          sync_enabled: true,
+        });
+        setShowTeamSelect(false);
+        setSelectedTeamId("");
+        toast.success("Linear conectado");
+      }
+    });
+  }
+
+  function handleToggleSync() {
+    if (!linearConfig) return;
+    const newValue = !linearConfig.sync_enabled;
+
+    startLinearTransition(async () => {
+      const result = await updateLinearSyncEnabled(project.id, newValue);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        setLinearConfig({ ...linearConfig, sync_enabled: newValue });
+      }
+    });
+  }
+
+  function handleDisconnect() {
+    startLinearTransition(async () => {
+      const result = await disconnectLinear(project.id);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        setLinearConfig(null);
+        setShowDisconnectConfirm(false);
+        toast.success("Linear desconectado");
+      }
     });
   }
 
@@ -257,6 +347,150 @@ export function EditProjectDialog({
                 className={inputClass}
               />
             </div>
+
+            {/* Linear — admin only */}
+            <RoleGate allowed={["admin"]}>
+              <div>
+                <div className="mt-2 h-px bg-[#141414]" />
+                <h3 className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+                  Linear
+                </h3>
+
+                {!linearConfig ? (
+                  <div className="mt-3">
+                    <p className="text-[12px] leading-relaxed text-[#555]">
+                      Conecte este produto a um team do Linear pra sincronizar
+                      tasks de dev.
+                    </p>
+
+                    {!showTeamSelect ? (
+                      <button
+                        type="button"
+                        onClick={handleFetchTeams}
+                        disabled={loadingTeams}
+                        className="mt-3 flex items-center gap-2 rounded-lg border border-[#222] bg-transparent px-3.5 py-[7px] text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc] disabled:opacity-50"
+                      >
+                        {loadingTeams && (
+                          <Loader2 size={12} className="animate-spin" />
+                        )}
+                        Conectar Linear
+                      </button>
+                    ) : (
+                      <div className="mt-3 flex flex-col gap-2.5">
+                        <select
+                          value={selectedTeamId}
+                          onChange={(e) => setSelectedTeamId(e.target.value)}
+                          className={`${inputClass} appearance-none`}
+                        >
+                          <option value="">Selecione um team...</option>
+                          {linearTeams.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name} ({t.key})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowTeamSelect(false);
+                              setSelectedTeamId("");
+                            }}
+                            className="rounded-lg px-3 py-1.5 text-[11px] text-[#555] transition-colors hover:text-[#888]"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleConnectTeam}
+                            disabled={!selectedTeamId || linearPending}
+                            className="flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-3.5 py-1.5 text-[11px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] disabled:opacity-50"
+                          >
+                            {linearPending && (
+                              <Loader2 size={11} className="animate-spin" />
+                            )}
+                            Conectar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-3">
+                    {/* Connected indicator */}
+                    <div className="flex items-center gap-2">
+                      <div className="h-[6px] w-[6px] rounded-full bg-[#10B981]" />
+                      <span className="text-[12px] text-[#10B981]">
+                        Conectado ao team {linearConfig.team_name}
+                      </span>
+                    </div>
+
+                    {/* Sync toggle */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] text-[#888]">
+                        Sincronizacao ativa
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleToggleSync}
+                        disabled={linearPending}
+                        className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${
+                          linearConfig.sync_enabled
+                            ? "bg-[#10B981]"
+                            : "bg-[#222]"
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                            linearConfig.sync_enabled
+                              ? "translate-x-4"
+                              : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Disconnect */}
+                    {!showDisconnectConfirm ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowDisconnectConfirm(true)}
+                        className="self-start rounded-lg border border-[rgba(226,75,74,0.15)] bg-transparent px-3 py-[5px] text-[11px] text-[#E24B4A]/70 transition-all duration-150 hover:border-[rgba(226,75,74,0.3)] hover:bg-[rgba(226,75,74,0.06)] hover:text-[#E24B4A]"
+                      >
+                        Desconectar
+                      </button>
+                    ) : (
+                      <div className="rounded-lg border border-[#1A1A1A] bg-[#050505] p-3">
+                        <p className="text-[11px] text-[#888]">
+                          Desconectar o Linear? Tasks existentes manterao o
+                          link, mas novas nao sincronizarao.
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowDisconnectConfirm(false)}
+                            className="rounded-md px-2.5 py-1 text-[11px] text-[#555] transition-colors hover:text-[#888]"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDisconnect}
+                            disabled={linearPending}
+                            className="flex items-center gap-1.5 rounded-md bg-[#E24B4A] px-3 py-1 text-[11px] font-medium text-white transition-colors hover:bg-[#D4403F] disabled:opacity-50"
+                          >
+                            {linearPending && (
+                              <Loader2 size={10} className="animate-spin" />
+                            )}
+                            Desconectar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </RoleGate>
 
             {/* Danger zone — admin only */}
             <RoleGate allowed={["admin"]}>

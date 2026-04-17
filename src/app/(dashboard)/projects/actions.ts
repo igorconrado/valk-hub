@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { linearClient } from "@/lib/linear/client";
 
 type CreateProjectInput = {
   name: string;
@@ -275,4 +276,92 @@ export async function deleteProject(projectId: string, projectName: string) {
 
   revalidatePath("/projects");
   redirect("/projects");
+}
+
+export async function getLinearTeams() {
+  try {
+    const teams = await linearClient.teams();
+    return {
+      teams: teams.nodes.map((t) => ({
+        id: t.id,
+        name: t.name,
+        key: t.key,
+      })),
+      error: null,
+    };
+  } catch {
+    return { teams: [], error: "Falha ao buscar teams do Linear" };
+  }
+}
+
+export async function connectLinearTeam(
+  projectId: string,
+  teamId: string,
+  teamName: string
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { error } = await supabase.from("linear_sync_config").upsert(
+    {
+      project_id: projectId,
+      team_id: teamId,
+      team_name: teamName,
+      sync_enabled: true,
+    },
+    { onConflict: "project_id" }
+  );
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
+}
+
+export async function updateLinearSyncEnabled(
+  projectId: string,
+  syncEnabled: boolean
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { error } = await supabase
+    .from("linear_sync_config")
+    .update({ sync_enabled: syncEnabled })
+    .eq("project_id", projectId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
+}
+
+export async function disconnectLinear(projectId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { error } = await supabase
+    .from("linear_sync_config")
+    .delete()
+    .eq("project_id", projectId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
 }
