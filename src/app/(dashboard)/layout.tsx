@@ -43,10 +43,10 @@ const navItems = [
   { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
   { label: "Docs", icon: FileText, href: "/docs", enabled: true },
   { label: "Reuniões", icon: Video, href: "/meetings", enabled: true },
+  { label: "Relatórios", icon: BarChart3, href: "/reports", enabled: true },
 ];
 
 const disabledItems = [
-  { label: "Relatórios", icon: BarChart3, tooltip: "Sprint 3B" },
   { label: "People", icon: Users, tooltip: "Sprint 4" },
 ];
 
