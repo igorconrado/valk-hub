@@ -408,3 +408,54 @@ export async function disconnectLinear(projectId: string) {
   revalidatePath(`/projects/${projectId}`);
   return { error: null };
 }
+
+// Cache: track last sync time per project to avoid hammering Linear
+const cycleSyncCache = new Map<string, number>();
+const CYCLE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function syncLinearCycles(projectId: string) {
+  const now = Date.now();
+  const lastSync = cycleSyncCache.get(projectId) ?? 0;
+  if (now - lastSync < CYCLE_CACHE_TTL) {
+    return { error: null, skipped: true };
+  }
+
+  const supabase = await createClient();
+
+  const { data: syncConfig } = await supabase
+    .from("linear_sync_config")
+    .select("team_id")
+    .eq("project_id", projectId)
+    .maybeSingle();
+
+  if (!syncConfig?.team_id) return { error: null, skipped: true };
+
+  try {
+    const team = await getLinearClient().team(syncConfig.team_id);
+    const cyclesConnection = await team.cycles();
+    const cycles = cyclesConnection.nodes;
+
+    for (const cycle of cycles) {
+      await supabase.from("linear_cycles").upsert(
+        {
+          linear_cycle_id: cycle.id,
+          project_id: projectId,
+          linear_team_id: syncConfig.team_id,
+          name: cycle.name ?? null,
+          number: cycle.number,
+          starts_at: cycle.startsAt?.toISOString() ?? null,
+          ends_at: cycle.endsAt?.toISOString() ?? null,
+        },
+        { onConflict: "linear_cycle_id" }
+      );
+    }
+
+    cycleSyncCache.set(projectId, now);
+    return { error: null, skipped: false };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Erro ao sincronizar cycles",
+      skipped: false,
+    };
+  }
+}
