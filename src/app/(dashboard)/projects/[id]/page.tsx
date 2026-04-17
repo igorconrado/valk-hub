@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isStripeConfigured } from "@/lib/stripe/client";
 import { ProjectDetail } from "./project-detail";
 
 export default async function ProjectDetailPage({
@@ -134,6 +135,7 @@ export default async function ProjectDetailPage({
       decisions={projectDecisions ?? []}
       meetings={(projectMeetings ?? []) as { id: string; title: string }[]}
       reports={(projectReports as any[]) ?? []}
+      stripeConfigured={isStripeConfigured()}
     />
   );
 }

@@ -50,6 +50,7 @@ type Project = {
   thesis_hypothesis: string | null;
   launch_target: string | null;
   logo_url: string | null;
+  stripe_product_id: string | null;
   created_at: string;
   owner: { id: string; name: string } | null;
 };
@@ -438,6 +439,7 @@ export function ProjectDetail({
   decisions,
   meetings,
   reports,
+  stripeConfigured,
 }: {
   project: Project;
   members: Member[];
@@ -457,6 +459,7 @@ export function ProjectDetail({
   decisions: DecisionRow[];
   meetings: MeetingOption[];
   reports: ReportRow[];
+  stripeConfigured: boolean;
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -540,7 +543,7 @@ export function ProjectDetail({
         </div>
 
         <RoleGate allowed={["admin", "operator"]}>
-          <EditProjectDialog project={project} linearConfig={linearConfig}>
+          <EditProjectDialog project={project} linearConfig={linearConfig} stripeConfigured={stripeConfigured}>
             <button className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-3 py-1.5 text-[12px] text-[#666] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#ccc]">
               <Pencil size={13} strokeWidth={1.5} />
               Editar

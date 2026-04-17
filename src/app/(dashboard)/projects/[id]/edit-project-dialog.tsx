@@ -18,6 +18,7 @@ import {
   connectLinearTeam,
   updateLinearSyncEnabled,
   disconnectLinear,
+  saveStripeProductId,
 } from "../actions";
 import { LogoUpload } from "@/components/logo-upload";
 import { RoleGate } from "@/components/role-gate";
@@ -32,6 +33,7 @@ type Project = {
   thesis_hypothesis: string | null;
   launch_target: string | null;
   logo_url: string | null;
+  stripe_product_id: string | null;
 };
 
 type LinearSyncConfig = {
@@ -67,14 +69,85 @@ const inputClass =
 const labelClass =
   "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
+function StripeSection({
+  project,
+  configured,
+}: {
+  project: Project;
+  configured: boolean;
+}) {
+  const [stripeId, setStripeId] = useState(project.stripe_product_id ?? "");
+  const [isSaving, startSaveTransition] = useTransition();
+
+  function handleSave() {
+    startSaveTransition(async () => {
+      const result = await saveStripeProductId(project.id, stripeId || null);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Stripe Product ID salvo");
+      }
+    });
+  }
+
+  return (
+    <div>
+      <div className="mt-2 h-px bg-[#141414]" />
+      <h3 className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+        Stripe
+      </h3>
+
+      {!configured ? (
+        <div className="mt-3">
+          <p className="text-[12px] leading-relaxed text-[#555]">
+            Configure <span className="font-mono text-[11px] text-[#666]">STRIPE_SECRET_KEY</span> nas
+            variáveis de ambiente para habilitar a sincronização automática de
+            métricas via Stripe.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-col gap-2.5">
+          <p className="text-[12px] leading-relaxed text-[#555]">
+            Vincule o Product ID do Stripe para sincronizar MRR e clientes
+            automaticamente.
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={stripeId}
+              onChange={(e) => setStripeId(e.target.value)}
+              placeholder="prod_..."
+              disabled={isSaving}
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="shrink-0 rounded-lg border border-[#222] bg-transparent px-3 py-[7px] text-[11px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc] disabled:opacity-50"
+            >
+              {isSaving ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                "Salvar"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function EditProjectDialog({
   project,
   children,
   linearConfig: initialLinearConfig,
+  stripeConfigured = false,
 }: {
   project: Project;
   children: React.ReactNode;
   linearConfig?: LinearSyncConfig;
+  stripeConfigured?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -490,6 +563,11 @@ export function EditProjectDialog({
                   </div>
                 )}
               </div>
+            </RoleGate>
+
+            {/* Stripe — admin only */}
+            <RoleGate allowed={["admin"]}>
+              <StripeSection project={project} configured={stripeConfigured} />
             </RoleGate>
 
             {/* Danger zone — admin only */}

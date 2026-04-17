@@ -517,3 +517,26 @@ export async function deleteMetricsSnapshot(
   revalidatePath(`/projects/${projectId}`);
   return { error: null };
 }
+
+export async function saveStripeProductId(
+  projectId: string,
+  stripeProductId: string | null
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { error } = await supabase
+    .from("projects")
+    .update({ stripe_product_id: stripeProductId })
+    .eq("id", projectId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
+}
