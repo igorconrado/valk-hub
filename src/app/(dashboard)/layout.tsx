@@ -47,7 +47,7 @@ const navItems = [
 const disabledItems = [
   { label: "Relatórios", icon: BarChart3, tooltip: "Sprint 3" },
   { label: "Reuniões", icon: Video, tooltip: "Sprint 3" },
-  { label: "People", icon: Users, tooltip: "Sprint 3" },
+  { label: "People", icon: Users, tooltip: "Sprint 4" },
 ];
 
 function NavItems({
