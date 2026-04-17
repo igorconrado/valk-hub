@@ -200,7 +200,7 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-[#111] bg-[#050505] lg:block">
+    <aside data-print-hide className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-[#111] bg-[#050505] lg:block">
       <SidebarBrand />
       <NavItems pathname={pathname} />
       <SidebarUser />
@@ -251,7 +251,7 @@ function Topbar() {
   }
 
   return (
-    <header className="flex h-[52px] items-center justify-between border-b border-[#111] px-5 lg:px-7">
+    <header data-print-hide className="flex h-[52px] items-center justify-between border-b border-[#111] px-5 lg:px-7">
       <div className="flex items-center gap-2">
         <MobileSidebar />
         <div className="flex items-center gap-1.5">
@@ -289,7 +289,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
       <Sidebar />
-      <div className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
+      <div data-print-layout className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
         <Topbar />
         <motion.main
           className="mx-auto w-full max-w-[1080px] flex-1 px-5 py-7 lg:px-8 lg:py-7"
