@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { format, formatDistanceToNow, isPast, parseISO, isToday } from "date-fns";
@@ -181,7 +182,14 @@ export function DashboardContent({
   metrics: MetricsSummary;
   pendingTasks: PendingTask[];
 }) {
-  const today = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  // Compute date/greeting on client only to avoid hydration mismatch
+  const [greeting, setGreeting] = useState("");
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+    setToday(format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR }));
+  }, []);
 
   return (
     <div>
@@ -192,9 +200,9 @@ export function DashboardContent({
         transition={{ duration: 0.4 }}
       >
         <h1 className="font-display text-[24px] font-semibold tracking-[-0.01em] text-[#eee]">
-          {getGreeting()}, {getFirstName(userName)}
+          {greeting ? `${greeting}, ${getFirstName(userName)}` : "\u00A0"}
         </h1>
-        <p className="mt-1 text-[12px] capitalize text-[#444]">{today}</p>
+        <p className="mt-1 text-[12px] capitalize text-[#444]">{today || "\u00A0"}</p>
       </motion.div>
 
       {/* Section 1 — Active projects */}
