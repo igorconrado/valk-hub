@@ -394,7 +394,7 @@ export function DocumentView({
         data-print-footer
         className="mt-12 hidden items-center justify-between border-t border-[#ddd] pt-3"
       >
-        <span style={{ fontSize: 9, color: "#999" }}>
+        <span suppressHydrationWarning style={{ fontSize: 9, color: "#999" }}>
           Gerado em{" "}
           {new Date().toLocaleDateString("pt-BR", {
             day: "2-digit",
