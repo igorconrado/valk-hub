@@ -87,6 +87,20 @@ export default async function ProjectDetailPage({
     .eq("project_id", id)
     .order("date", { ascending: false });
 
+  // Fetch decisions for this project
+  const { data: projectDecisions } = await supabase
+    .from("decisions")
+    .select("*, decided_by_user:users!decided_by(id, name)")
+    .eq("project_id", id)
+    .order("created_at", { ascending: false });
+
+  // Fetch meetings for the decision dialog dropdown
+  const { data: projectMeetings } = await supabase
+    .from("meetings")
+    .select("id, title")
+    .eq("project_id", id)
+    .order("scheduled_at", { ascending: false });
+
   // Fetch active cycle (where now is between starts_at and ends_at)
   const now = new Date().toISOString();
   const { data: activeCycle } = await supabase
@@ -110,6 +124,8 @@ export default async function ProjectDetailPage({
       activeCycle={activeCycle ?? null}
       docs={projectDocs ?? []}
       metricsSnapshots={(metricsSnapshots as any[]) ?? []}
+      decisions={projectDecisions ?? []}
+      meetings={(projectMeetings ?? []) as { id: string; title: string }[]}
     />
   );
 }

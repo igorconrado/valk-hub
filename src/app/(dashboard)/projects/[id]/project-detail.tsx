@@ -37,6 +37,7 @@ import { EditProjectDialog } from "./edit-project-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 import { AddMemberDialog } from "./add-member-dialog";
 import { ProjectLogo } from "@/components/project-logo";
+import { ProjectDecisionsTab } from "./project-decisions-tab";
 
 type Project = {
   id: string;
@@ -398,6 +399,18 @@ const docTypeIcons: Record<string, { icon: typeof FileText; color: string }> = {
   livre: { icon: PenLine, color: "#555" },
 };
 
+type DecisionRow = {
+  id: string;
+  title: string;
+  impact: string | null;
+  decided_at: string | null;
+  created_at: string;
+  meeting_id: string | null;
+  decided_by_user: { id: string; name: string } | { id: string; name: string }[] | null;
+};
+
+type MeetingOption = { id: string; title: string };
+
 export function ProjectDetail({
   project,
   members,
@@ -408,6 +421,8 @@ export function ProjectDetail({
   activeCycle,
   docs,
   metricsSnapshots,
+  decisions,
+  meetings,
 }: {
   project: Project;
   members: Member[];
@@ -424,6 +439,8 @@ export function ProjectDetail({
     source: string;
     created_by: string;
   }[];
+  decisions: DecisionRow[];
+  meetings: MeetingOption[];
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -736,6 +753,13 @@ export function ProjectDetail({
             </div>
           )}
         </div>
+      ) : activeTab === "decisions" ? (
+        <ProjectDecisionsTab
+          projectId={project.id}
+          decisions={decisions}
+          meetings={meetings}
+          users={allUsers}
+        />
       ) : (
         <div className="flex min-h-[200px] flex-col items-center justify-center py-12">
           <activeTabData.icon

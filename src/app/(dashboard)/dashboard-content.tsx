@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { format, formatDistanceToNow, isPast, parseISO, isToday } from "date-fns";
@@ -10,8 +10,13 @@ import {
   Scale,
   CheckCircle,
   AlertCircle,
+  Circle,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { ProjectLogo } from "@/components/project-logo";
+import { completePendingItem } from "./dashboard-actions";
 
 type Project = {
   id: string;
@@ -156,11 +161,12 @@ function Avatar({ name }: { name: string }) {
 const sectionLabel = "text-[10px] font-semibold uppercase tracking-[0.15em] text-[#333]";
 const cardClass = "rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-[18px_20px]";
 
-type PendingTask = {
+type PendingItem = {
   id: string;
   title: string;
   due_date: string | null;
-  status: string;
+  source: "task" | "action_item";
+  meeting_id: string | null;
 };
 
 type MetricsSummary = {
@@ -169,18 +175,82 @@ type MetricsSummary = {
   hasMetrics: boolean;
 };
 
+type RecentDecision = {
+  id: string;
+  title: string;
+  meeting_id: string | null;
+  date: string;
+};
+
+function PendingItemRow({ item }: { item: PendingItem }) {
+  const [isPending, startTransition] = useTransition();
+  const [done, setDone] = useState(false);
+
+  const overdue =
+    item.due_date &&
+    isPast(parseISO(item.due_date)) &&
+    !isToday(parseISO(item.due_date));
+
+  function handleComplete() {
+    startTransition(async () => {
+      const result = await completePendingItem(item.id, item.source);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      setDone(true);
+    });
+  }
+
+  if (done) return null;
+
+  return (
+    <div className="flex items-center gap-2.5 border-b border-[#0F0F0F] py-2 last:border-0">
+      <button
+        onClick={handleComplete}
+        disabled={isPending}
+        className="shrink-0 text-[#444] transition-colors hover:text-[#888] disabled:opacity-50"
+      >
+        {isPending ? (
+          <Loader2 size={14} className="animate-spin text-[#555]" />
+        ) : (
+          <Circle size={14} strokeWidth={1.5} />
+        )}
+      </button>
+      <span className="min-w-0 flex-1 truncate text-[13px] text-[#ddd]">
+        {item.title}
+      </span>
+      <span
+        className={`shrink-0 text-[11px] ${
+          !item.due_date
+            ? "text-[#333]"
+            : overdue
+              ? "font-medium text-[#E24B4A]"
+              : "text-[#444]"
+        }`}
+      >
+        {item.due_date
+          ? format(parseISO(item.due_date), "dd MMM", { locale: ptBR })
+          : "sem prazo"}
+      </span>
+    </div>
+  );
+}
+
 export function DashboardContent({
   userName,
   projects,
   activities,
   metrics,
-  pendingTasks,
+  pendingItems,
+  recentDecisions,
 }: {
   userName: string;
   projects: Project[];
   activities: Activity[];
   metrics: MetricsSummary;
-  pendingTasks: PendingTask[];
+  pendingItems: PendingItem[];
+  recentDecisions: RecentDecision[];
 }) {
   // Compute date/greeting on client only to avoid hydration mismatch
   const [greeting, setGreeting] = useState("");
@@ -318,18 +388,46 @@ export function DashboardContent({
             <div className="flex items-center gap-1.5">
               <Scale size={14} strokeWidth={1.5} className="text-[#333]" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Decisões
+                Decisões recentes
               </span>
             </div>
-            <div className="mt-3 flex flex-col items-center py-6">
-              <Scale size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
-              <p className="mt-3 text-[11px] text-[#333]">
-                Nenhuma decisão registrada
-              </p>
-            </div>
+            {recentDecisions.length === 0 ? (
+              <div className="mt-3 flex flex-col items-center py-6">
+                <Scale size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
+                <p className="mt-3 text-[11px] text-[#333]">
+                  Nenhuma decisão registrada
+                </p>
+              </div>
+            ) : (
+              <div className="mt-3 flex flex-col">
+                {recentDecisions.map((decision) => (
+                  <Link
+                    key={decision.id}
+                    href={decision.meeting_id ? `/meetings/${decision.meeting_id}` : "#"}
+                    className="flex items-center gap-2.5 border-b border-[#0F0F0F] py-2 transition-colors last:border-0 hover:bg-white/[0.02]"
+                  >
+                    <div className="h-[6px] w-[6px] shrink-0 rounded-full bg-[#E24B4A]" />
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-[#888]">
+                      {decision.title}
+                    </span>
+                    <span className="shrink-0 text-[11px] text-[#444]">
+                      {format(new Date(decision.date), "dd MMM", {
+                        locale: ptBR,
+                      })}
+                    </span>
+                  </Link>
+                ))}
+                <Link
+                  href="/meetings"
+                  className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+            )}
           </div>
 
-          {/* Pending tasks */}
+          {/* Pending items */}
           <div className={cardClass}>
             <div className="flex items-center gap-1.5">
               <AlertCircle size={14} strokeWidth={1.5} className="text-[#333]" />
@@ -337,49 +435,26 @@ export function DashboardContent({
                 Meus pendentes
               </span>
             </div>
-            {pendingTasks.length === 0 ? (
+            {pendingItems.length === 0 ? (
               <div className="mt-3 flex flex-col items-center py-6">
                 <CheckCircle size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
-                <p className="mt-2 text-[11px] text-[#333]">Nada pendente</p>
+                <p className="mt-2 text-[11px] text-[#333]">
+                  Sem pendências. Foco no que importa.
+                </p>
               </div>
             ) : (
               <div className="mt-3 flex flex-col">
-                {pendingTasks.map((task) => {
-                  const overdue =
-                    task.due_date &&
-                    isPast(parseISO(task.due_date)) &&
-                    !isToday(parseISO(task.due_date));
-
-                  return (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between border-b border-[#0F0F0F] py-2 last:border-0"
-                    >
-                      <span className="min-w-0 flex-1 truncate text-[12px] text-[#999]">
-                        {task.title}
-                      </span>
-                      {task.due_date && (
-                        <span
-                          className={`ml-2 shrink-0 text-[10px] ${
-                            overdue
-                              ? "font-medium text-[#E24B4A]"
-                              : "text-[#444]"
-                          }`}
-                        >
-                          {format(parseISO(task.due_date), "dd MMM", {
-                            locale: ptBR,
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-                <Link
-                  href="/tasks"
-                  className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
-                >
-                  Ver todas →
-                </Link>
+                {pendingItems.slice(0, 5).map((item) => (
+                  <PendingItemRow key={`${item.source}-${item.id}`} item={item} />
+                ))}
+                {pendingItems.length > 5 && (
+                  <Link
+                    href="/tasks?assignee=me"
+                    className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
+                  >
+                    Ver todas →
+                  </Link>
+                )}
               </div>
             )}
           </div>

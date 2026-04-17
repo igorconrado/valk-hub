@@ -73,26 +73,71 @@ export default async function DashboardPage() {
     }
   }
 
-  // Fetch pending tasks for logged-in user
-  let pendingTasks: {
+  // Fetch pending items from tasks + action_items
+  type PendingItem = {
     id: string;
     title: string;
     due_date: string | null;
-    status: string;
-  }[] = [];
+    source: "task" | "action_item";
+    meeting_id: string | null;
+  };
+
+  let pendingItems: PendingItem[] = [];
 
   if (dbUserId) {
-    const { data: tasks } = await supabase
-      .from("tasks")
-      .select("id, title, due_date, status")
-      .eq("assignee_id", dbUserId)
-      .not("status", "in", "(done,cancelled)")
-      .not("due_date", "is", null)
-      .order("due_date", { ascending: true })
-      .limit(5);
+    const [{ data: tasks }, { data: actionItems }] = await Promise.all([
+      supabase
+        .from("tasks")
+        .select("id, title, due_date")
+        .eq("assignee_id", dbUserId)
+        .not("status", "in", "(done,cancelled)")
+        .order("due_date", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("action_items")
+        .select("id, title, due_date, meeting_id")
+        .eq("assignee_id", dbUserId)
+        .eq("status", "pending")
+        .order("due_date", { ascending: true, nullsFirst: false }),
+    ]);
 
-    pendingTasks = (tasks as typeof pendingTasks) ?? [];
+    const taskItems: PendingItem[] = (tasks ?? []).map((t) => ({
+      id: t.id as string,
+      title: t.title as string,
+      due_date: t.due_date as string | null,
+      source: "task" as const,
+      meeting_id: null,
+    }));
+
+    const aiItems: PendingItem[] = (actionItems ?? []).map((a) => ({
+      id: a.id as string,
+      title: a.title as string,
+      due_date: a.due_date as string | null,
+      source: "action_item" as const,
+      meeting_id: a.meeting_id as string | null,
+    }));
+
+    // Merge and sort: due_date ASC, nulls last
+    pendingItems = [...taskItems, ...aiItems].sort((a, b) => {
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return a.due_date.localeCompare(b.due_date);
+    });
   }
+
+  // Fetch recent decisions
+  const { data: recentDecisions } = await supabase
+    .from("decisions")
+    .select("id, title, meeting_id, decided_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const normalizedDecisions = (recentDecisions ?? []).map((d) => ({
+    id: d.id as string,
+    title: d.title as string,
+    meeting_id: d.meeting_id as string | null,
+    date: (d.decided_at ?? d.created_at) as string,
+  }));
 
   return (
     <DashboardContent
@@ -100,7 +145,8 @@ export default async function DashboardPage() {
       projects={(projects as any) ?? []}
       activities={normalizedActivities}
       metrics={{ totalMrr, totalClients, hasMetrics }}
-      pendingTasks={pendingTasks}
+      pendingItems={pendingItems}
+      recentDecisions={normalizedDecisions}
     />
   );
 }
