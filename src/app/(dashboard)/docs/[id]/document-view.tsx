@@ -234,8 +234,52 @@ export function DocumentView({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
+      {/* Print header — hidden on screen, visible in print */}
+      <div
+        data-print-header
+        className="mb-6 hidden items-center justify-between"
+      >
+        <div className="flex items-center gap-1.5">
+          <span
+            style={{
+              fontFamily: "'Clash Display', sans-serif",
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: "0.15em",
+              color: "#111",
+            }}
+          >
+            VALK
+          </span>
+          <span
+            style={{
+              display: "inline-block",
+              width: 4,
+              height: 4,
+              borderRadius: "50%",
+              backgroundColor: "#E24B4A",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "#888",
+              marginLeft: 4,
+            }}
+          >
+            SOFTWARE
+          </span>
+        </div>
+        <span style={{ fontSize: 10, color: "#888" }}>
+          {doc.project?.name ?? "Empresa"}
+        </span>
+      </div>
+
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1.5 text-[12px]">
+      <nav data-print-hide className="mb-4 flex items-center gap-1.5 text-[12px]">
         <Link
           href="/docs"
           className="font-medium text-[#444] transition-colors hover:text-[#888]"
@@ -249,7 +293,7 @@ export function DocumentView({
       </nav>
 
       {/* Metadata bar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div data-print-hide className="flex flex-wrap items-center gap-2">
         <MetadataDropdown
           value={type}
           options={TYPE_OPTIONS}
@@ -286,7 +330,10 @@ export function DocumentView({
         </span>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <button className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-2.5 py-1 text-[11px] text-[#555] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#888]">
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-2.5 py-1 text-[11px] text-[#555] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#888]"
+          >
             <Download size={12} strokeWidth={1.5} />
             Exportar PDF
           </button>
@@ -320,9 +367,10 @@ export function DocumentView({
       </div>
 
       {/* Editor area */}
-      <div className="mx-auto mt-8 max-w-[720px]">
+      <div data-print-content className="mx-auto mt-8 max-w-[720px]">
         {/* Title */}
         <input
+          data-print-title
           value={title}
           onChange={handleTitleChange}
           readOnly={!canEdit}
@@ -339,6 +387,30 @@ export function DocumentView({
             placeholder="Comece a escrever..."
           />
         </div>
+      </div>
+
+      {/* Print footer — hidden on screen, visible in print */}
+      <div
+        data-print-footer
+        className="mt-12 hidden items-center justify-between border-t border-[#ddd] pt-3"
+      >
+        <span style={{ fontSize: 9, color: "#999" }}>
+          Gerado em{" "}
+          {new Date().toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}{" "}
+          · Versao {doc.version} · Confidencial
+        </span>
+        <span
+          style={{
+            fontSize: 9,
+            color: "#999",
+          }}
+        >
+          VALK SOFTWARE
+        </span>
       </div>
 
       {/* Version history panel */}

@@ -156,3 +156,132 @@
     outline-offset: 2px;
   }
 }
+
+/* ========== Print styles for PDF export ========== */
+@media print {
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+
+  /* Hide everything except the print area */
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide sidebar, topbar, navigation, overlays */
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Show the print header/footer */
+  [data-print-header],
+  [data-print-footer] {
+    display: flex !important;
+  }
+
+  /* Remove sidebar offset on the layout wrapper */
+  [data-print-layout] {
+    margin-left: 0 !important;
+  }
+
+  /* Reset the main content area */
+  [data-print-content] {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Document title */
+  [data-print-title] {
+    font-family: 'Clash Display', sans-serif !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #111 !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Editor content overrides for print */
+  .valk-editor {
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  .valk-editor-content {
+    color: #222 !important;
+    font-size: 13px !important;
+    line-height: 1.7 !important;
+  }
+
+  .valk-editor-content h1,
+  .valk-editor-content h2,
+  .valk-editor-content h3 {
+    color: #111 !important;
+  }
+
+  .valk-editor-content strong {
+    color: #111 !important;
+  }
+
+  .valk-editor-content .valk-code-block {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    color: #333 !important;
+  }
+
+  .valk-editor-content code {
+    background: #f0f0f0 !important;
+    border: 1px solid #ddd !important;
+    color: #c7254e !important;
+  }
+
+  .valk-editor-content .valk-code-block code {
+    background: none !important;
+    border: none !important;
+    color: inherit !important;
+  }
+
+  .valk-editor-content .valk-link {
+    color: #E24B4A !important;
+    text-decoration: underline !important;
+  }
+
+  .valk-editor-content blockquote {
+    border-left-color: #E24B4A !important;
+    color: #555 !important;
+  }
+
+  .valk-editor-content hr {
+    border-top-color: #ddd !important;
+  }
+
+  .valk-editor-content mark {
+    background: rgba(226, 75, 74, 0.12) !important;
+    color: #111 !important;
+  }
+
+  .valk-editor-content ul[data-type="taskList"] li > label input[type="checkbox"] {
+    border-color: #999 !important;
+  }
+
+  .valk-editor-content ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+    background: #E24B4A !important;
+    border-color: #E24B4A !important;
+  }
+
+  .valk-editor-content s {
+    color: #999 !important;
+  }
+
+  .valk-editor-content ul li::marker {
+    color: #666 !important;
+  }
+
+  .valk-editor-content ol li::marker {
+    color: #666 !important;
+  }
+}
