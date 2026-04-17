@@ -146,18 +146,26 @@ const STATUS_SUMMARY = [
   { key: "done", label: "done" },
 ];
 
+type LinearSyncConfig = {
+  team_id: string;
+  team_name: string;
+  sync_enabled: boolean;
+} | null;
+
 export function ProjectDetail({
   project,
   members,
   availableUsers,
   tasks,
   allUsers,
+  linearConfig,
 }: {
   project: Project;
   members: Member[];
   availableUsers: AvailableUser[];
   tasks: TaskRow[];
   allUsers: { id: string; name: string }[];
+  linearConfig: LinearSyncConfig;
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
@@ -232,7 +240,7 @@ export function ProjectDetail({
         </div>
 
         <RoleGate allowed={["admin", "operator"]}>
-          <EditProjectDialog project={project}>
+          <EditProjectDialog project={project} linearConfig={linearConfig}>
             <button className="flex items-center gap-1.5 rounded-lg border border-[#1F1F1F] bg-transparent px-3 py-1.5 text-[12px] text-[#666] transition-all duration-150 hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#ccc]">
               <Pencil size={13} strokeWidth={1.5} />
               Editar

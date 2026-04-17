@@ -66,6 +66,13 @@ export default async function ProjectDetailPage({
     .select("id, name")
     .order("name");
 
+  // Fetch Linear sync config
+  const { data: linearSyncConfig } = await supabase
+    .from("linear_sync_config")
+    .select("team_id, team_name, sync_enabled")
+    .eq("project_id", id)
+    .maybeSingle();
+
   return (
     <ProjectDetail
       project={project as any}
@@ -73,6 +80,7 @@ export default async function ProjectDetailPage({
       availableUsers={availableUsers}
       tasks={projectTasks ?? []}
       allUsers={allUsers ?? []}
+      linearConfig={linearSyncConfig ?? null}
     />
   );
 }
