@@ -22,20 +22,21 @@ async function getAuthUser() {
   return { supabase, dbUser, error: null };
 }
 
-export async function createDocument(
-  projectId: string | null,
-  type: string | null
-) {
+export async function createDocument(input: {
+  title: string;
+  type: string;
+  project_id: string | null;
+}) {
   const { supabase, dbUser, error: authError } = await getAuthUser();
   if (authError || !dbUser) return { error: authError, id: null };
 
   const { data: doc, error } = await supabase
     .from("documents")
     .insert({
-      title: "Sem titulo",
+      title: input.title || "Sem titulo",
       content: "",
-      type: type || "livre",
-      project_id: projectId || null,
+      type: input.type || "livre",
+      project_id: input.project_id || null,
       version: 1,
       created_by: dbUser.id,
     })
@@ -49,7 +50,7 @@ export async function createDocument(
     action: "created_document",
     entity_type: "document",
     entity_id: doc.id,
-    metadata: { type: type || "livre" },
+    metadata: { title: input.title, type: input.type || "livre" },
   });
 
   revalidatePath("/docs");
