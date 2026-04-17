@@ -6,6 +6,8 @@ import { ptBR } from "date-fns/locale";
 import {
   LineChart,
   Line,
+  Area,
+  AreaChart,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -212,22 +214,88 @@ function AddSnapshotDialog({
   );
 }
 
-function CustomTooltip({
+function MetricTooltip({
   active,
   payload,
   label,
+  prefix = "",
+  suffix = "",
 }: {
   active?: boolean;
   payload?: Array<{ value: number }>;
   label?: string;
+  prefix?: string;
+  suffix?: string;
 }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-[#1A1A1A] bg-[#111] px-3 py-2 shadow-lg">
       <p className="text-[10px] text-[#555]">{label}</p>
       <p className="mt-0.5 font-display text-[14px] font-semibold text-[#eee]">
-        R$ {payload[0].value.toLocaleString("pt-BR")}
+        {prefix}{payload[0].value.toLocaleString("pt-BR")}{suffix}
       </p>
+    </div>
+  );
+}
+
+function MetricChart({
+  title,
+  data,
+  dataKey,
+  color,
+  prefix = "",
+  suffix = "",
+}: {
+  title: string;
+  data: Array<Record<string, unknown>>;
+  dataKey: string;
+  color: string;
+  prefix?: string;
+  suffix?: string;
+}) {
+  if (data.length <= 1) return null;
+
+  return (
+    <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
+      <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+        {title}
+      </h3>
+      <ResponsiveContainer width="100%" height={240}>
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.08} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="#141414" strokeDasharray="3 3" />
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+            axisLine={{ stroke: "#141414" }}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            content={
+              <MetricTooltip prefix={prefix} suffix={suffix} />
+            }
+          />
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            stroke={color}
+            strokeWidth={2}
+            fill={`url(#fill-${dataKey})`}
+            dot={{ fill: color, r: 3, strokeWidth: 0 }}
+            activeDot={{ fill: color, r: 5, strokeWidth: 0 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -276,12 +344,26 @@ export function MetricsTab({
   const latest = sorted[sorted.length - 1];
   const previous = sorted.length > 1 ? sorted[sorted.length - 2] : null;
 
-  // Chart data — MRR over time
-  const chartData = sorted
-    .filter((s) => s.data_json.mrr !== null && s.data_json.mrr !== undefined)
+  // Chart data per metric
+  const mrrData = sorted
+    .filter((s) => s.data_json.mrr != null)
     .map((s) => ({
       date: format(parseISO(s.date), "dd MMM", { locale: ptBR }),
       mrr: s.data_json.mrr,
+    }));
+
+  const clientsData = sorted
+    .filter((s) => s.data_json.paying_customers != null)
+    .map((s) => ({
+      date: format(parseISO(s.date), "dd MMM", { locale: ptBR }),
+      clients: s.data_json.paying_customers,
+    }));
+
+  const churnData = sorted
+    .filter((s) => s.data_json.churn != null)
+    .map((s) => ({
+      date: format(parseISO(s.date), "dd MMM", { locale: ptBR }),
+      churn: s.data_json.churn,
     }));
 
   function handleDelete(snapshotId: string) {
@@ -311,40 +393,29 @@ export function MetricsTab({
         </RoleGate>
       </div>
 
-      {/* Chart */}
-      {chartData.length > 1 && (
-        <div className="mb-6 rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
-          <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
-            MRR
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
-              <CartesianGrid stroke="#141414" strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
-                axisLine={{ stroke: "#141414" }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "#444", fontFamily: "var(--font-sans)" }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="mrr"
-                stroke="#E24B4A"
-                strokeWidth={2}
-                dot={{ fill: "#E24B4A", r: 3, strokeWidth: 0 }}
-                activeDot={{ fill: "#E24B4A", r: 5, strokeWidth: 0 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      {/* Charts */}
+      <div className="mb-6 grid grid-cols-1 gap-3">
+        <MetricChart
+          title="MRR"
+          data={mrrData}
+          dataKey="mrr"
+          color="#E24B4A"
+          prefix="R$ "
+        />
+        <MetricChart
+          title="Clientes"
+          data={clientsData}
+          dataKey="clients"
+          color="#3B82F6"
+        />
+        <MetricChart
+          title="Churn"
+          data={churnData}
+          dataKey="churn"
+          color="#F59E0B"
+          suffix="%"
+        />
+      </div>
 
       {/* Current numbers */}
       <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
