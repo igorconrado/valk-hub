@@ -48,18 +48,32 @@ export default async function DashboardPage() {
   const activeProjectIds = (projects ?? []).map((p) => p.id as string);
   let totalMrr = 0;
   let totalClients = 0;
+  let prevMrr = 0;
+  let prevClients = 0;
   let hasMetrics = false;
 
+  // Previous month boundary for comparison
+  const now = new Date();
+  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+    .toISOString()
+    .split("T")[0];
+
   if (activeProjectIds.length > 0) {
-    // Get the most recent snapshot for each project using distinct on
-    const { data: snapshots } = await supabase
-      .from("metrics_snapshots")
-      .select("project_id, data_json")
-      .in("project_id", activeProjectIds)
-      .order("date", { ascending: false });
+    const [{ data: snapshots }, { data: prevSnapshots }] = await Promise.all([
+      supabase
+        .from("metrics_snapshots")
+        .select("project_id, data_json")
+        .in("project_id", activeProjectIds)
+        .order("date", { ascending: false }),
+      supabase
+        .from("metrics_snapshots")
+        .select("project_id, data_json")
+        .in("project_id", activeProjectIds)
+        .lte("date", prevMonthEnd)
+        .order("date", { ascending: false }),
+    ]);
 
     if (snapshots && snapshots.length > 0) {
-      // Keep only the latest per project
       const seen = new Set<string>();
       for (const s of snapshots) {
         const pid = s.project_id as string;
@@ -71,7 +85,39 @@ export default async function DashboardPage() {
       }
       if (seen.size > 0) hasMetrics = true;
     }
+
+    if (prevSnapshots && prevSnapshots.length > 0) {
+      const seen = new Set<string>();
+      for (const s of prevSnapshots) {
+        const pid = s.project_id as string;
+        if (seen.has(pid)) continue;
+        seen.add(pid);
+        const data = s.data_json as Record<string, number | null> | null;
+        if (data?.mrr) prevMrr += data.mrr;
+        if (data?.paying_customers) prevClients += data.paying_customers;
+      }
+    }
   }
+
+  // Fetch company metrics (runway)
+  const { data: companyMetrics } = await supabase
+    .from("company_metrics")
+    .select("runway_months, burn_rate, data_json")
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const cash =
+    (companyMetrics?.data_json as Record<string, number | null> | null)?.cash ??
+    null;
+  const burnRate = companyMetrics?.burn_rate
+    ? Number(companyMetrics.burn_rate)
+    : null;
+  const runwayMonths = companyMetrics?.runway_months
+    ? Number(companyMetrics.runway_months)
+    : cash && burnRate && burnRate > 0
+      ? Math.round((cash / burnRate) * 10) / 10
+      : null;
 
   // Fetch pending items from tasks + action_items
   type PendingItem = {
@@ -144,7 +190,16 @@ export default async function DashboardPage() {
       userName={userName}
       projects={(projects as any) ?? []}
       activities={normalizedActivities}
-      metrics={{ totalMrr, totalClients, hasMetrics }}
+      metrics={{
+        totalMrr,
+        totalClients,
+        prevMrr,
+        prevClients,
+        runwayMonths,
+        cash,
+        burnRate,
+        hasMetrics,
+      }}
       pendingItems={pendingItems}
       recentDecisions={normalizedDecisions}
     />

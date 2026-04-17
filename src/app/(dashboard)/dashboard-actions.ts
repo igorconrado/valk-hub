@@ -70,3 +70,32 @@ export async function completePendingItem(
   revalidatePath("/");
   return { error: null };
 }
+
+export async function saveCompanyMetrics(cash: number, burnRate: number) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autenticado" };
+
+  const runwayMonths =
+    burnRate > 0 ? Math.round((cash / burnRate) * 10) / 10 : null;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const { error } = await supabase.from("company_metrics").upsert(
+    {
+      date: today,
+      runway_months: runwayMonths,
+      burn_rate: burnRate,
+      data_json: { cash, burn_rate: burnRate },
+    },
+    { onConflict: "date" }
+  );
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/");
+  return { error: null };
+}

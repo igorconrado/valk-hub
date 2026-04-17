@@ -7,16 +7,26 @@ import { format, formatDistanceToNow, isPast, parseISO, isToday } from "date-fns
 import { ptBR } from "date-fns/locale";
 import {
   TrendingUp,
+  TrendingDown,
   Scale,
   CheckCircle,
   AlertCircle,
   Circle,
   CheckCircle2,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RoleGate } from "@/components/role-gate";
 import { ProjectLogo } from "@/components/project-logo";
-import { completePendingItem } from "./dashboard-actions";
+import { completePendingItem, saveCompanyMetrics } from "./dashboard-actions";
 
 type Project = {
   id: string;
@@ -172,6 +182,11 @@ type PendingItem = {
 type MetricsSummary = {
   totalMrr: number;
   totalClients: number;
+  prevMrr: number;
+  prevClients: number;
+  runwayMonths: number | null;
+  cash: number | null;
+  burnRate: number | null;
   hasMetrics: boolean;
 };
 
@@ -233,6 +248,219 @@ function PendingItemRow({ item }: { item: PendingItem }) {
           ? format(parseISO(item.due_date), "dd MMM", { locale: ptBR })
           : "sem prazo"}
       </span>
+    </div>
+  );
+}
+
+const metricInputClass =
+  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
+
+const metricLabelClass =
+  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
+
+function ChangeIndicator({
+  current,
+  previous,
+}: {
+  current: number;
+  previous: number;
+}) {
+  if (previous === 0) return null;
+  const pct = ((current - previous) / previous) * 100;
+  if (pct === 0) return null;
+  const isUp = pct > 0;
+
+  return (
+    <span
+      className="flex items-center gap-0.5 text-[10px] font-medium"
+      style={{ color: isUp ? "#10B981" : "#E24B4A" }}
+    >
+      {isUp ? (
+        <TrendingUp size={10} strokeWidth={2} />
+      ) : (
+        <TrendingDown size={10} strokeWidth={2} />
+      )}
+      {Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+}
+
+function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isSaving, startTransition] = useTransition();
+
+  const runwayColor =
+    metrics.runwayMonths === null
+      ? "#555"
+      : metrics.runwayMonths > 6
+        ? "#10B981"
+        : metrics.runwayMonths >= 3
+          ? "#F59E0B"
+          : "#E24B4A";
+
+  function handleSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const cash = Number(fd.get("cash"));
+    const burn = Number(fd.get("burn_rate"));
+
+    startTransition(async () => {
+      const result = await saveCompanyMetrics(cash, burn);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Métricas salvas");
+      setDialogOpen(false);
+    });
+  }
+
+  return (
+    <div className={cardClass}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <TrendingUp size={14} strokeWidth={1.5} className="text-[#333]" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
+            Números do mês
+          </span>
+        </div>
+        <RoleGate allowed={["admin"]}>
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="text-[#333] transition-colors hover:text-[#888]"
+          >
+            <Pencil size={12} strokeWidth={1.5} />
+          </button>
+        </RoleGate>
+      </div>
+      <div className="mt-4 flex flex-col gap-3.5">
+        <div>
+          <p className="text-[10px] text-[#444]">MRR</p>
+          <div className="flex items-end gap-2">
+            <p className="font-display text-[20px] font-semibold text-[#ddd]">
+              {metrics.hasMetrics
+                ? `R$ ${metrics.totalMrr.toLocaleString("pt-BR")}`
+                : "R$ 0"}
+            </p>
+            {metrics.hasMetrics && metrics.prevMrr > 0 && (
+              <ChangeIndicator
+                current={metrics.totalMrr}
+                previous={metrics.prevMrr}
+              />
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] text-[#444]">Clientes</p>
+          <div className="flex items-end gap-2">
+            <p className="font-display text-[20px] font-semibold text-[#ddd]">
+              {metrics.hasMetrics
+                ? metrics.totalClients.toLocaleString("pt-BR")
+                : "0"}
+            </p>
+            {metrics.hasMetrics && metrics.prevClients > 0 && (
+              <ChangeIndicator
+                current={metrics.totalClients}
+                previous={metrics.prevClients}
+              />
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] text-[#444]">Runway</p>
+          <p
+            className="font-display text-[20px] font-semibold"
+            style={{ color: runwayColor }}
+          >
+            {metrics.runwayMonths !== null
+              ? `${metrics.runwayMonths} meses`
+              : "—"}
+          </p>
+        </div>
+      </div>
+      <p className="mt-3.5 text-[10px] text-[#222]">
+        {metrics.hasMetrics
+          ? "Soma dos produtos ativos"
+          : "Registre nas métricas de cada produto"}
+      </p>
+
+      {/* Edit dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-[380px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
+        >
+          <div className="px-7 pt-7">
+            <DialogHeader className="gap-1">
+              <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+                Financeiro
+              </DialogTitle>
+              <DialogDescription className="text-[12px] text-[#555]">
+                Atualize caixa e gasto mensal para calcular runway
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-5 h-px bg-[#141414]" />
+          </div>
+
+          <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex flex-col gap-4 px-7 py-5">
+              <div>
+                <label htmlFor="cash" className={metricLabelClass}>
+                  Caixa atual (R$)
+                </label>
+                <input
+                  id="cash"
+                  name="cash"
+                  type="number"
+                  step="0.01"
+                  required
+                  defaultValue={metrics.cash ?? ""}
+                  disabled={isSaving}
+                  className={metricInputClass}
+                  placeholder="Ex: 500000"
+                />
+              </div>
+              <div>
+                <label htmlFor="burn_rate" className={metricLabelClass}>
+                  Gasto mensal médio (R$)
+                </label>
+                <input
+                  id="burn_rate"
+                  name="burn_rate"
+                  type="number"
+                  step="0.01"
+                  required
+                  defaultValue={metrics.burnRate ?? ""}
+                  disabled={isSaving}
+                  className={metricInputClass}
+                  placeholder="Ex: 35000"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-[#141414] px-7 py-5">
+              <div className="flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setDialogOpen(false)}
+                  disabled={isSaving}
+                  className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+                >
+                  {isSaving && <Loader2 size={14} className="animate-spin" />}
+                  Salvar
+                </button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -345,43 +573,7 @@ export function DashboardContent({
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {/* Metrics */}
-          <div className={cardClass}>
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={14} strokeWidth={1.5} className="text-[#333]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Numeros do mes
-              </span>
-            </div>
-            <div className="mt-4 flex flex-col gap-3.5">
-              <div>
-                <p className="text-[10px] text-[#444]">MRR</p>
-                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
-                  {metrics.hasMetrics
-                    ? `R$ ${metrics.totalMrr.toLocaleString("pt-BR")}`
-                    : "R$ 0"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#444]">Clientes</p>
-                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
-                  {metrics.hasMetrics
-                    ? metrics.totalClients.toLocaleString("pt-BR")
-                    : "0"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#444]">Runway</p>
-                <p className="font-mono text-[20px] font-semibold text-[#ddd]">
-                  —
-                </p>
-              </div>
-            </div>
-            <p className="mt-3.5 text-[10px] text-[#222]">
-              {metrics.hasMetrics
-                ? "Soma dos produtos ativos"
-                : "Registre nas metricas de cada produto"}
-            </p>
-          </div>
+          <MetricsCard metrics={metrics} />
 
           {/* Decisions */}
           <div className={cardClass}>
