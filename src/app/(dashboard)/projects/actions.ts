@@ -459,3 +459,61 @@ export async function syncLinearCycles(projectId: string) {
     };
   }
 }
+
+export async function saveMetricsSnapshot(
+  projectId: string,
+  date: string,
+  data: Record<string, number | null>
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!dbUser) return { error: "Usuario nao encontrado" };
+
+  const { error } = await supabase.from("metrics_snapshots").insert({
+    project_id: projectId,
+    date,
+    data_json: data,
+    source: "manual",
+    created_by: dbUser.id,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
+}
+
+export async function deleteMetricsSnapshot(
+  snapshotId: string,
+  projectId: string
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Nao autenticado" };
+
+  const { error } = await supabase
+    .from("metrics_snapshots")
+    .delete()
+    .eq("id", snapshotId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}`);
+  return { error: null };
+}
