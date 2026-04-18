@@ -103,7 +103,8 @@ export function TaskListView({
   onTaskClick?: (taskId: string) => void;
 }) {
   return (
-    <div>
+    <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="min-w-[640px]">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-[#0F0F0F] px-1 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#333]">
         <div className="w-5" />
@@ -168,6 +169,7 @@ export function TaskListView({
           </div>
         </motion.div>
       ))}
+    </div>
     </div>
   );
 }

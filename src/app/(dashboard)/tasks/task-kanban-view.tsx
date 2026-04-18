@@ -188,7 +188,7 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-[200px] w-[220px] shrink-0 flex-col rounded-xl transition-colors duration-150 lg:w-auto lg:flex-1 ${
+      className={`flex min-h-[200px] w-[260px] shrink-0 flex-col rounded-xl transition-colors duration-150 lg:w-auto lg:flex-1 ${
         isOver ? "bg-white/[0.02]" : ""
       }`}
     >
@@ -329,7 +329,7 @@ export function TaskKanbanView({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-3 overflow-x-auto pb-4 lg:gap-4">
+        <div className="flex gap-3 overflow-x-auto pb-4 [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:gap-4">
           {grouped.map((col) => (
             <DroppableColumn
               key={col.id}

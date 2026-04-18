@@ -242,7 +242,7 @@ export default function LoginPage() {
                   animate="visible"
                   custom={0.2}
                 >
-                  <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#444]">
+                  <label className="label mb-2 block">
                     Email corporativo
                   </label>
                   <input
@@ -252,7 +252,7 @@ export default function LoginPage() {
                     placeholder="seu@valkbr.com"
                     required
                     disabled={state === "loading"}
-                    className="w-full rounded-lg border border-[#1A1A1A] bg-[#0F0F0F] px-4 py-[13px] text-sm text-white placeholder-[#333] transition-all duration-250 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.07)] disabled:opacity-50"
+                    className="input disabled:opacity-50"
                   />
                 </motion.div>
 

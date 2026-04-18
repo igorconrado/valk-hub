@@ -501,15 +501,17 @@ export function ProjectDetail({
       </nav>
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-4">
-          <ProjectLogo name={project.name} logoUrl={project.logo_url} size={56} fontSize={22} />
+          <div className="hidden sm:flex">
+            <ProjectLogo name={project.name} logoUrl={project.logo_url} size={56} fontSize={22} />
+          </div>
           <div>
-            <h1 className="font-display text-[24px] font-semibold tracking-tight text-[#eee]">
+            <h1 className="font-display text-[20px] font-semibold tracking-tight text-[#eee] sm:text-[24px]">
               {project.name}
             </h1>
 
-          <div className="mt-2.5 flex items-center gap-2 text-[12px]">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12px]">
             <span
               className="inline-flex rounded px-2 py-0.5 text-[10px] font-medium"
               style={{

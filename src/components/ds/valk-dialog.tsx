@@ -44,7 +44,7 @@ function ValkDialogContent({
   return (
     <DialogContent
       className={cn(
-        "gap-0 rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--bg-1)] p-0",
+        "w-[calc(100%-2rem)] gap-0 rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--bg-1)] p-0 sm:w-auto",
         className
       )}
       showCloseButton={showCloseButton}
