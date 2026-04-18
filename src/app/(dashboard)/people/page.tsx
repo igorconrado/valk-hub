@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/page-header";
 import { PeopleGrid } from "./people-grid";
 import { InviteButton } from "./invite-button";
 
@@ -53,15 +52,15 @@ export default async function PeoplePage() {
   }));
 
   return (
-    <div>
-      <PageHeader
-        title="Time"
-        description="Quem faz a VALK acontecer"
-        action={<InviteButton />}
-      />
-      <div className="mt-6">
-        <PeopleGrid people={people} />
+    <div className="fadeUp">
+      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Pessoas</h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>{people.length} membros da equipe</p>
+        </div>
+        <InviteButton />
       </div>
+      <PeopleGrid people={people} />
     </div>
   );
 }

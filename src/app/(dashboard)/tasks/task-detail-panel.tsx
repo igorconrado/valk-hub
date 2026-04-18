@@ -277,7 +277,12 @@ export function TaskDetailPanel({
 
           {/* Panel */}
           <motion.aside
-            className="fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-[#141414] bg-[#0A0A0A] sm:w-[480px]"
+            className="fixed inset-y-0 right-0 z-50 flex w-full flex-col sm:w-[480px]"
+            style={{
+              background: "var(--bg-1)",
+              borderLeft: "1px solid var(--border-subtle)",
+              boxShadow: "var(--shadow-panel)",
+            }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}

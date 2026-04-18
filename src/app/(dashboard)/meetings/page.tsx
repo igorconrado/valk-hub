@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/page-header";
 import { MeetingsList } from "./meetings-list";
 import { NewMeetingButton } from "./new-meeting-button";
 
@@ -25,16 +24,18 @@ export default async function MeetingsPage() {
       .order("scheduled_at", { ascending: false }),
   ]);
 
+  const total = (upcoming?.length ?? 0) + (past?.length ?? 0);
+
   return (
-    <div>
-      <PageHeader
-        title="Reuniões"
-        description="Atas, decisões e pendências"
-        action={<NewMeetingButton />}
-      />
-      <div className="mt-6">
-        <MeetingsList upcoming={upcoming ?? []} past={past ?? []} />
+    <div className="fadeUp">
+      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Reuniões</h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>{total} reuniões registradas</p>
+        </div>
+        <NewMeetingButton />
       </div>
+      <MeetingsList upcoming={upcoming ?? []} past={past ?? []} />
     </div>
   );
 }

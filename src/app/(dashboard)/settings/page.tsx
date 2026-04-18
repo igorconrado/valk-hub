@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/page-header";
 import { SettingsView } from "./settings-view";
 
 export default async function SettingsPage() {
@@ -36,21 +35,24 @@ export default async function SettingsPage() {
   };
 
   return (
-    <div>
-      <PageHeader title="Configurações" />
-      <div className="mt-6">
-        <SettingsView
-          user={dbUser as any}
-          notificationPreferences={
-            (settings?.notification_preferences as Record<string, boolean>) ??
-            defaultPrefs
-          }
-          defaultTaskView={
-            (settings?.default_task_view as string) ?? "list"
-          }
-          timezone={(settings?.timezone as string) ?? "America/Sao_Paulo"}
-        />
+    <div className="fadeUp">
+      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Configurações</h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>Preferências do workspace</p>
+        </div>
       </div>
+      <SettingsView
+        user={dbUser as any}
+        notificationPreferences={
+          (settings?.notification_preferences as Record<string, boolean>) ??
+          defaultPrefs
+        }
+        defaultTaskView={
+          (settings?.default_task_view as string) ?? "list"
+        }
+        timezone={(settings?.timezone as string) ?? "America/Sao_Paulo"}
+      />
     </div>
   );
 }

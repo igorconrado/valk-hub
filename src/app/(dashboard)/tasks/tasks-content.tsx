@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { List, Kanban, Plus } from "lucide-react";
+import { List, Kanban, Plus, Filter, ChevronDown } from "lucide-react";
 import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView } from "./task-kanban-view";
@@ -29,124 +29,158 @@ type TaskRow = {
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
 
-const STATUS_OPTIONS = [
-  { value: "backlog", label: "Backlog" },
-  { value: "doing", label: "Doing" },
-  { value: "on_hold", label: "On Hold" },
-  { value: "review", label: "Review" },
-  { value: "done", label: "Done" },
+const STATUS_OPTIONS: [string, string][] = [
+  ["all", "Todos"],
+  ["backlog", "Backlog"],
+  ["doing", "Doing"],
+  ["on_hold", "On Hold"],
+  ["review", "Review"],
+  ["done", "Done"],
 ];
 
-const TYPE_OPTIONS = [
-  { value: "all", label: "Todos" },
-  { value: "dev", label: "Dev" },
-  { value: "task", label: "Task" },
-  { value: "meeting_prep", label: "Reuniao" },
-  { value: "research", label: "Pesquisa" },
-  { value: "decision", label: "Decisao" },
-  { value: "report", label: "Report" },
+const TYPE_OPTIONS: [string, string][] = [
+  ["all", "Todos"],
+  ["dev", "Dev"],
+  ["task", "Task"],
+  ["meeting_prep", "Reunião"],
+  ["research", "Pesquisa"],
+  ["decision", "Decisão"],
+  ["report", "Report"],
 ];
 
-const PRIORITY_OPTIONS = [
-  { value: "all", label: "Todas" },
-  { value: "urgent", label: "Urgent" },
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
+const PRIORITY_OPTIONS: [string, string][] = [
+  ["all", "Todas"],
+  ["urgent", "Urgente"],
+  ["high", "Alta"],
+  ["medium", "Média"],
+  ["low", "Baixa"],
 ];
 
-function FilterSelect({
+/* ─── FilterPill (matches handoff) ─── */
+function FilterPill({
   label,
   value,
   options,
   onChange,
-  active,
 }: {
   label: string;
   value: string;
-  options: { value: string; label: string }[];
+  options: [string, string][];
   onChange: (v: string) => void;
-  active: boolean;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`shrink-0 appearance-none rounded-lg border bg-[#0A0A0A] px-2.5 py-1.5 text-[11px] font-medium text-[#888] outline-none transition-colors duration-150 ${
-        active
-          ? "border-[rgba(226,75,74,0.3)]"
-          : "border-[#1A1A1A] hover:border-[#2A2A2A]"
-      }`}
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {label}: {opt.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function StatusMultiSelect({
-  selected,
-  onChange,
-}: {
-  selected: string[];
-  onChange: (v: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const allSelected = selected.length === 0;
+  const current = options.find((o) => o[0] === value);
+  const active = value !== "all";
 
   return (
-    <div className="relative shrink-0">
+    <div style={{ position: "relative" }}>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 rounded-lg border bg-[#0A0A0A] px-2.5 py-1.5 text-[11px] font-medium text-[#888] outline-none transition-colors duration-150 ${
-          !allSelected
-            ? "border-[rgba(226,75,74,0.3)]"
-            : "border-[#1A1A1A] hover:border-[#2A2A2A]"
-        }`}
+        className="inline-flex items-center font-sans"
+        style={{
+          gap: 6,
+          padding: "5px 10px",
+          fontSize: 11.5,
+          fontWeight: 500,
+          borderRadius: 6,
+          border: "1px solid",
+          borderColor: active ? "var(--primary-border)" : "var(--border-subtle)",
+          background: active ? "var(--primary-bg)" : "transparent",
+          color: active ? "var(--primary)" : "var(--text-muted)",
+        }}
       >
-        Status: {allSelected ? "Todos" : `${selected.length} selecionados`}
+        <span style={{ opacity: 0.7 }}>{label}:</span> {current?.[1] || "Todos"}
+        <ChevronDown size={10} strokeWidth={2} />
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[#1A1A1A] bg-[#111] p-1.5 shadow-xl">
-            {STATUS_OPTIONS.map((opt) => {
-              const checked = selected.includes(opt.value);
-              return (
-                <label
-                  key={opt.value}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-[11px] text-[#999] transition-colors hover:bg-white/[0.03]"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => {
-                      if (checked) {
-                        onChange(selected.filter((s) => s !== opt.value));
-                      } else {
-                        onChange([...selected, opt.value]);
-                      }
-                    }}
-                    className="h-3 w-3 rounded border-[#333] bg-transparent accent-[#E24B4A]"
-                  />
-                  {opt.label}
-                </label>
-              );
-            })}
-            {selected.length > 0 && (
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div
+            className="absolute left-0 top-full z-20"
+            style={{
+              marginTop: 4,
+              background: "var(--bg-elev)",
+              border: "1px solid var(--border-default)",
+              borderRadius: 8,
+              padding: 4,
+              minWidth: 160,
+              maxHeight: 300,
+              overflow: "auto",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+            }}
+          >
+            {options.map(([k, v]) => (
               <button
-                onClick={() => onChange([])}
-                className="mt-1 w-full rounded-md px-2 py-1 text-[10px] text-[#555] transition-colors hover:text-[#888]"
+                key={k}
+                onClick={() => {
+                  onChange(k);
+                  setOpen(false);
+                }}
+                className="block w-full text-left font-sans"
+                style={{
+                  padding: "6px 10px",
+                  fontSize: 12,
+                  borderRadius: 5,
+                  color: k === value ? "var(--text-primary)" : "var(--text-secondary)",
+                  background: k === value ? "rgba(255,255,255,0.04)" : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (k !== value) e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                }}
+                onMouseLeave={(e) => {
+                  if (k !== value) e.currentTarget.style.background = "transparent";
+                }}
               >
-                Limpar filtro
+                {v}
               </button>
-            )}
+            ))}
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ─── Segmented Control (matches handoff) ─── */
+function Segmented({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string; icon: React.ReactNode }[];
+}) {
+  return (
+    <div
+      className="inline-flex"
+      style={{
+        background: "var(--bg-1)",
+        border: "1px solid var(--border-subtle)",
+        borderRadius: 8,
+        padding: 2,
+      }}
+    >
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className="inline-flex items-center"
+          style={{
+            padding: "5px 11px",
+            fontSize: 12,
+            fontWeight: 500,
+            borderRadius: 6,
+            transition: "all 150ms",
+            color: value === o.value ? "var(--text-primary)" : "var(--text-muted)",
+            background: value === o.value ? "rgba(255,255,255,0.05)" : "transparent",
+            gap: 6,
+          }}
+        >
+          {o.icon}
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -162,7 +196,7 @@ export function TasksContent({
 }) {
   const [view, setView] = useState<"list" | "kanban">("list");
   const [filterProject, setFilterProject] = useState("all");
-  const [filterStatus, setFilterStatus] = useState<string[]>([]);
+  const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [filterAssignee, setFilterAssignee] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
@@ -173,134 +207,96 @@ export function TasksContent({
     if (saved === "list" || saved === "kanban") setView(saved);
   }, []);
 
-  function handleViewChange(v: "list" | "kanban") {
-    setView(v);
-    localStorage.setItem("valk-tasks-view", v);
+  function handleViewChange(v: string) {
+    const val = v as "list" | "kanban";
+    setView(val);
+    localStorage.setItem("valk-tasks-view", val);
   }
 
-  const projectOptions = [
-    { value: "all", label: "Todos" },
-    { value: "company", label: "Empresa" },
-    ...projects.map((p) => ({ value: p.id, label: p.name })),
+  const projectOptions: [string, string][] = [
+    ["all", "Todos"],
+    ["company", "Empresa"],
+    ...projects.map((p) => [p.id, p.name] as [string, string]),
   ];
 
-  const assigneeOptions = [
-    { value: "all", label: "Todos" },
-    ...users.map((u) => ({ value: u.id, label: u.name })),
+  const assigneeOptions: [string, string][] = [
+    ["all", "Todos"],
+    ...users.map((u) => [u.id, u.name] as [string, string]),
   ];
 
   const filtered = tasks.filter((t) => {
     if (filterProject === "company" && t.project_id !== null) return false;
-    if (
-      filterProject !== "all" &&
-      filterProject !== "company" &&
-      t.project_id !== filterProject
-    )
-      return false;
-    if (filterStatus.length > 0 && !filterStatus.includes(t.status))
-      return false;
+    if (filterProject !== "all" && filterProject !== "company" && t.project_id !== filterProject) return false;
+    if (filterStatus !== "all" && t.status !== filterStatus) return false;
     if (filterType !== "all" && t.type !== filterType) return false;
-    if (filterAssignee !== "all" && t.assignee_id !== filterAssignee)
-      return false;
+    if (filterAssignee !== "all" && t.assignee_id !== filterAssignee) return false;
     if (filterPriority !== "all" && t.priority !== filterPriority) return false;
     return true;
   });
 
+  const doingCount = tasks.filter((t) => t.status === "doing").length;
+  const holdCount = tasks.filter((t) => t.status === "on_hold").length;
+
   return (
-    <div>
-      {/* Filters + View Toggle */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <FilterSelect
-            label="Produto"
-            value={filterProject}
-            options={projectOptions}
-            onChange={setFilterProject}
-            active={filterProject !== "all"}
-          />
-          <StatusMultiSelect
-            selected={filterStatus}
-            onChange={setFilterStatus}
-          />
-          <FilterSelect
-            label="Tipo"
-            value={filterType}
-            options={TYPE_OPTIONS}
-            onChange={setFilterType}
-            active={filterType !== "all"}
-          />
-          <FilterSelect
-            label="Responsavel"
-            value={filterAssignee}
-            options={assigneeOptions}
-            onChange={setFilterAssignee}
-            active={filterAssignee !== "all"}
-          />
-          <FilterSelect
-            label="Prioridade"
-            value={filterPriority}
-            options={PRIORITY_OPTIONS}
-            onChange={setFilterPriority}
-            active={filterPriority !== "all"}
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#1A1A1A] p-0.5">
-          <button
-            onClick={() => handleViewChange("list")}
-            className={`rounded-md p-1.5 transition-colors duration-150 ${
-              view === "list"
-                ? "bg-white/[0.06] text-[#ccc]"
-                : "text-[#444] hover:text-[#666]"
-            }`}
+    <div className="fadeUp">
+      {/* Header */}
+      <div className="flex items-end justify-between" style={{ marginBottom: 22 }}>
+        <div>
+          <h1
+            className="display"
+            style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
           >
-            <List size={14} strokeWidth={1.5} />
-          </button>
-          <button
-            onClick={() => handleViewChange("kanban")}
-            className={`rounded-md p-1.5 transition-colors duration-150 ${
-              view === "kanban"
-                ? "bg-white/[0.06] text-[#ccc]"
-                : "text-[#444] hover:text-[#666]"
-            }`}
-          >
-            <Kanban size={14} strokeWidth={1.5} />
-          </button>
+            Tasks
+          </h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
+            {filtered.length} de {tasks.length} · {doingCount} em progresso · {holdCount} pausadas
+          </p>
         </div>
+        <div className="flex items-center" style={{ gap: 10 }}>
+          <Segmented
+            value={view}
+            onChange={handleViewChange}
+            options={[
+              { value: "list", label: "Lista", icon: <List size={12} /> },
+              { value: "kanban", label: "Kanban", icon: <Kanban size={12} /> },
+            ]}
+          />
+          <CreateTaskDialog projects={projects} users={users}>
+            <button className="btn primary">
+              <Plus size={13} strokeWidth={2.5} />
+              Nova task
+            </button>
+          </CreateTaskDialog>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>
+        <Filter size={13} style={{ color: "var(--text-muted)" }} />
+        <FilterPill label="Produto" value={filterProject} options={projectOptions} onChange={setFilterProject} />
+        <FilterPill label="Status" value={filterStatus} options={STATUS_OPTIONS} onChange={setFilterStatus} />
+        <FilterPill label="Tipo" value={filterType} options={TYPE_OPTIONS} onChange={setFilterType} />
+        <FilterPill label="Responsável" value={filterAssignee} options={assigneeOptions} onChange={setFilterAssignee} />
+        <FilterPill label="Prioridade" value={filterPriority} options={PRIORITY_OPTIONS} onChange={setFilterPriority} />
       </div>
 
       {/* Content */}
-      <div className="mt-4">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-[13px] text-[#444]">
-              Sem tasks ainda. Cria a primeira.
-            </p>
-            <CreateTaskDialog>
-              <button className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]">
-                <Plus size={14} strokeWidth={1.5} />
-                Nova task
-              </button>
-            </CreateTaskDialog>
-          </div>
-        ) : view === "list" ? (
-          <TaskListView
-            tasks={filtered}
-            users={users}
-            onTaskClick={setSelectedTaskId}
-          />
-        ) : (
-          <TaskKanbanView
-            tasks={filtered}
-            users={users}
-            onTaskClick={setSelectedTaskId}
-          />
-        )}
-      </div>
+      {filtered.length === 0 ? (
+        <div
+          className="card"
+          style={{ padding: 48, textAlign: "center", color: "var(--text-ghost)", fontSize: 12 }}
+        >
+          Nenhuma task encontrada com esses filtros.
+        </div>
+      ) : view === "list" ? (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <TaskListView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
+        </div>
+      ) : (
+        <TaskKanbanView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
+      )}
 
-      <TaskDetailPanel
-        taskId={selectedTaskId}
-        onClose={() => setSelectedTaskId(null)}
-      />
+      <TaskDetailPanel taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
     </div>
   );
 }

@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/page-header";
 import { DocsContent } from "./docs-content";
-import { NewDocButton } from "./new-doc-button";
 
 export default async function DocsPage() {
   const supabase = await createClient();
@@ -24,19 +22,10 @@ export default async function DocsPage() {
     .order("name");
 
   return (
-    <div>
-      <PageHeader
-        title="Docs"
-        description="Base de conhecimento da empresa"
-        action={<NewDocButton />}
-      />
-      <div className="mt-6">
-        <DocsContent
-          docs={docs ?? []}
-          projects={projects ?? []}
-          users={users ?? []}
-        />
-      </div>
-    </div>
+    <DocsContent
+      docs={docs ?? []}
+      projects={projects ?? []}
+      users={users ?? []}
+    />
   );
 }

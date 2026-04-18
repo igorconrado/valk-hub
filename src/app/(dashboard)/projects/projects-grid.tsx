@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Plus, MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { ProjectLogo } from "@/components/project-logo";
+import { Avatar, HealthDot, PhaseBadge, type Phase } from "@/components/ds";
 
 type Project = {
   id: string;
   name: string;
+  description: string | null;
   phase: string;
   status: string;
   thesis_type: string | null;
@@ -19,135 +22,111 @@ type Project = {
   owner: { name: string } | null;
 };
 
-const phaseStyles: Record<string, { bg: string; text: string; border: string }> = {
-  discovery: {
-    bg: "rgba(59,130,246,0.06)",
-    text: "#5B9BF0",
-    border: "rgba(59,130,246,0.12)",
-  },
-  mvp: {
-    bg: "rgba(245,158,11,0.06)",
-    text: "#E8A840",
-    border: "rgba(245,158,11,0.12)",
-  },
-  validation: {
-    bg: "rgba(139,92,246,0.06)",
-    text: "#A07EF0",
-    border: "rgba(139,92,246,0.12)",
-  },
-  traction: {
-    bg: "rgba(16,185,129,0.06)",
-    text: "#3DC9A0",
-    border: "rgba(16,185,129,0.12)",
-  },
-  scale: {
-    bg: "rgba(226,75,74,0.06)",
-    text: "#E86B6A",
-    border: "rgba(226,75,74,0.12)",
-  },
-  paused: {
-    bg: "rgba(107,114,128,0.06)",
-    text: "#888",
-    border: "rgba(107,114,128,0.12)",
-  },
-  closed: {
-    bg: "rgba(55,65,81,0.06)",
-    text: "#666",
-    border: "rgba(55,65,81,0.12)",
-  },
-};
-
 const phaseLabels: Record<string, string> = {
+  all: "Todos",
   discovery: "Discovery",
   mvp: "MVP",
   validation: "Validação",
   traction: "Tração",
   scale: "Escala",
   paused: "Pausado",
-  closed: "Encerrado",
 };
 
-function PhaseBadge({ phase }: { phase: string }) {
-  const style = phaseStyles[phase] ?? phaseStyles.paused;
+const validPhases: Phase[] = ["discovery", "mvp", "validation", "traction", "scale", "paused"];
+const filterPhases = ["all", ...validPhases];
 
-  return (
-    <span
-      className="inline-flex rounded px-2 py-0.5 text-[10px] font-medium"
-      style={{
-        backgroundColor: style.bg,
-        color: style.text,
-        border: `1px solid ${style.border}`,
-      }}
-    >
-      {phaseLabels[phase] ?? phase}
-    </span>
-  );
-}
-
-function ThesisBadge({ type }: { type: string }) {
-  return (
-    <span className="inline-flex rounded border border-[#1A1A1A] bg-[#0F0F0F] px-2 py-0.5 text-[10px] font-medium text-[#555]">
-      {type.toUpperCase()}
-    </span>
-  );
-}
-
-function OwnerAvatar({ name }: { name: string }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
-      {initials}
-    </div>
-  );
+function makeAvatarUser(name: string) {
+  return {
+    name,
+    initials: name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+    color: "#555",
+  };
 }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const timeAgo = formatDistanceToNow(new Date(project.created_at), {
-    addSuffix: true,
-    locale: ptBR,
-  });
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.35,
-        delay: index * 0.06,
-        ease: "easeOut",
-      }}
+      transition={{ duration: 0.3, delay: index * 0.04 }}
     >
       <Link
         href={`/projects/${project.id}`}
-        className="group flex gap-3.5 rounded-xl border border-[#141414] bg-[#0A0A0A] p-5 transition-all duration-[250ms] [transition-timing-function:cubic-bezier(0.25,0.1,0.25,1)] hover:-translate-y-px hover:border-[#1F1F1F] hover:[box-shadow:0_8px_32px_rgba(0,0,0,0.4)]"
+        className="card hoverable block text-left"
+        style={{ padding: 22, cursor: "pointer" }}
       >
-        <ProjectLogo name={project.name} logoUrl={project.logo_url} size={40} fontSize={16} />
-        <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[15px] font-semibold text-[#ddd] transition-colors duration-[250ms] group-hover:text-white">
-            {project.name}
-          </h3>
-
-          <div className="mt-2.5 flex gap-1.5">
-            <PhaseBadge phase={project.phase} />
-            {project.thesis_type && <ThesisBadge type={project.thesis_type} />}
+        {/* Top: health + name + phase + more */}
+        <div className="flex items-start justify-between" style={{ marginBottom: 14 }}>
+          <div className="flex items-center" style={{ gap: 10 }}>
+            <HealthDot state="good" />
+            <h3
+              className="display"
+              style={{ fontSize: 19, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
+            >
+              {project.name}
+            </h3>
+            {validPhases.includes(project.phase as Phase) && (
+              <PhaseBadge phase={project.phase as Phase} />
+            )}
           </div>
+          <button
+            className="btn icon subtle"
+            onClick={(e) => e.preventDefault()}
+          >
+            <MoreHorizontal size={14} />
+          </button>
+        </div>
 
-          <div className="mt-3.5 flex items-center gap-1.5 text-[11px]">
+        {/* Description */}
+        {project.description && (
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "var(--text-secondary)",
+              margin: "0 0 16px",
+              lineHeight: 1.55,
+            }}
+          >
+            {project.description.length > 100
+              ? project.description.slice(0, 100) + "..."
+              : project.description}
+          </p>
+        )}
+
+        {/* Badges */}
+        <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 18 }}>
+          {project.thesis_type && (
+            <span className="badge neutral">
+              {project.thesis_type.toUpperCase()}
+            </span>
+          )}
+        </div>
+
+        {/* Footer: owner + meta */}
+        <div
+          className="flex items-center justify-between"
+          style={{ paddingTop: 14, borderTop: "1px solid var(--border-subtle)" }}
+        >
+          <div className="flex items-center" style={{ gap: 8 }}>
             {project.owner && (
               <>
-                <OwnerAvatar name={project.owner.name} />
-                <span className="text-[#555]">{project.owner.name}</span>
-                <span className="text-[#333]">·</span>
+                <Avatar user={makeAvatarUser(project.owner.name)} size={22} />
+                <span style={{ fontSize: 11.5, color: "var(--text-tertiary)" }}>
+                  {project.owner.name}
+                </span>
               </>
             )}
-            <span suppressHydrationWarning className="text-[#333]">{timeAgo}</span>
           </div>
+          <span
+            suppressHydrationWarning
+            className="mono"
+            style={{ fontSize: 10.5, color: "var(--text-ghost)" }}
+          >
+            {formatDistanceToNow(new Date(project.created_at), {
+              addSuffix: true,
+              locale: ptBR,
+            })}
+          </span>
         </div>
       </Link>
     </motion.div>
@@ -162,12 +141,12 @@ function EmptyState() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <FolderKanban size={40} strokeWidth={1} className="text-[#222]" />
-      <p className="mt-4 text-[13px] text-[#555]">
+      <FolderKanban size={40} strokeWidth={1} style={{ color: "var(--text-invisible)" }} />
+      <p style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>
         Nenhum produto no radar
       </p>
       <CreateProjectDialog>
-        <button className="mt-4 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#C73E3D]">
+        <button className="btn primary" style={{ marginTop: 16 }}>
           Criar primeiro produto
         </button>
       </CreateProjectDialog>
@@ -175,39 +154,128 @@ function EmptyState() {
   );
 }
 
-function LoadingSkeleton() {
+export function ProjectsGrid({ projects }: { projects: Project[] }) {
+  const [filter, setFilter] = useState("all");
+
+  const filtered =
+    filter === "all" ? projects : projects.filter((p) => p.phase === filter);
+
+  const activeCount = projects.filter((p) => p.status === "active").length;
+  const pausedCount = projects.filter((p) => p.phase === "paused").length;
+
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+    <div className="fadeUp">
+      {/* Header */}
+      <div className="flex items-end justify-between" style={{ marginBottom: 28 }}>
+        <div>
+          <h1
+            className="display"
+            style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
+          >
+            Projetos
+          </h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
+            {projects.length} produtos · {activeCount} ativos · {pausedCount} pausados
+          </p>
+        </div>
+        <CreateProjectDialog>
+          <button className="btn primary">
+            <Plus size={13} strokeWidth={2.5} />
+            Novo produto
+          </button>
+        </CreateProjectDialog>
+      </div>
+
+      {/* Phase filter chips */}
+      <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 22 }}>
+        {filterPhases.map((ph) => (
+          <button
+            key={ph}
+            onClick={() => setFilter(ph)}
+            style={{
+              padding: "5px 11px",
+              fontSize: 11.5,
+              fontWeight: 500,
+              borderRadius: 6,
+              border: "1px solid",
+              borderColor: filter === ph ? "var(--border-hover)" : "var(--border-subtle)",
+              background: filter === ph ? "rgba(255,255,255,0.03)" : "transparent",
+              color: filter === ph ? "var(--text-primary)" : "var(--text-muted)",
+              transition: "all 150ms",
+            }}
+          >
+            {phaseLabels[ph] ?? ph}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div
+          className="grid gap-4"
+          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))" }}
+        >
+          {filtered.map((project, i) => (
+            <ProjectCard key={project.id} project={project} index={i} />
+          ))}
+
+          {/* Ghost "new" card */}
+          <CreateProjectDialog>
+            <button
+              className="card flex flex-col items-center justify-center text-center"
+              style={{
+                padding: 22,
+                cursor: "pointer",
+                border: "1px dashed var(--border-default)",
+                background: "transparent",
+                color: "var(--text-muted)",
+                minHeight: 180,
+                gap: 8,
+                transition: "all 200ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--primary)";
+                e.currentTarget.style.color = "var(--primary)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-default)";
+                e.currentTarget.style.color = "var(--text-muted)";
+              }}
+            >
+              <Plus size={18} strokeWidth={1.5} />
+              <span style={{ fontSize: 12, fontWeight: 500 }}>Novo produto</span>
+              <span style={{ fontSize: 10.5, color: "var(--text-ghost)" }}>
+                começar um novo experimento
+              </span>
+            </button>
+          </CreateProjectDialog>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ProjectsGridSkeleton() {
+  return (
+    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))" }}>
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse rounded-xl border border-[#141414] bg-[#0A0A0A] p-5"
+          className="card"
+          style={{ padding: 22, animation: "pulse 2s ease-in-out infinite" }}
         >
-          <div className="h-4 w-32 rounded bg-[#141414]" />
+          <div className="h-4 w-32 rounded" style={{ background: "var(--border-subtle)" }} />
           <div className="mt-3 flex gap-1.5">
-            <div className="h-5 w-16 rounded bg-[#141414]" />
-            <div className="h-5 w-10 rounded bg-[#141414]" />
+            <div className="h-5 w-16 rounded" style={{ background: "var(--border-subtle)" }} />
           </div>
           <div className="mt-4 flex items-center gap-1.5">
-            <div className="h-5 w-5 rounded-full bg-[#141414]" />
-            <div className="h-3 w-24 rounded bg-[#141414]" />
+            <div className="h-5 w-5 rounded-full" style={{ background: "var(--border-subtle)" }} />
+            <div className="h-3 w-24 rounded" style={{ background: "var(--border-subtle)" }} />
           </div>
         </div>
       ))}
     </div>
   );
 }
-
-export function ProjectsGrid({ projects }: { projects: Project[] }) {
-  if (projects.length === 0) return <EmptyState />;
-
-  return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-      {projects.map((project, i) => (
-        <ProjectCard key={project.id} project={project} index={i} />
-      ))}
-    </div>
-  );
-}
-
-export { LoadingSkeleton as ProjectsGridSkeleton };
