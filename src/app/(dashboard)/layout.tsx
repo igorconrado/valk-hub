@@ -37,6 +37,7 @@ import {
 import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { NotificationBell } from "./notification-bell";
+import { OnboardingWizard } from "./onboarding-wizard";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", enabled: true },
@@ -291,6 +292,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
+      <OnboardingWizard />
       <Sidebar />
       <div data-print-layout className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
         <Topbar />

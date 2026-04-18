@@ -4,11 +4,13 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatDistanceToNow, format, parseISO, isPast, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Pencil } from "lucide-react";
+import { Pencil, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { ProjectLogo } from "@/components/project-logo";
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { resetOnboarding } from "../actions";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -422,24 +424,39 @@ export function PersonView({
           </div>
         </div>
 
-        {/* Edit button */}
-        {isOwnProfile ? (
-          <EditProfileDialog person={person} isAdmin={isAdmin}>
-            <button className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]">
-              <Pencil size={13} strokeWidth={1.5} />
-              Editar perfil
-            </button>
-          </EditProfileDialog>
-        ) : (
-          <RoleGate allowed={["admin"]}>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {isOwnProfile ? (
             <EditProfileDialog person={person} isAdmin={isAdmin}>
               <button className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]">
                 <Pencil size={13} strokeWidth={1.5} />
                 Editar perfil
               </button>
             </EditProfileDialog>
+          ) : (
+            <RoleGate allowed={["admin"]}>
+              <EditProfileDialog person={person} isAdmin={isAdmin}>
+                <button className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]">
+                  <Pencil size={13} strokeWidth={1.5} />
+                  Editar perfil
+                </button>
+              </EditProfileDialog>
+            </RoleGate>
+          )}
+          <RoleGate allowed={["admin"]}>
+            <button
+              onClick={async () => {
+                const result = await resetOnboarding(person.id);
+                if (result.error) toast.error(result.error);
+                else toast.success("Onboarding resetado");
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3 py-1.5 text-[11px] text-[#555] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#888]"
+            >
+              <RotateCcw size={12} strokeWidth={1.5} />
+              Reset onboarding
+            </button>
           </RoleGate>
-        )}
+        </div>
       </div>
 
       {/* Sections */}

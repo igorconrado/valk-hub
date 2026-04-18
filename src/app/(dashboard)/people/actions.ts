@@ -138,3 +138,30 @@ export async function inviteUser(input: InviteUserInput) {
   revalidatePath("/people");
   return { error: null, name: input.name };
 }
+
+// --- Reset onboarding (admin only) ---
+
+export async function resetOnboarding(userId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("role")
+    .eq("auth_id", user.id)
+    .single();
+  if (!dbUser || dbUser.role !== "admin") return { error: "Apenas admins" };
+
+  const { error } = await supabase
+    .from("onboarding_progress")
+    .delete()
+    .eq("user_id", userId);
+
+  if (error) return { error: error.message };
+
+  return { error: null };
+}
