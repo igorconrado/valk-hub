@@ -14,6 +14,7 @@ import {
   Users,
   LogOut,
   Menu,
+  Settings,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -184,6 +185,13 @@ function SidebarUser() {
             </p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => router.push("/settings")}
+            className="text-[#888]"
+          >
+            <Settings size={14} className="mr-2" />
+            Configurações
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleSignOut}
             className="text-[#888] focus:text-[#E24B4A]"
