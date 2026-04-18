@@ -23,6 +23,7 @@ import {
   ValkDialogHeader,
   ValkDialogTitle,
   ValkInput,
+  ValkNumberInput,
 } from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
@@ -107,20 +108,21 @@ function AddSnapshotDialog({
 }) {
   const [isPending, startTransition] = useTransition();
   const today = new Date().toISOString().split("T")[0];
+  const [metricValues, setMetricValues] = useState<Record<string, number | null>>(
+    () => Object.fromEntries(METRIC_FIELDS.map((f) => [f.key, null]))
+  );
+
+  function setMetric(key: string, val: number) {
+    setMetricValues((prev) => ({ ...prev, [key]: val || null }));
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const date = fd.get("date") as string;
 
-    const data: Record<string, number | null> = {};
-    for (const f of METRIC_FIELDS) {
-      const raw = fd.get(f.key) as string;
-      data[f.key] = raw ? Number(raw) : null;
-    }
-
     startTransition(async () => {
-      const result = await saveMetricsSnapshot(projectId, date, data);
+      const result = await saveMetricsSnapshot(projectId, date, metricValues);
       if (result.error) {
         toast.error(result.error);
       } else {
@@ -163,15 +165,16 @@ function AddSnapshotDialog({
             <div className="grid grid-cols-2 gap-3">
               {METRIC_FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label htmlFor={f.key} className="label">
+                  <label className="label">
                     {f.label}
                   </label>
-                  <ValkInput
-                    id={f.key}
-                    name={f.key}
-                    type="number"
-                    step="any"
-                    placeholder="—"
+                  <ValkNumberInput
+                    value={metricValues[f.key] ?? 0}
+                    onChange={(v) => setMetric(f.key, v)}
+                    prefix={f.prefix || undefined}
+                    suffix={"suffix" in f ? (f as { suffix: string }).suffix || undefined : undefined}
+                    step={f.key === "churn" ? 0.1 : 1}
+                    min={0}
                     disabled={isPending}
                   />
                 </div>

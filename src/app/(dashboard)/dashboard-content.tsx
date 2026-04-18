@@ -17,7 +17,7 @@ import {
   ValkDialogDescription,
   ValkDialogHeader,
   ValkDialogTitle,
-  ValkInput,
+  ValkNumberInput,
   Avatar as DsAvatar,
   PhaseBadge,
   HealthDot,
@@ -181,15 +181,14 @@ function MetricsEditDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const [isSaving, startTransition] = useTransition();
+  const [cash, setCash] = useState(metrics.cash ?? 0);
+  const [burnRate, setBurnRate] = useState(metrics.burnRate ?? 0);
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const cash = Number(fd.get("cash"));
-    const burn = Number(fd.get("burn_rate"));
 
     startTransition(async () => {
-      const result = await saveCompanyMetrics(cash, burn);
+      const result = await saveCompanyMetrics(cash, burnRate);
       if (result.error) {
         toast.error(result.error);
         return;
@@ -214,12 +213,12 @@ function MetricsEditDialog({
         <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-col gap-4 px-7 py-5">
             <div>
-              <label htmlFor="cash" className="label">Caixa atual (R$)</label>
-              <ValkInput id="cash" name="cash" type="number" step="0.01" required defaultValue={metrics.cash ?? ""} disabled={isSaving} placeholder="Ex: 500000" />
+              <label className="label">Caixa atual</label>
+              <ValkNumberInput value={cash} onChange={setCash} prefix="R$" step={1000} min={0} disabled={isSaving} />
             </div>
             <div>
-              <label htmlFor="burn_rate" className="label">Gasto mensal médio (R$)</label>
-              <ValkInput id="burn_rate" name="burn_rate" type="number" step="0.01" required defaultValue={metrics.burnRate ?? ""} disabled={isSaving} placeholder="Ex: 35000" />
+              <label className="label">Gasto mensal médio</label>
+              <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" step={1000} min={0} disabled={isSaving} />
             </div>
           </div>
           <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "20px 28px" }}>
