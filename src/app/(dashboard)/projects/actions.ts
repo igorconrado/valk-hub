@@ -67,7 +67,7 @@ export async function createProject(input: CreateProjectInput) {
   // Log activity
   await supabase.from("activity_log").insert({
     user_id: dbUser.id,
-    action: "project_created",
+    action: "created_project",
     entity_type: "project",
     entity_id: project.id,
     metadata: { name: input.name },

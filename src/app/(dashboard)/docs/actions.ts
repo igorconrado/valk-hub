@@ -85,6 +85,22 @@ export async function saveDocument(
 
     if (error) return { error: error.message };
 
+    // Log only structural changes, not content auto-saves
+    if (updates.title || updates.type || updates.project_id !== undefined) {
+      const { data: doc } = await supabase
+        .from("documents")
+        .select("title")
+        .eq("id", docId)
+        .single();
+      await supabase.from("activity_log").insert({
+        user_id: dbUser.id,
+        action: "updated_document",
+        entity_type: "document",
+        entity_id: docId,
+        metadata: { title: doc?.title ?? updates.title ?? "" },
+      });
+    }
+
     revalidatePath(`/docs/${docId}`);
     revalidatePath("/docs");
     return { error: null };
@@ -97,6 +113,13 @@ export async function deleteDocument(docId: string) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    // Get title before deleting
+    const { data: doc } = await supabase
+      .from("documents")
+      .select("title")
+      .eq("id", docId)
+      .single();
 
     // Delete versions first
     await supabase
@@ -117,6 +140,14 @@ export async function deleteDocument(docId: string) {
       .eq("id", docId);
 
     if (error) return { error: error.message };
+
+    await supabase.from("activity_log").insert({
+      user_id: dbUser.id,
+      action: "deleted_document",
+      entity_type: "document",
+      entity_id: docId,
+      metadata: { title: doc?.title ?? "" },
+    });
 
     revalidatePath("/docs");
     redirect("/docs");

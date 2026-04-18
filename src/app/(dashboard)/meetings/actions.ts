@@ -122,12 +122,25 @@ export async function updateMeetingStatus(meetingId: string, status: string) {
 
     if (error) return { error: error.message };
 
+    const { data: meetingData } = await supabase
+      .from("meetings")
+      .select("title")
+      .eq("id", meetingId)
+      .single();
+
+    const actionName =
+      status === "completed"
+        ? "completed_meeting"
+        : status === "in_progress"
+          ? "updated_meeting"
+          : "meeting_status_changed";
+
     await supabase.from("activity_log").insert({
       user_id: dbUser.id,
-      action: "meeting_status_changed",
+      action: actionName,
       entity_type: "meeting",
       entity_id: meetingId,
-      metadata: { status },
+      metadata: { status, title: meetingData?.title ?? "" },
     });
 
     revalidatePath(`/meetings/${meetingId}`);
@@ -193,7 +206,7 @@ export async function createDecision(input: CreateDecisionInput) {
 
     await supabase.from("activity_log").insert({
       user_id: dbUser.id,
-      action: "created_decision",
+      action: "registered_decision",
       entity_type: "decision",
       entity_id: decision.id,
       metadata: { title: input.title, impact: input.impact },
@@ -340,6 +353,22 @@ export async function toggleActionItem(itemId: string, meetingId: string) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", item.task_id);
+    }
+
+    // Log activity
+    if (newStatus === "done") {
+      const { data: aiData } = await supabase
+        .from("action_items")
+        .select("title")
+        .eq("id", itemId)
+        .single();
+      await supabase.from("activity_log").insert({
+        user_id: dbUser.id,
+        action: "completed_action_item",
+        entity_type: "meeting",
+        entity_id: meetingId,
+        metadata: { title: aiData?.title ?? "" },
+      });
     }
 
     revalidatePath(`/meetings/${meetingId}`);

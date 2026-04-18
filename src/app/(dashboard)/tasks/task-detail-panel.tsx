@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useRole } from "@/lib/hooks/use-role";
 import { getTaskDetail, updateTaskField, resolveTaskBlock } from "./actions";
 import { BlockReasonDialog } from "./block-reason-dialog";
+import { getActionText } from "@/lib/activity-text";
 
 type TaskDetail = NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
 
@@ -157,28 +158,7 @@ function InlineSelect({
   );
 }
 
-function getActionText(
-  action: string,
-  metadata: Record<string, string> | null
-): string {
-  switch (action) {
-    case "created_task":
-      return `criou a task "${metadata?.task_title ?? ""}"`;
-    case "task_updated":
-      return `atualizou ${metadata?.field ?? "campo"}`;
-    case "task_status_changed":
-      return `moveu para ${metadata?.status ?? ""}`;
-    case "task_blocked":
-    case "blocked_task":
-      return `bloqueou: ${metadata?.reason ?? ""}`;
-    case "task_block_resolved":
-      return "resolveu um bloqueio";
-    case "unblocked_task":
-      return "desbloqueou a task";
-    default:
-      return action;
-  }
-}
+
 
 export function TaskDetailPanel({
   taskId,

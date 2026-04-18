@@ -10,6 +10,7 @@ import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { ProjectLogo } from "@/components/project-logo";
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { getActionText } from "@/lib/activity-text";
 import { resetOnboarding } from "../actions";
 
 // ── Types ──────────────────────────────────────────────
@@ -125,50 +126,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       {children}
     </h2>
   );
-}
-
-function getActionText(action: string, metadata: Record<string, string> | null): React.ReactNode {
-  const projectName = metadata?.project_name || metadata?.name;
-  const taskTitle = metadata?.task_title;
-  const reason = metadata?.reason;
-
-  switch (action) {
-    case "created_project":
-    case "project_created":
-      return <>criou o projeto <span className="text-[#ccc]">{projectName}</span></>;
-    case "updated_project":
-      return <>atualizou o projeto <span className="text-[#ccc]">{projectName}</span></>;
-    case "added_member":
-      return <>adicionou <span className="text-[#ccc]">{metadata?.member_name}</span> ao projeto</>;
-    case "removed_member":
-      return <>removeu <span className="text-[#ccc]">{metadata?.member_name}</span> do projeto</>;
-    case "created_task":
-      return <>criou a task <span className="text-[#ccc]">{taskTitle}</span></>;
-    case "task_updated":
-      return <>atualizou <span className="text-[#ccc]">{metadata?.field ?? "task"}</span></>;
-    case "task_status_changed":
-      return <>moveu task para <span className="text-[#ccc]">{metadata?.status}</span></>;
-    case "blocked_task":
-      return <>bloqueou task{reason && <>: <span className="text-[#ccc]">{reason}</span></>}</>;
-    case "unblocked_task":
-      return "desbloqueou task";
-    case "created_meeting":
-      return <>agendou <span className="text-[#ccc]">{metadata?.title}</span></>;
-    case "meeting_status_changed":
-      return <>atualizou reunião para <span className="text-[#ccc]">{metadata?.status}</span></>;
-    case "created_decision":
-      return <>registrou decisão <span className="text-[#ccc]">{metadata?.title}</span></>;
-    case "created_action_item":
-      return <>criou action item <span className="text-[#ccc]">{metadata?.title}</span></>;
-    case "created_report":
-      return <>gerou relatório <span className="text-[#ccc]">{metadata?.title}</span></>;
-    case "published_report":
-      return "publicou relatório";
-    case "created_document":
-      return "criou um documento";
-    default:
-      return action.replace(/_/g, " ");
-  }
 }
 
 // ── Sections ───────────────────────────────────────────

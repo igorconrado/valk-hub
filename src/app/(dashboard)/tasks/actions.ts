@@ -208,12 +208,23 @@ export async function updateTaskField(
       await syncTaskFieldToLinear(taskId, field, value);
     }
 
+    // Fetch task title for metadata
+    const { data: taskForLog } = await supabase
+      .from("tasks")
+      .select("title")
+      .eq("id", taskId)
+      .single();
+
     await supabase.from("activity_log").insert({
       user_id: dbUser.id,
-      action: "task_updated",
+      action: "updated_task",
       entity_type: "task",
       entity_id: taskId,
-      metadata: { field, value: String(value) },
+      metadata: {
+        task_title: taskForLog?.title ?? "",
+        field,
+        value: String(value),
+      },
     });
 
     // Notify new assignee
@@ -262,20 +273,20 @@ export async function resolveTaskBlock(blockId: string) {
       .single();
 
     if (block) {
-      await supabase.from("activity_log").insert({
-        user_id: dbUser.id,
-        action: "task_block_resolved",
-        entity_type: "task",
-        entity_id: block.task_id,
-        metadata: {},
-      });
-
       // Notify task assignee
       const { data: taskData } = await supabase
         .from("tasks")
         .select("title, assignee_id")
         .eq("id", block.task_id)
         .single();
+      await supabase.from("activity_log").insert({
+        user_id: dbUser.id,
+        action: "unblocked_task",
+        entity_type: "task",
+        entity_id: block.task_id,
+        metadata: { task_title: taskData?.title ?? "" },
+      });
+
       if (taskData?.assignee_id && taskData.assignee_id !== dbUser.id) {
         await createNotification({
           userId: taskData.assignee_id,

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { RoleGate } from "@/components/role-gate";
 import { ProjectLogo } from "@/components/project-logo";
+import { getActionText } from "@/lib/activity-text";
 import { completePendingItem, saveCompanyMetrics } from "./dashboard-actions";
 
 type Project = {
@@ -76,81 +77,6 @@ function getGreeting(): string {
 
 function getFirstName(name: string): string {
   return name.split(" ")[0];
-}
-
-function getActionText(action: string, metadata: Record<string, string> | null): React.ReactNode {
-  const projectName = metadata?.project_name || metadata?.name;
-  const memberName = metadata?.member_name;
-  const taskTitle = metadata?.task_title;
-  const reason = metadata?.reason;
-
-  switch (action) {
-    case "created_project":
-    case "project_created":
-      return (
-        <>
-          criou o projeto <span className="text-[#ccc]">{projectName}</span>
-        </>
-      );
-    case "updated_project":
-      return (
-        <>
-          atualizou o projeto <span className="text-[#ccc]">{projectName}</span>
-        </>
-      );
-    case "added_member":
-      return (
-        <>
-          adicionou <span className="text-[#ccc]">{memberName}</span> ao projeto
-        </>
-      );
-    case "removed_member":
-      return (
-        <>
-          removeu <span className="text-[#ccc]">{memberName}</span> do projeto
-        </>
-      );
-    case "created_task":
-      return (
-        <>
-          criou a task <span className="text-[#ccc]">{taskTitle}</span>
-        </>
-      );
-    case "task_updated":
-      return (
-        <>
-          atualizou <span className="text-[#ccc]">{metadata?.field ?? "task"}</span>
-        </>
-      );
-    case "task_status_changed":
-      return (
-        <>
-          moveu task para <span className="text-[#ccc]">{metadata?.status}</span>
-        </>
-      );
-    case "blocked_task":
-      return (
-        <>
-          bloqueou task{reason && <>: <span className="text-[#ccc]">{reason}</span></>}
-        </>
-      );
-    case "unblocked_task":
-      return "desbloqueou task";
-    case "task_block_resolved":
-      return "resolveu bloqueio de task";
-    case "created_document":
-      return "criou um documento";
-    case "restored_document_version":
-      return "restaurou versao de documento";
-    case "deleted_project":
-      return (
-        <>
-          excluiu o projeto <span className="text-[#ccc]">{projectName ?? metadata?.project_name}</span>
-        </>
-      );
-    default:
-      return action;
-  }
 }
 
 function Avatar({ name }: { name: string }) {

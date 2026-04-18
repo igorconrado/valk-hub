@@ -124,20 +124,22 @@ export async function publishReport(reportId: string) {
 
     if (error) return { error: error.message };
 
-    await supabase.from("activity_log").insert({
-      user_id: dbUser.id,
-      action: "published_report",
-      entity_type: "report",
-      entity_id: reportId,
-      metadata: {},
-    });
-
-    // Notify all users (except publisher)
+    // Fetch title for activity log and notifications
     const { data: report } = await supabase
       .from("reports")
       .select("title")
       .eq("id", reportId)
       .single();
+
+    await supabase.from("activity_log").insert({
+      user_id: dbUser.id,
+      action: "published_report",
+      entity_type: "report",
+      entity_id: reportId,
+      metadata: { title: report?.title ?? "" },
+    });
+
+    // Notify all users (except publisher)
     const { data: allUsers } = await supabase.from("users").select("id");
     const toNotify = (allUsers ?? [])
       .map((u) => u.id as string)

@@ -31,12 +31,18 @@ export async function completePendingItem(
 
       if (error) return { error: error.message };
 
+      const { data: taskData } = await supabase
+        .from("tasks")
+        .select("title")
+        .eq("id", id)
+        .single();
+
       await supabase.from("activity_log").insert({
         user_id: dbUser.id,
-        action: "task_status_changed",
+        action: "completed_task",
         entity_type: "task",
         entity_id: id,
-        metadata: { status: "done" },
+        metadata: { task_title: taskData?.title ?? "", status: "done" },
       });
 
       revalidatePath("/tasks");
