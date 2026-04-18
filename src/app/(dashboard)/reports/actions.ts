@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createNotifications } from "@/lib/notifications/create";
+import { formatActionError } from "@/lib/action-error";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -37,38 +38,42 @@ type CreateReportInput = {
 };
 
 export async function createReport(input: CreateReportInput) {
-  const { supabase, dbUser, error: authError } = await getAuthUser();
-  if (authError || !dbUser) return { error: authError, id: null };
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError, id: null };
 
-  const { data: report, error } = await supabase
-    .from("reports")
-    .insert({
-      title: input.title,
-      type: input.type,
-      project_id: input.project_id || null,
-      period_start: input.period_start || null,
-      period_end: input.period_end || null,
-      content: input.content,
-      data_json: input.data_json,
-      ai_generated: input.ai_generated,
-      status: "draft",
-      created_by: dbUser.id,
-    })
-    .select("id")
-    .single();
+    const { data: report, error } = await supabase
+      .from("reports")
+      .insert({
+        title: input.title,
+        type: input.type,
+        project_id: input.project_id || null,
+        period_start: input.period_start || null,
+        period_end: input.period_end || null,
+        content: input.content,
+        data_json: input.data_json,
+        ai_generated: input.ai_generated,
+        status: "draft",
+        created_by: dbUser.id,
+      })
+      .select("id")
+      .single();
 
-  if (error) return { error: error.message, id: null };
+    if (error) return { error: error.message, id: null };
 
-  await supabase.from("activity_log").insert({
-    user_id: dbUser.id,
-    action: "created_report",
-    entity_type: "report",
-    entity_id: report.id,
-    metadata: { title: input.title, type: input.type, ai: input.ai_generated },
-  });
+    await supabase.from("activity_log").insert({
+      user_id: dbUser.id,
+      action: "created_report",
+      entity_type: "report",
+      entity_id: report.id,
+      metadata: { title: input.title, type: input.type, ai: input.ai_generated },
+    });
 
-  revalidatePath("/reports");
-  return { error: null, id: report.id };
+    revalidatePath("/reports");
+    return { error: null, id: report.id };
+  } catch (err) {
+    return { error: formatActionError(err), id: null };
+  }
 }
 
 // --- Save report ---
@@ -83,91 +88,103 @@ export async function saveReport(
     project_id?: string | null;
   }
 ) {
-  const { supabase, dbUser, error: authError } = await getAuthUser();
-  if (authError || !dbUser) return { error: authError };
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
 
-  const { error } = await supabase
-    .from("reports")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", reportId);
+    const { error } = await supabase
+      .from("reports")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reportId);
 
-  if (error) return { error: error.message };
+    if (error) return { error: error.message };
 
-  revalidatePath(`/reports/${reportId}`);
-  revalidatePath("/reports");
-  return { error: null };
+    revalidatePath(`/reports/${reportId}`);
+    revalidatePath("/reports");
+    return { error: null };
+  } catch (err) {
+    return { error: formatActionError(err) };
+  }
 }
 
 // --- Publish report ---
 
 export async function publishReport(reportId: string) {
-  const { supabase, dbUser, error: authError } = await getAuthUser();
-  if (authError || !dbUser) return { error: authError };
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
 
-  const { error } = await supabase
-    .from("reports")
-    .update({ status: "published", updated_at: new Date().toISOString() })
-    .eq("id", reportId);
+    const { error } = await supabase
+      .from("reports")
+      .update({ status: "published", updated_at: new Date().toISOString() })
+      .eq("id", reportId);
 
-  if (error) return { error: error.message };
+    if (error) return { error: error.message };
 
-  await supabase.from("activity_log").insert({
-    user_id: dbUser.id,
-    action: "published_report",
-    entity_type: "report",
-    entity_id: reportId,
-    metadata: {},
-  });
+    await supabase.from("activity_log").insert({
+      user_id: dbUser.id,
+      action: "published_report",
+      entity_type: "report",
+      entity_id: reportId,
+      metadata: {},
+    });
 
-  // Notify all users (except publisher)
-  const { data: report } = await supabase
-    .from("reports")
-    .select("title")
-    .eq("id", reportId)
-    .single();
-  const { data: allUsers } = await supabase.from("users").select("id");
-  const toNotify = (allUsers ?? [])
-    .map((u) => u.id as string)
-    .filter((uid) => uid !== dbUser.id);
-  if (report && toNotify.length > 0) {
-    await createNotifications(
-      toNotify.map((uid) => ({
-        userId: uid,
-        type: "report_published" as const,
-        title: `Relatório '${report.title}' publicado`,
-        entityType: "report",
-        entityId: reportId,
-      }))
-    );
+    // Notify all users (except publisher)
+    const { data: report } = await supabase
+      .from("reports")
+      .select("title")
+      .eq("id", reportId)
+      .single();
+    const { data: allUsers } = await supabase.from("users").select("id");
+    const toNotify = (allUsers ?? [])
+      .map((u) => u.id as string)
+      .filter((uid) => uid !== dbUser.id);
+    if (report && toNotify.length > 0) {
+      await createNotifications(
+        toNotify.map((uid) => ({
+          userId: uid,
+          type: "report_published" as const,
+          title: `Relatório '${report.title}' publicado`,
+          entityType: "report",
+          entityId: reportId,
+        }))
+      );
+    }
+
+    revalidatePath(`/reports/${reportId}`);
+    revalidatePath("/reports");
+    return { error: null };
+  } catch (err) {
+    return { error: formatActionError(err) };
   }
-
-  revalidatePath(`/reports/${reportId}`);
-  revalidatePath("/reports");
-  return { error: null };
 }
 
 // --- Delete report ---
 
 export async function deleteReport(reportId: string) {
-  const { supabase, dbUser, error: authError } = await getAuthUser();
-  if (authError || !dbUser) return { error: authError };
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
 
-  await supabase
-    .from("activity_log")
-    .delete()
-    .eq("entity_type", "report")
-    .eq("entity_id", reportId);
+    await supabase
+      .from("activity_log")
+      .delete()
+      .eq("entity_type", "report")
+      .eq("entity_id", reportId);
 
-  const { error } = await supabase
-    .from("reports")
-    .delete()
-    .eq("id", reportId);
+    const { error } = await supabase
+      .from("reports")
+      .delete()
+      .eq("id", reportId);
 
-  if (error) return { error: error.message };
+    if (error) return { error: error.message };
 
-  revalidatePath("/reports");
-  redirect("/reports");
+    revalidatePath("/reports");
+    redirect("/reports");
+  } catch (err) {
+    return { error: formatActionError(err) };
+  }
 }
