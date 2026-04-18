@@ -7,6 +7,7 @@ import {
   syncTaskFieldToLinear,
   updateLinearIssue,
 } from "@/lib/linear/sync";
+import { createNotification } from "@/lib/notifications/create";
 
 type CreateTaskInput = {
   title: string;
@@ -149,6 +150,17 @@ export async function createTask(input: CreateTaskInput) {
     },
   });
 
+  // Notify assignee (if not self)
+  if (input.assignee_id && input.assignee_id !== dbUser.id) {
+    await createNotification({
+      userId: input.assignee_id,
+      type: "task_assigned",
+      title: `Você foi atribuído a '${input.title}'`,
+      entityType: "task",
+      entityId: task.id,
+    });
+  }
+
   revalidatePath("/tasks");
   if (projectId) revalidatePath(`/projects/${projectId}`);
 
@@ -198,6 +210,24 @@ export async function updateTaskField(
     metadata: { field, value: String(value) },
   });
 
+  // Notify new assignee
+  if (field === "assignee_id" && typeof value === "string" && value !== dbUser.id) {
+    const { data: taskData } = await supabase
+      .from("tasks")
+      .select("title")
+      .eq("id", taskId)
+      .single();
+    if (taskData) {
+      await createNotification({
+        userId: value,
+        type: "task_assigned",
+        title: `Você foi atribuído a '${taskData.title}'`,
+        entityType: "task",
+        entityId: taskId,
+      });
+    }
+  }
+
   revalidatePath("/tasks");
   return { error: null };
 }
@@ -229,6 +259,22 @@ export async function resolveTaskBlock(blockId: string) {
       entity_id: block.task_id,
       metadata: {},
     });
+
+    // Notify task assignee
+    const { data: taskData } = await supabase
+      .from("tasks")
+      .select("title, assignee_id")
+      .eq("id", block.task_id)
+      .single();
+    if (taskData?.assignee_id && taskData.assignee_id !== dbUser.id) {
+      await createNotification({
+        userId: taskData.assignee_id,
+        type: "task_unblocked",
+        title: `'${taskData.title}' foi destravada`,
+        entityType: "task",
+        entityId: block.task_id,
+      });
+    }
   }
 
   revalidatePath("/tasks");
@@ -362,6 +408,24 @@ export async function createTaskBlock(
     entity_id: taskId,
     metadata: { reason },
   });
+
+  // Notify blocked_by_user
+  if (blockedByUserId && blockedByUserId !== dbUser.id) {
+    const { data: taskData } = await supabase
+      .from("tasks")
+      .select("title")
+      .eq("id", taskId)
+      .single();
+    if (taskData) {
+      await createNotification({
+        userId: blockedByUserId,
+        type: "task_blocked",
+        title: `'${taskData.title}' está travada e precisa de você`,
+        entityType: "task",
+        entityId: taskId,
+      });
+    }
+  }
 
   revalidatePath("/tasks");
   return { error: null };

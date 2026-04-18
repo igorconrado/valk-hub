@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createNotifications } from "@/lib/notifications/create";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -120,6 +121,28 @@ export async function publishReport(reportId: string) {
     entity_id: reportId,
     metadata: {},
   });
+
+  // Notify all users (except publisher)
+  const { data: report } = await supabase
+    .from("reports")
+    .select("title")
+    .eq("id", reportId)
+    .single();
+  const { data: allUsers } = await supabase.from("users").select("id");
+  const toNotify = (allUsers ?? [])
+    .map((u) => u.id as string)
+    .filter((uid) => uid !== dbUser.id);
+  if (report && toNotify.length > 0) {
+    await createNotifications(
+      toNotify.map((uid) => ({
+        userId: uid,
+        type: "report_published" as const,
+        title: `Relatório '${report.title}' publicado`,
+        entityType: "report",
+        entityId: reportId,
+      }))
+    );
+  }
 
   revalidatePath(`/reports/${reportId}`);
   revalidatePath("/reports");

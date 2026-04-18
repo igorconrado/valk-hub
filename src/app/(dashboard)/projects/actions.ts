@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLinearClient } from "@/lib/linear/client";
+import { createNotification } from "@/lib/notifications/create";
 
 type CreateProjectInput = {
   name: string;
@@ -229,6 +230,24 @@ export async function addMember(
     entity_id: projectId,
     metadata: { member_name: member?.name },
   });
+
+  // Notify added member (if not self)
+  if (userId !== dbUser.id) {
+    const { data: proj } = await supabase
+      .from("projects")
+      .select("name")
+      .eq("id", projectId)
+      .single();
+    if (proj) {
+      await createNotification({
+        userId,
+        type: "member_added",
+        title: `Você foi adicionado ao projeto '${proj.name}'`,
+        entityType: "project",
+        entityId: projectId,
+      });
+    }
+  }
 
   revalidatePath(`/projects/${projectId}`);
 

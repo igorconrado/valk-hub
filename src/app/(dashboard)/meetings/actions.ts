@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import {
+  createNotification,
+  createNotifications,
+} from "@/lib/notifications/create";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -71,6 +75,29 @@ export async function createMeeting(input: CreateMeetingInput) {
       participants_count: input.participant_ids.length,
     },
   });
+
+  // Notify participants (except creator)
+  const dateStr = new Date(input.scheduled_at).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const participantsToNotify = input.participant_ids.filter(
+    (uid) => uid !== dbUser.id
+  );
+  if (participantsToNotify.length > 0) {
+    await createNotifications(
+      participantsToNotify.map((uid) => ({
+        userId: uid,
+        type: "meeting_scheduled" as const,
+        title: `Reunião '${input.title}' agendada para ${dateStr}`,
+        entityType: "meeting",
+        entityId: meeting.id,
+      }))
+    );
+  }
 
   revalidatePath("/meetings");
   return { error: null, id: meeting.id };
@@ -158,6 +185,28 @@ export async function createDecision(input: CreateDecisionInput) {
     metadata: { title: input.title, impact: input.impact },
   });
 
+  // Notify project members (if project linked)
+  if (input.project_id) {
+    const { data: members } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", input.project_id);
+    const toNotify = (members ?? [])
+      .map((m) => m.user_id as string)
+      .filter((uid) => uid !== dbUser.id);
+    if (toNotify.length > 0) {
+      await createNotifications(
+        toNotify.map((uid) => ({
+          userId: uid,
+          type: "decision_registered" as const,
+          title: `Decisão registrada: '${input.title}'`,
+          entityType: "decision",
+          entityId: decision.id,
+        }))
+      );
+    }
+  }
+
   if (input.meeting_id) revalidatePath(`/meetings/${input.meeting_id}`);
   if (input.project_id) revalidatePath(`/projects/${input.project_id}`);
   revalidatePath("/");
@@ -216,6 +265,20 @@ export async function createActionItem(input: CreateActionItemInput) {
     entity_id: input.meeting_id,
     metadata: { title: input.title, assignee_id: input.assignee_id },
   });
+
+  // Notify assignee (if not self)
+  if (input.assignee_id !== dbUser.id) {
+    const dueStr = input.due_date
+      ? ` com prazo ${new Date(input.due_date).toLocaleDateString("pt-BR")}`
+      : "";
+    await createNotification({
+      userId: input.assignee_id,
+      type: "action_item_assigned",
+      title: `Action item: '${input.title}'${dueStr}`,
+      entityType: "meeting",
+      entityId: input.meeting_id,
+    });
+  }
 
   revalidatePath(`/meetings/${input.meeting_id}`);
   revalidatePath("/tasks");
