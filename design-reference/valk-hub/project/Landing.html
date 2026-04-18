@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>VALK Hub — Landing</title>
+<link rel="stylesheet" href="styles/tokens.css" />
+<style>
+  body { overflow-x: hidden; }
+  .desktop-frame {
+    width: 1280px; height: 820px;
+    background: var(--bg-0); border: 1px solid var(--border-default);
+    border-radius: 14px; overflow: hidden; position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02);
+    display: flex;
+  }
+  .desktop-frame .content { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; overflow: hidden; }
+  .desktop-frame .scroll { flex: 1; overflow: auto; position: relative; }
+  .screen-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600; margin-bottom: 10px; font-family: var(--font-body); }
+  .screen-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+  .screen-desc  { font-size: 11px; color: var(--text-ghost); margin-top: 4px; max-width: 720px; line-height: 1.5; }
+
+  /* Screen nav */
+  .nav-rail {
+    position: fixed; top: 20px; left: 20px; bottom: 20px; width: 220px;
+    background: var(--bg-1); border: 1px solid var(--border-subtle); border-radius: 14px;
+    padding: 18px 10px; overflow: auto; z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .nav-rail .brand { display: flex; align-items: center; gap: 8px; padding: 6px 10px 18px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; }
+  .nav-rail .brand b { font-family: var(--font-display); font-size: 14px; font-weight: 600; letter-spacing: 0.24em; color: var(--text-primary); }
+  .nav-rail h4 { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-muted); margin: 12px 8px 6px; font-weight: 600; }
+  .nav-rail button { display: block; width: 100%; text-align: left; padding: 6px 10px; border-radius: 6px; font-size: 12px; color: var(--text-muted); margin-bottom: 1px; transition: all 150ms; }
+  .nav-rail button:hover { background: rgba(255,255,255,0.02); color: var(--text-secondary); }
+  .nav-rail button.on { background: rgba(226,75,74,0.06); color: var(--primary); }
+  .nav-rail .num { float: right; font-family: var(--font-mono); font-size: 9px; color: var(--text-ghost); }
+
+  .stage {
+    margin-left: 260px; padding: 24px 32px 80px;
+    display: flex; flex-direction: column; gap: 48px;
+  }
+
+  .screen-block { scroll-margin-top: 40px; }
+  .frames-row { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+
+  /* Tweaks panel */
+  .tweaks {
+    position: fixed; bottom: 20px; right: 20px; width: 280px;
+    background: var(--bg-1); border: 1px solid var(--border-default); border-radius: 12px;
+    padding: 16px; z-index: 200; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .tweaks.on { display: block; animation: scaleIn 200ms var(--ease); transform-origin: bottom right; }
+  .tweaks h3 { font-family: var(--font-display); font-size: 13px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .tweaks h3 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px rgba(226,75,74,0.5); }
+  .tweaks .sub { font-size: 10px; color: var(--text-ghost); margin-bottom: 14px; }
+  .tweaks .row { margin-bottom: 12px; }
+  .tweaks .row label { display: block; font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 6px; }
+  .tweaks .pills { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tweaks .pills button { flex: 1; padding: 5px 8px; font-size: 11px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-muted); border-radius: 5px; min-width: 0; }
+  .tweaks .pills button.on { border-color: var(--primary-border); background: var(--primary-bg); color: var(--primary); }
+
+  @media (max-width: 1100px) {
+    .nav-rail { display: none; }
+    .stage { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav-rail">
+  <div class="brand">
+    <b>VALK</b>
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 6px rgba(226,75,74,0.5);"></span>
+    <span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.18em;">hub</span>
+    <span style="margin-left:auto;font-family:var(--font-mono);font-size:9px;color:var(--text-invisible);">v1.0</span>
+  </div>
+
+  <h4>Auth & Onboarding</h4>
+  <button onclick="jump('s-login')">Login <span class="num">01</span></button>
+  <button onclick="jump('s-onboarding')">Onboarding wizard <span class="num">15</span></button>
+
+  <h4>Core</h4>
+  <button onclick="jump('s-dashboard')">Dashboard <span class="num">02</span></button>
+  <button onclick="jump('s-triage')">Triage <span class="num" style="color:var(--primary);">◆</span></button>
+  <button onclick="jump('s-projects')">Projetos <span class="num">03</span></button>
+  <button onclick="jump('s-project-detail')">Projeto detalhe <span class="num">04</span></button>
+  <button onclick="jump('s-tasks')">Tasks (lista + kanban) <span class="num">05</span></button>
+  <button onclick="jump('s-task-panel')">Task detail panel <span class="num">06</span></button>
+  <button onclick="jump('s-create-task')">Nova task dialog <span class="num">07</span></button>
+
+  <h4>Knowledge</h4>
+  <button onclick="jump('s-docs')">Docs <span class="num">08</span></button>
+  <button onclick="jump('s-doc-editor')">Doc editor <span class="num">09</span></button>
+  <button onclick="jump('s-meetings')">Reuniões <span class="num">10</span></button>
+  <button onclick="jump('s-reports')">Relatórios <span class="num">11</span></button>
+
+  <h4>People & Misc</h4>
+  <button onclick="jump('s-people')">Pessoas <span class="num">12</span></button>
+  <button onclick="jump('s-notifs')">Notificações <span class="num">13</span></button>
+  <button onclick="jump('s-settings')">Settings <span class="num">14</span></button>
+
+  <h4>Mobile</h4>
+  <button onclick="jump('s-mobile')">Mobile variants <span class="num">16</span></button>
+</nav>
+
+<main class="stage" id="stage"></main>
+
+<div class="tweaks" id="tweaks">
+  <h3><span class="dot"></span> Tweaks</h3>
+  <div class="sub">Customize a apresentação</div>
+  <div class="row">
+    <label>Densidade</label>
+    <div class="pills" data-group="density">
+      <button data-v="compact">Compacto</button>
+      <button data-v="comfy" class="on">Confortável</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Acento</label>
+    <div class="pills" data-group="accent">
+      <button data-v="red" class="on" style="color:#E24B4A">Forja</button>
+      <button data-v="amber" style="color:#F59E0B">Âmbar</button>
+      <button data-v="violet" style="color:#8B5CF6">Violeta</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>Mostrar rótulos das telas</label>
+    <div class="pills" data-group="labels">
+      <button data-v="on" class="on">On</button>
+      <button data-v="off">Off</button>
+    </div>
+  </div>
+</div>
+
+<!-- Thumbnail for bundler -->
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" fill="#050505"/>
+    <circle cx="100" cy="100" r="50" fill="none" stroke="#E24B4A" stroke-width="2"/>
+    <text x="100" y="110" font-family="sans-serif" font-size="28" font-weight="600" fill="#F7F6F3" text-anchor="middle" letter-spacing="4">VALK</text>
+  </svg>
+</template>
+
+<!-- React -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="src/icons.jsx"></script>
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/shell.jsx"></script>
+<script type="text/babel" src="src/screens/Login.jsx"></script>
+<script type="text/babel" src="src/screens/Dashboard.jsx"></script>
+<script type="text/babel" src="src/screens/ProjectsList.jsx"></script>
+<script type="text/babel" src="src/screens/ProjectDetail.jsx"></script>
+<script type="text/babel" src="src/screens/Tasks.jsx"></script>
+<script type="text/babel" src="src/screens/TaskPanel.jsx"></script>
+<script type="text/babel" src="src/screens/Docs.jsx"></script>
+<script type="text/babel" src="src/screens/Meetings.jsx"></script>
+<script type="text/babel" src="src/screens/Misc.jsx"></script>
+<script type="text/babel" src="src/screens/Mobile.jsx"></script>
+<script type="text/babel" src="src/screens/Triage.jsx"></script>
+
+<script type="text/babel">
+// Simple shell that hosts any screen inside a desktop frame
+const Frame = ({ children, showSidebar = true, screen = 'dashboard', setScreen = () => {}, title, crumbs, right, topbar = true, onNotifs, notifsOpen, ...rest }) => (
+  <div className="desktop-frame" data-screen-label={rest['data-label'] || ''}>
+    {showSidebar && <Sidebar screen={screen} setScreen={setScreen} />}
+    <div className="content">
+      {topbar && <Topbar title={title} crumbs={crumbs} right={right} onOpenNotifs={onNotifs} unreadCount={NOTIFS.filter(n=>n.unread).length} />}
+      <div className="scroll">
+        {children}
+      </div>
+      {notifsOpen && <NotifsDropdown onClose={() => setScreen(screen)} />}
+    </div>
+  </div>
+);
+
+const Block = ({ id, label, title, desc, children, full = false }) => (
+  <section id={id} className="screen-block" data-screen-label={label}>
+    <div className="screen-label hide-labels">{label}</div>
+    <div className="hide-labels">
+      <div className="screen-title">{title}</div>
+      <div className="screen-desc">{desc}</div>
+    </div>
+    <div style={{ marginTop: 16 }}>{children}</div>
+  </section>
+);
+
+// Each frame lives as an independent React tree so state is isolated
+function mount(id, el) {
+  const root = document.getElementById(id);
+  if (root) ReactDOM.createRoot(root).render(el);
+}
+
+// ─── Stage content ───
+function Stage() {
+  return (
+    <>
+      <Block id="s-login" label="01 · Login" title="Login" desc="Split screen com embers animadas à esquerda e formulário à direita. Mobile variant ao lado.">
+        <div className="frames-row">
+          <Frame topbar={false} showSidebar={false}><LoginScreen onLogin={()=>{}} /></Frame>
+        </div>
+      </Block>
+
+      <Block id="s-dashboard" label="02 · Dashboard" title="Dashboard" desc="Landing pós-login. Greeting, produtos em andamento, números do mês, decisões recentes, pendentes, feed.">
+        <DashFrame />
+      </Block>
+
+      <Block id="s-triage" label="02.5 · Triage" title="Traction Triage" desc="O momento de verdade do VALK: cada produto contra seu gate. Escalar, manter, arriscar, matar — com deadline e CTA únicos por faixa.">
+        <TriageFrame />
+      </Block>
+
+      <Block id="s-projects" label="03 · Projetos" title="Projects listing" desc="Portfolio em fase. Empty-state cell como CTA de novo produto.">
+        <ProjectsFrame />
+      </Block>
+
+      <Block id="s-project-detail" label="04 · Projeto" title="Project detail" desc="Tabs: Sprint, Tasks, Docs, Métricas, Decisões, Histórico, Relatórios — com hipótese destacada e stats rápidos.">
+        <ProjectDetailFrame />
+      </Block>
+
+      <Block id="s-tasks" label="05 · Tasks" title="Tasks — lista + kanban" desc="Filtros compostos. Drag entre colunas do kanban funciona (arraste um card).">
+        <TasksListFrame />
+        <div style={{ height: 24 }} />
+        <TasksKanbanFrame />
+      </Block>
+
+      <Block id="s-task-panel" label="06 · Task detail" title="Task detail panel" desc="Slide-in da direita. Bloqueios para tasks On Hold. Linear sync badge para tasks dev.">
+        <TaskPanelFrame />
+      </Block>
+
+      <Block id="s-create-task" label="07 · Nova task" title="Create task dialog" desc="Dialog centralizado com todos os campos. Indicador de sync com Linear para tipo Dev.">
+        <CreateTaskFrame />
+      </Block>
+
+      <Block id="s-docs" label="08 · Docs" title="Docs — listagem" desc="Busca + filtros por tipo/produto.">
+        <DocsFrame />
+      </Block>
+
+      <Block id="s-doc-editor" label="09 · Doc editor" title="Document editor" desc="TipTap-style toolbar sticky. Título inline editável.">
+        <DocEditorFrame />
+      </Block>
+
+      <Block id="s-meetings" label="10 · Reuniões" title="Meetings — listagem & detalhe" desc="Próximas / anteriores. Detail com Pauta, Decisões e Action Items em tabs.">
+        <MeetingsFrame />
+        <div style={{ height: 24 }} />
+        <MeetingDetailFrame />
+      </Block>
+
+      <Block id="s-reports" label="11 · Relatórios" title="Reports — listagem, geração, editor" desc="Geração com AI mostra estados de loading animados. Editor com charts embutidos.">
+        <ReportsFrame />
+        <div style={{ height: 24 }} />
+        <ReportEditorFrame />
+      </Block>
+
+      <Block id="s-people" label="12 · Pessoas" title="People — diretório & perfil" desc="Grid de cards. Perfil com tasks ativas, projetos, atividade.">
+        <PeopleFrame />
+      </Block>
+
+      <Block id="s-notifs" label="13 · Notificações" title="Notifications dropdown" desc="Bell no topbar · dropdown 360px · borda esquerda vermelha em não-lidas.">
+        <NotifsFrame />
+      </Block>
+
+      <Block id="s-settings" label="14 · Settings" title="Settings" desc="Perfil, notificações, preferências.">
+        <SettingsFrame />
+      </Block>
+
+      <Block id="s-onboarding" label="15 · Onboarding" title="Onboarding wizard" desc="Full-screen overlay com blur. 5 passos.">
+        <OnboardingFrame />
+      </Block>
+
+      <Block id="s-mobile" label="16 · Mobile" title="Mobile variants" desc="390×844. Login, Dashboard, Projetos, Projeto detalhe, Tasks kanban, Doc editor, Meeting, Sidebar sheet.">
+        <div className="frames-row">
+          <MobileLogin />
+          <MobileDashboard />
+          <MobileProjects />
+          <MobileProjectDetail />
+        </div>
+        <div style={{ height: 20 }} />
+        <div className="frames-row">
+          <MobileKanban />
+          <MobileDocEditor />
+          <MobileMeeting />
+          <MobileSheet />
+        </div>
+      </Block>
+    </>
+  );
+}
+
+// ─── Interactive frames ───
+function TriageFrame() {
+  const [screen, setScreen] = React.useState('triage');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Triage']}><TriageScreen openProject={() => {}} /></Frame>;
+}
+
+function DashFrame() {
+  const [notifsOpen, setNotifsOpen] = React.useState(false);
+  const [screen, setScreen] = React.useState('dashboard');
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Dashboard']} onNotifs={() => setNotifsOpen(true)} notifsOpen={notifsOpen}>
+      <Dashboard goTo={() => {}} />
+    </Frame>
+  );
+}
+
+function ProjectsFrame() {
+  const [screen, setScreen] = React.useState('projects');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Projetos']}><ProjectsList goTo={() => {}} onNew={() => {}} /></Frame>;
+}
+
+function ProjectDetailFrame() {
+  const [screen, setScreen] = React.useState('project:kiln');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Projetos', 'Kiln']}><ProjectDetail projectId="kiln" goTo={() => {}} openTask={() => {}} /></Frame>;
+}
+
+function TasksListFrame() {
+  const [screen, setScreen] = React.useState('tasks');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Tasks', 'Lista']}><TasksScreen openTask={() => {}} onNew={() => {}} initialView="list" /></Frame>;
+}
+
+function TasksKanbanFrame() {
+  const [screen, setScreen] = React.useState('tasks');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Tasks', 'Kanban']}><TasksScreen openTask={() => {}} onNew={() => {}} initialView="kanban" /></Frame>;
+}
+
+function TaskPanelFrame() {
+  const [screen, setScreen] = React.useState('tasks');
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Tasks']}>
+      <TasksScreen openTask={() => {}} onNew={() => {}} initialView="list" />
+      <TaskPanel taskId="t-475" onClose={() => {}} />
+    </Frame>
+  );
+}
+
+function CreateTaskFrame() {
+  const [screen, setScreen] = React.useState('tasks');
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Tasks']}>
+      <TasksScreen openTask={() => {}} onNew={() => {}} initialView="list" />
+      <CreateTaskDialog onClose={() => {}} />
+    </Frame>
+  );
+}
+
+function DocsFrame() {
+  const [screen, setScreen] = React.useState('docs');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Docs']}><DocsScreen openDoc={() => {}} onNew={() => {}} /></Frame>;
+}
+
+function DocEditorFrame() {
+  const [screen, setScreen] = React.useState('docs');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Docs', 'Hipóteses Kiln 2026']}><DocEditor docId="doc1" onClose={() => {}} /></Frame>;
+}
+
+function MeetingsFrame() {
+  const [screen, setScreen] = React.useState('meetings');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Reuniões']}><MeetingsScreen openMeeting={() => {}} onNew={() => {}} /></Frame>;
+}
+
+function MeetingDetailFrame() {
+  const [screen, setScreen] = React.useState('meetings');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Reuniões', 'Comitê semanal']}><MeetingDetail meetingId="m1" onClose={() => {}} /></Frame>;
+}
+
+function ReportsFrame() {
+  const [screen, setScreen] = React.useState('reports');
+  const [gen, setGen] = React.useState(false);
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Relatórios']}>
+      <ReportsScreen openReport={() => {}} onNew={() => setGen(true)} />
+      {gen && <GenerateReportDialog onClose={() => setGen(false)} onGenerate={() => setGen(false)} />}
+    </Frame>
+  );
+}
+
+function ReportEditorFrame() {
+  const [screen, setScreen] = React.useState('reports');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Relatórios', 'Portfolio Março 2026']}><ReportEditor reportId="r1" onClose={() => {}} /></Frame>;
+}
+
+function PeopleFrame() {
+  const [screen, setScreen] = React.useState('people');
+  const [selected, setSelected] = React.useState(null);
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={selected ? ['Pessoas', getPerson(selected).name] : ['Pessoas']}>
+      {selected ? <PersonProfile personId={selected} openTask={() => {}} onClose={() => setSelected(null)} /> : <PeopleScreen openPerson={setSelected} />}
+    </Frame>
+  );
+}
+
+function NotifsFrame() {
+  const [screen, setScreen] = React.useState('dashboard');
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Dashboard']} onNotifs={() => {}} notifsOpen>
+      <Dashboard goTo={() => {}} />
+    </Frame>
+  );
+}
+
+function SettingsFrame() {
+  const [screen, setScreen] = React.useState('settings');
+  return <Frame screen={screen} setScreen={setScreen} crumbs={['Configurações']}><SettingsScreen /></Frame>;
+}
+
+function OnboardingFrame() {
+  const [screen, setScreen] = React.useState('dashboard');
+  return (
+    <Frame screen={screen} setScreen={setScreen} crumbs={['Dashboard']}>
+      <Dashboard goTo={() => {}} />
+      <OnboardingWizard onClose={() => {}} />
+    </Frame>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('stage')).render(<Stage />);
+
+// Jump handler
+window.jump = (id) => {
+  const el = document.getElementById(id);
+  if (el) window.scrollTo({ top: el.offsetTop - 24, behavior: 'smooth' });
+};
+
+// Tweaks integration
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "density": "comfy",
+  "accent": "red",
+  "labels": "on"
+}/*EDITMODE-END*/;
+
+const tweakState = { ...TWEAK_DEFAULTS };
+function applyTweaks() {
+  const root = document.documentElement;
+  const accents = { red: '#E24B4A', amber: '#F59E0B', violet: '#8B5CF6' };
+  root.style.setProperty('--primary', accents[tweakState.accent] || '#E24B4A');
+  document.body.style.setProperty('--t-scale', tweakState.density === 'compact' ? '0.94' : '1');
+  document.querySelectorAll('.hide-labels').forEach(el => el.style.display = tweakState.labels === 'off' ? 'none' : '');
+}
+applyTweaks();
+
+// Activate tweaks when host toggles
+window.addEventListener('message', (e) => {
+  if (!e.data) return;
+  if (e.data.type === '__activate_edit_mode') document.getElementById('tweaks').classList.add('on');
+  if (e.data.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('on');
+});
+document.querySelectorAll('.tweaks .pills').forEach(pills => {
+  const group = pills.dataset.group;
+  pills.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    pills.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    tweakState[group] = btn.dataset.v;
+    applyTweaks();
+    window.parent?.postMessage({ type: '__edit_mode_set_keys', edits: { [group]: btn.dataset.v } }, '*');
+  });
+});
+// Signal edit mode availability AFTER listener is set up
+window.parent?.postMessage({ type: '__edit_mode_available' }, '*');
+</script>
+</body>
+</html>
