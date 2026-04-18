@@ -4,20 +4,26 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+} from "@/components/ds";
+import { ValkInput } from "@/components/ds";
+import { ValkSelect, type ValkSelectOption } from "@/components/ds";
 import { inviteUser } from "./actions";
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
+const roleOptions: ValkSelectOption[] = [
+  { value: "operator", label: "Operator" },
+  { value: "stakeholder", label: "Stakeholder" },
+];
 
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
+const dedicationOptions: ValkSelectOption[] = [
+  { value: "full_time", label: "Full-time" },
+  { value: "partial", label: "Parcial" },
+];
 
 export function InviteUserDialog({
   children,
@@ -26,6 +32,8 @@ export function InviteUserDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [role, setRole] = useState("operator");
+  const [dedication, setDedication] = useState("full_time");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,21 +61,16 @@ export function InviteUserDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Convidar ao time
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Convidar ao time</ValkDialogTitle>
+            <ValkDialogDescription>
               Adicione um novo membro à VALK
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -75,81 +78,68 @@ export function InviteUserDialog({
           <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
             {/* Nome */}
             <div>
-              <label htmlFor="inv-name" className={labelClass}>
+              <label htmlFor="inv-name" className="label">
                 Nome completo
               </label>
-              <input
+              <ValkInput
                 id="inv-name"
                 name="name"
                 required
                 placeholder="Nome Sobrenome"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="inv-email" className={labelClass}>
+              <label htmlFor="inv-email" className="label">
                 Email
               </label>
-              <input
+              <ValkInput
                 id="inv-email"
                 name="email"
                 type="email"
                 required
                 placeholder="nome@valkbr.com"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             {/* Role */}
             <div>
-              <label htmlFor="inv-role" className={labelClass}>
-                Role
-              </label>
-              <select
-                id="inv-role"
+              <label className="label">Role</label>
+              <ValkSelect
+                value={role}
+                onValueChange={setRole}
+                options={roleOptions}
                 name="role"
-                defaultValue="operator"
                 disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="operator">Operator</option>
-                <option value="stakeholder">Stakeholder</option>
-              </select>
+              />
             </div>
 
             {/* Company role */}
             <div>
-              <label htmlFor="inv-crole" className={labelClass}>
+              <label htmlFor="inv-crole" className="label">
                 Cargo
               </label>
-              <input
+              <ValkInput
                 id="inv-crole"
                 name="company_role"
                 placeholder="Ex: Desenvolvedor, Designer"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             {/* Dedication */}
             <div>
-              <label htmlFor="inv-ded" className={labelClass}>
-                Dedicação
-              </label>
-              <select
-                id="inv-ded"
+              <label className="label">Dedicação</label>
+              <ValkSelect
+                value={dedication}
+                onValueChange={setDedication}
+                options={dedicationOptions}
                 name="dedication"
-                defaultValue="full_time"
                 disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="full_time">Full-time</option>
-                <option value="partial">Parcial</option>
-              </select>
+              />
             </div>
           </div>
 
@@ -175,7 +165,7 @@ export function InviteUserDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

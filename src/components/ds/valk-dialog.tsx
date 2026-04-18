@@ -5,9 +5,7 @@ import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogTrigger,
-  DialogPortal,
   DialogClose,
-  DialogOverlay,
   DialogContent,
   DialogHeader,
   DialogFooter,
@@ -40,34 +38,25 @@ function ValkDialogTrigger({ children, ...props }: React.ComponentProps<typeof D
 function ValkDialogContent({
   children,
   className,
-  showCloseButton = true,
+  showCloseButton = false,
   ...props
 }: React.ComponentProps<typeof DialogContent>) {
   return (
-    <DialogPortal>
-      <DialogOverlay
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[8px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
-      />
-      <DialogContent
-        className={cn(
-          "border-[var(--border-default)] bg-[var(--bg-1)]",
-          className
-        )}
-        style={{
-          borderRadius: "var(--r-xl)",
-          animation: "scaleIn var(--t-med) var(--ease) both",
-        }}
-        showCloseButton={showCloseButton}
-        {...props}
-      >
-        {children}
-      </DialogContent>
-    </DialogPortal>
+    <DialogContent
+      className={cn(
+        "gap-0 rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--bg-1)] p-0",
+        className
+      )}
+      showCloseButton={showCloseButton}
+      {...props}
+    >
+      {children}
+    </DialogContent>
   )
 }
 
 function ValkDialogHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <DialogHeader className={className} {...props} />
+  return <DialogHeader className={cn("gap-1", className)} {...props} />
 }
 
 function ValkDialogFooter({ className, ...props }: React.ComponentProps<typeof DialogFooter>) {
@@ -82,7 +71,7 @@ function ValkDialogFooter({ className, ...props }: React.ComponentProps<typeof D
 function ValkDialogTitle({ className, ...props }: React.ComponentProps<typeof DialogTitle>) {
   return (
     <DialogTitle
-      className={cn("font-display text-base font-semibold text-[var(--text-primary)]", className)}
+      className={cn("font-display text-[17px] font-semibold text-[var(--text-primary)]", className)}
       {...props}
     />
   )
@@ -91,7 +80,7 @@ function ValkDialogTitle({ className, ...props }: React.ComponentProps<typeof Di
 function ValkDialogDescription({ className, ...props }: React.ComponentProps<typeof DialogDescription>) {
   return (
     <DialogDescription
-      className={cn("font-sans text-xs text-[var(--text-muted)]", className)}
+      className={cn("font-sans text-[12px] text-[var(--text-muted)]", className)}
       {...props}
     />
   )

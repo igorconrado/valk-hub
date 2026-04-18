@@ -4,13 +4,17 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkInput,
+  ValkTextarea,
+  ValkSelect,
+  ValkToggle,
+} from "@/components/ds";
 import {
   updateProject,
   deleteProject,
@@ -63,12 +67,6 @@ const thesisTypes = [
   { value: "b2b", label: "B2B" },
 ];
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
-
 function StripeSection({
   project,
   configured,
@@ -112,12 +110,11 @@ function StripeSection({
             automaticamente.
           </p>
           <div className="flex gap-2">
-            <input
+            <ValkInput
               value={stripeId}
               onChange={(e) => setStripeId(e.target.value)}
               placeholder="prod_..."
               disabled={isSaving}
-              className={inputClass}
             />
             <button
               type="button"
@@ -166,6 +163,11 @@ export function EditProjectDialog({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [linearPending, startLinearTransition] = useTransition();
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+
+  // Controlled state for selects
+  const [status, setStatus] = useState(project.status);
+  const [phase, setPhase] = useState(project.phase);
+  const [thesisType, setThesisType] = useState(project.thesis_type ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -266,27 +268,24 @@ export function EditProjectDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => {
+    <ValkDialog open={open} onOpenChange={(v) => {
       setOpen(v);
       if (!v) {
         setShowDeleteConfirm(false);
         setDeleteConfirmName("");
       }
     }}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+          <ValkDialogHeader className="gap-1">
+            <ValkDialogTitle>
               Editar projeto
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+            </ValkDialogTitle>
+            <ValkDialogDescription>
               Atualize as informações do projeto
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -294,22 +293,16 @@ export function EditProjectDialog({
           <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
             {/* Status */}
             <div>
-              <label htmlFor="status" className={labelClass}>
+              <label htmlFor="status" className="label">
                 Status
               </label>
-              <select
-                id="status"
+              <ValkSelect
                 name="status"
-                defaultValue={project.status}
+                value={status}
+                onValueChange={setStatus}
+                options={statuses}
                 disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                {statuses.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             {/* Logo + Nome */}
@@ -320,104 +313,87 @@ export function EditProjectDialog({
                 projectId={project.id}
               />
               <div className="flex-1">
-                <label htmlFor="name" className={labelClass}>
+                <label htmlFor="name" className="label">
                   Nome
                 </label>
-                <input
+                <ValkInput
                   id="name"
                   name="name"
                   required
                   defaultValue={project.name}
                   disabled={isPending}
-                  className={inputClass}
                 />
               </div>
             </div>
 
             {/* Descrição */}
             <div>
-              <label htmlFor="description" className={labelClass}>
+              <label htmlFor="description" className="label">
                 Descrição
               </label>
-              <textarea
+              <ValkTextarea
                 id="description"
                 name="description"
                 rows={3}
                 defaultValue={project.description ?? ""}
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Fase + Tese */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="phase" className={labelClass}>
+                <label htmlFor="phase" className="label">
                   Fase
                 </label>
-                <select
-                  id="phase"
+                <ValkSelect
                   name="phase"
-                  defaultValue={project.phase}
+                  value={phase}
+                  onValueChange={setPhase}
+                  options={phases}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {phases.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label htmlFor="thesis_type" className={labelClass}>
+                <label htmlFor="thesis_type" className="label">
                   Tese
                 </label>
-                <select
-                  id="thesis_type"
+                <ValkSelect
                   name="thesis_type"
-                  defaultValue={project.thesis_type ?? ""}
+                  value={thesisType}
+                  onValueChange={setThesisType}
+                  options={[{ value: "", label: "—" }, ...thesisTypes]}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="">—</option>
-                  {thesisTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 
             {/* Hipótese central */}
             <div>
-              <label htmlFor="thesis_hypothesis" className={labelClass}>
+              <label htmlFor="thesis_hypothesis" className="label">
                 Hipótese central
               </label>
-              <textarea
+              <ValkTextarea
                 id="thesis_hypothesis"
                 name="thesis_hypothesis"
                 rows={2}
                 defaultValue={project.thesis_hypothesis ?? ""}
                 placeholder="O que você quer provar com esse produto?"
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Data-alvo */}
             <div>
-              <label htmlFor="launch_target" className={labelClass}>
+              <label htmlFor="launch_target" className="label">
                 Data-alvo
               </label>
-              <input
+              <ValkInput
                 id="launch_target"
                 name="launch_target"
                 type="date"
                 defaultValue={project.launch_target ?? ""}
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
@@ -450,18 +426,18 @@ export function EditProjectDialog({
                       </button>
                     ) : (
                       <div className="mt-3 flex flex-col gap-2.5">
-                        <select
+                        <ValkSelect
                           value={selectedTeamId}
-                          onChange={(e) => setSelectedTeamId(e.target.value)}
-                          className={`${inputClass} appearance-none`}
-                        >
-                          <option value="">Selecione um team...</option>
-                          {linearTeams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.name} ({t.key})
-                            </option>
-                          ))}
-                        </select>
+                          onValueChange={setSelectedTeamId}
+                          options={[
+                            { value: "", label: "Selecione um team..." },
+                            ...linearTeams.map((t) => ({
+                              value: t.id,
+                              label: `${t.name} (${t.key})`,
+                            })),
+                          ]}
+                          placeholder="Selecione um team..."
+                        />
                         <div className="flex gap-2">
                           <button
                             type="button"
@@ -503,24 +479,11 @@ export function EditProjectDialog({
                       <span className="text-[12px] text-[#888]">
                         Sincronizacao ativa
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleToggleSync}
+                      <ValkToggle
+                        checked={linearConfig.sync_enabled}
+                        onCheckedChange={handleToggleSync}
                         disabled={linearPending}
-                        className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${
-                          linearConfig.sync_enabled
-                            ? "bg-[#10B981]"
-                            : "bg-[#222]"
-                        }`}
-                      >
-                        <div
-                          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
-                            linearConfig.sync_enabled
-                              ? "translate-x-4"
-                              : "translate-x-0.5"
-                          }`}
-                        />
-                      </button>
+                      />
                     </div>
 
                     {/* Disconnect */}
@@ -599,15 +562,14 @@ export function EditProjectDialog({
                     excluído permanentemente junto com todos os dados associados.
                   </p>
                   <div className="mt-3">
-                    <label className={labelClass}>
+                    <label className="label">
                       Digite o nome do produto para confirmar
                     </label>
-                    <input
+                    <ValkInput
                       type="text"
                       value={deleteConfirmName}
                       onChange={(e) => setDeleteConfirmName(e.target.value)}
                       placeholder={project.name}
-                      className={inputClass}
                     />
                   </div>
                   <div className="mt-4 flex justify-end gap-2.5">
@@ -658,7 +620,7 @@ export function EditProjectDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

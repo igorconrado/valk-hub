@@ -17,12 +17,13 @@ import {
 import { BarChart3, Plus, Trash2, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkInput,
+} from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { saveMetricsSnapshot, deleteMetricsSnapshot } from "../actions";
@@ -45,11 +46,6 @@ const METRIC_FIELDS = [
   { key: "mau", label: "MAU", prefix: "" },
 ];
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 function formatMetric(value: number | null | undefined, prefix = "", suffix = "") {
   if (value === null || value === undefined) return "—";
@@ -135,53 +131,48 @@ function AddSnapshotDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[420px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={onOpenChange}>
+      <ValkDialogContent className="max-w-[420px]">
         <div className="px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>
               Snapshot de metricas
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+            </ValkDialogTitle>
+            <ValkDialogDescription>
               Registre os numeros atuais do produto
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-col gap-3.5 overflow-y-auto px-7 py-5">
             <div>
-              <label htmlFor="date" className={labelClass}>
+              <label htmlFor="date" className="label">
                 Data
               </label>
-              <input
+              <ValkInput
                 id="date"
                 name="date"
                 type="date"
                 defaultValue={today}
                 required
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               {METRIC_FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label htmlFor={f.key} className={labelClass}>
+                  <label htmlFor={f.key} className="label">
                     {f.label}
                   </label>
-                  <input
+                  <ValkInput
                     id={f.key}
                     name={f.key}
                     type="number"
                     step="any"
                     placeholder="—"
                     disabled={isPending}
-                    className={inputClass}
                   />
                 </div>
               ))}
@@ -209,8 +200,8 @@ function AddSnapshotDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }
 

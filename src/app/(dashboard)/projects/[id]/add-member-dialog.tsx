@@ -4,13 +4,16 @@ import { useState, useTransition, useMemo } from "react";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkInput,
+  ValkSelect,
+  Avatar,
+} from "@/components/ds";
 import { addMember } from "../actions";
 
 type AvailableUser = {
@@ -18,27 +21,6 @@ type AvailableUser = {
   name: string;
   company_role: string | null;
 };
-
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
-
-function UserAvatar({ name }: { name: string }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
-      {initials}
-    </div>
-  );
-}
 
 export function AddMemberDialog({
   projectId,
@@ -85,7 +67,7 @@ export function AddMemberDialog({
   }
 
   return (
-    <Dialog
+    <ValkDialog
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
@@ -96,20 +78,17 @@ export function AddMemberDialog({
         }
       }}
     >
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>
               Adicionar membro
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+            </ValkDialogTitle>
+            <ValkDialogDescription>
               Selecione um usuário para adicionar ao projeto
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -117,23 +96,16 @@ export function AddMemberDialog({
           <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
           {/* Search */}
           <div>
-            <label className={labelClass}>Membro</label>
-            <div className="relative">
-              <Search
-                size={14}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#333]"
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setSelectedUserId(null);
-                }}
-                placeholder="Buscar por nome..."
-                className={`${inputClass} pl-9`}
-              />
-            </div>
+            <label className="label">Membro</label>
+            <ValkInput
+              prefixIcon={<Search size={14} />}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setSelectedUserId(null);
+              }}
+              placeholder="Buscar por nome..."
+            />
 
             {/* User list */}
             {!selectedUser && (
@@ -153,7 +125,7 @@ export function AddMemberDialog({
                       }}
                       className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
                     >
-                      <UserAvatar name={user.name} />
+                      <Avatar user={{ name: user.name, initials: user.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase(), color: "#555" }} size={22} />
                       <div className="min-w-0">
                         <p className="truncate text-[13px] text-[#ccc]">
                           {user.name}
@@ -173,7 +145,7 @@ export function AddMemberDialog({
             {/* Selected user pill */}
             {selectedUser && (
               <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-[#1A1A1A] bg-[#050505] px-3 py-2">
-                <UserAvatar name={selectedUser.name} />
+                <Avatar user={{ name: selectedUser.name, initials: selectedUser.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase(), color: "#555" }} size={22} />
                 <span className="text-[13px] text-[#ccc]">
                   {selectedUser.name}
                 </span>
@@ -193,18 +165,17 @@ export function AddMemberDialog({
 
           {/* Role */}
           <div>
-            <label htmlFor="member_role" className={labelClass}>
+            <label htmlFor="member_role" className="label">
               Papel no projeto
             </label>
-            <select
-              id="member_role"
+            <ValkSelect
               value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className={`${inputClass} appearance-none`}
-            >
-              <option value="owner">Owner</option>
-              <option value="member">Member</option>
-            </select>
+              onValueChange={setRole}
+              options={[
+                { value: "owner", label: "Owner" },
+                { value: "member", label: "Member" },
+              ]}
+            />
           </div>
 
           </div>
@@ -232,7 +203,7 @@ export function AddMemberDialog({
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

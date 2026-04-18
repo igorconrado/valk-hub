@@ -14,12 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ValkDropdown, type ValkDropdownSection } from "@/components/ds";
 import { useRole } from "@/lib/hooks/use-role";
 import { RoleGate } from "@/components/role-gate";
 import { DocumentEditor } from "@/components/editor/document-editor";
@@ -345,23 +340,26 @@ export function DocumentView({
             Historico
           </button>
           <RoleGate allowed={["admin"]}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <ValkDropdown
+              trigger={
                 <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#1F1F1F] text-[#555] transition-colors hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#888]">
                   <MoreHorizontal size={14} strokeWidth={1.5} />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="text-[#E24B4A] focus:text-[#E24B4A]"
-                >
-                  <Trash2 size={13} className="mr-2" />
-                  Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              }
+              sections={[
+                {
+                  items: [
+                    {
+                      label: "Excluir",
+                      icon: <Trash2 size={13} />,
+                      onClick: handleDelete,
+                      destructive: true,
+                      disabled: isDeleting,
+                    },
+                  ],
+                },
+              ]}
+            />
           </RoleGate>
         </div>
       </div>

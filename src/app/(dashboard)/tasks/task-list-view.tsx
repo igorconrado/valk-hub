@@ -3,6 +3,13 @@
 import { motion } from "framer-motion";
 import { isPast, parseISO, format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Avatar,
+  StatusBadge,
+  PriorityDot,
+  type TaskStatus,
+  type Priority,
+} from "@/components/ds";
 
 type TaskRow = {
   id: string;
@@ -23,31 +30,6 @@ type TaskRow = {
   project: { id: string; name: string; logo_url: string | null } | null;
 };
 
-const statusColors: Record<string, string> = {
-  backlog: "#444",
-  doing: "#3B82F6",
-  on_hold: "#F59E0B",
-  review: "#8B5CF6",
-  done: "#10B981",
-  cancelled: "#666",
-};
-
-const statusLabels: Record<string, string> = {
-  backlog: "Backlog",
-  doing: "Doing",
-  on_hold: "On Hold",
-  review: "Review",
-  done: "Done",
-  cancelled: "Cancelled",
-};
-
-const priorityColors: Record<string, string> = {
-  urgent: "#E24B4A",
-  high: "#F59E0B",
-  medium: "#3B82F6",
-  low: "#444",
-};
-
 const typeLabels: Record<string, string> = {
   dev: "Dev",
   task: "Task",
@@ -56,31 +38,6 @@ const typeLabels: Record<string, string> = {
   research: "Pesquisa",
   decision: "Decisao",
 };
-
-function PriorityDot({ priority }: { priority: string }) {
-  return (
-    <div
-      className="h-[7px] w-[7px] shrink-0 rounded-full"
-      style={{ backgroundColor: priorityColors[priority] ?? "#444" }}
-    />
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const color = statusColors[status] ?? "#444";
-  return (
-    <span
-      className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
-      style={{
-        backgroundColor: `${color}12`,
-        color: color,
-        border: `1px solid ${color}20`,
-      }}
-    >
-      {statusLabels[status] ?? status}
-    </span>
-  );
-}
 
 function TypeBadge({ type }: { type: string }) {
   return (
@@ -107,13 +64,15 @@ function AssigneeAvatar({
     .toUpperCase();
 
   return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[9px] font-semibold text-[#555]"
-      style={{ width: size, height: size }}
-      title={assignee.name}
-    >
-      {initials}
-    </div>
+    <Avatar
+      user={{
+        name: assignee.name,
+        initials,
+        color: "#555",
+        avatar_url: assignee.avatar_url,
+      }}
+      size={size}
+    />
   );
 }
 
@@ -176,7 +135,7 @@ export function TaskListView({
 
           {/* Priority */}
           <div className="flex w-3 items-center justify-center">
-            <PriorityDot priority={task.priority} />
+            <PriorityDot priority={task.priority as Priority} />
           </div>
 
           {/* Title */}
@@ -205,7 +164,7 @@ export function TaskListView({
 
           {/* Status */}
           <div className="flex w-[72px] justify-end">
-            <StatusBadge status={task.status} />
+            <StatusBadge status={task.status as TaskStatus} />
           </div>
         </motion.div>
       ))}

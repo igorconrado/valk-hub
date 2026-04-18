@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
+import { ValkToaster } from "@/components/ds";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground antialiased">
         <TooltipProvider>
           {children}
-          <Toaster />
+          <ValkToaster />
         </TooltipProvider>
       </body>
     </html>

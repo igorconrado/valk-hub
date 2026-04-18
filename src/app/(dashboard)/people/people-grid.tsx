@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import Link from "next/link";
+import { Avatar } from "@/components/ds";
 
 type Person = {
   id: string;
@@ -42,44 +43,18 @@ function Badge({ label, color }: { label: string; color: string }) {
   );
 }
 
-function PersonAvatar({
-  name,
-  avatarUrl,
-}: {
-  name: string;
-  avatarUrl: string | null;
-}) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  if (avatarUrl) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={name}
-        className="mx-auto h-16 w-16 rounded-full object-cover"
-      />
-    );
-  }
-
-  return (
-    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#1A1A1A]">
-      <span className="font-display text-[20px] font-semibold text-[#555]">
-        {initials}
-      </span>
-    </div>
-  );
-}
-
 function PersonCard({ person, index }: { person: Person; index: number }) {
   const roleCfg = roleConfig[person.role] ?? roleConfig.stakeholder;
   const dedCfg = person.dedication
     ? dedicationConfig[person.dedication]
     : null;
+
+  const initials = person.name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <motion.div
@@ -91,7 +66,17 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
         href={`/people/${person.id}`}
         className="group block rounded-xl border border-[#141414] bg-[#0A0A0A] p-6 text-center transition-all duration-[250ms] [transition-timing-function:cubic-bezier(0.25,0.1,0.25,1)] hover:-translate-y-px hover:border-[#1F1F1F] hover:[box-shadow:0_8px_32px_rgba(0,0,0,0.4)]"
       >
-        <PersonAvatar name={person.name} avatarUrl={person.avatar_url} />
+        <div className="mx-auto w-fit">
+          <Avatar
+            user={{
+              name: person.name,
+              initials,
+              color: "#555",
+              avatar_url: person.avatar_url,
+            }}
+            size={64}
+          />
+        </div>
 
         <h3 className="mt-3 font-display text-[16px] font-semibold text-[#eee] transition-colors duration-[250ms] group-hover:text-white">
           {person.name}

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { ProjectLogo } from "@/components/project-logo";
+import { Avatar } from "@/components/ds";
 import { EditProfileDialog } from "./edit-profile-dialog";
 import { getActionText } from "@/lib/activity-text";
 import { resetOnboarding } from "../actions";
@@ -348,19 +349,15 @@ export function PersonView({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          {person.avatar_url ? (
-            <img
-              src={person.avatar_url}
-              alt={person.name}
-              className="h-20 w-20 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#1A1A1A]">
-              <span className="font-display text-[24px] font-semibold text-[#555]">
-                {initials}
-              </span>
-            </div>
-          )}
+          <Avatar
+            user={{
+              name: person.name,
+              initials,
+              color: "#555",
+              avatar_url: person.avatar_url,
+            }}
+            size={80}
+          />
 
           <div>
             <h1 className="font-display text-[24px] font-semibold text-white">

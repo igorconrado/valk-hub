@@ -6,6 +6,8 @@ import { BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { ValkSelect } from "@/components/ds";
+import type { ValkSelectOption } from "@/components/ds";
 
 type Report = {
   id: string;
@@ -191,18 +193,16 @@ export function ReportsList({
         <div className="h-4 w-px bg-[#1A1A1A]" />
 
         {/* Product filter */}
-        <select
+        <ValkSelect
           value={projectFilter}
-          onChange={(e) => setProjectFilter(e.target.value)}
-          className="appearance-none rounded-lg border border-[#1A1A1A] bg-[#050505] px-2.5 py-1 text-[11px] text-[#888] outline-none transition-colors focus:border-[#333]"
-        >
-          <option value="all">Todos os produtos</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+          onValueChange={setProjectFilter}
+          placeholder="Todos os produtos"
+          options={[
+            { value: "all", label: "Todos os produtos" },
+            ...projects.map((p) => ({ value: p.id, label: p.name })),
+          ]}
+          className="w-[180px]"
+        />
 
         {/* Status filter */}
         <div className="flex items-center gap-1">

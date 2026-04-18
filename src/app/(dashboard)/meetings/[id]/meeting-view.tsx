@@ -24,20 +24,19 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkDropdown,
+  Avatar,
+  ValkInput,
+  ValkTextarea,
+  ValkSelect,
+  type ValkSelectOption,
+} from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { DocumentEditor } from "@/components/editor/document-editor";
@@ -103,6 +102,14 @@ function resolve<T>(val: T | T[] | null): T | null {
   return val;
 }
 
+function makeAvatarUser(name: string) {
+  return {
+    name,
+    initials: name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+    color: "#555",
+  };
+}
+
 // ── Config maps ────────────────────────────────────────
 
 const typeConfig: Record<string, { label: string; color: string }> = {
@@ -126,11 +133,12 @@ const impactConfig: Record<string, { label: string; color: string }> = {
   critical: { label: "Crítico", color: "#E24B4A" },
 };
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
+const impactOptions: ValkSelectOption[] = [
+  { value: "low", label: "Baixo" },
+  { value: "medium", label: "Médio" },
+  { value: "high", label: "Alto" },
+  { value: "critical", label: "Crítico" },
+];
 
 // ── Badge components ───────────────────────────────────
 
@@ -152,24 +160,6 @@ function Badge({
     >
       {label}
     </span>
-  );
-}
-
-function Avatar({ name, size = 24 }: { name: string; size?: number }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]"
-      style={{ width: size, height: size }}
-    >
-      {initials}
-    </div>
   );
 }
 
@@ -289,6 +279,9 @@ function CreateDecisionDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [selectedDeciders, setSelectedDeciders] = useState<string[]>([]);
+  const [impact, setImpact] = useState("medium");
+  const [decTitle, setDecTitle] = useState("");
+  const [decProjectId, setDecProjectId] = useState(projectId ?? "");
 
   function toggleDecider(id: string) {
     setSelectedDeciders((prev) =>
@@ -296,16 +289,20 @@ function CreateDecisionDialog({
     );
   }
 
+  const projectOptions: ValkSelectOption[] = [
+    { value: "", label: "Nenhum" },
+    ...projects.map((p) => ({ value: p.id, label: p.name })),
+  ];
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
 
     startTransition(async () => {
       const result = await createDecision({
         meeting_id: meetingId,
-        project_id: (fd.get("project_id") as string) || projectId || "",
-        title: fd.get("title") as string,
-        impact: fd.get("impact") as string,
+        project_id: decProjectId || projectId || "",
+        title: decTitle,
+        impact,
         decided_by_ids: selectedDeciders,
       });
 
@@ -317,25 +314,22 @@ function CreateDecisionDialog({
       toast.success("Decisão registrada");
       setOpen(false);
       setSelectedDeciders([]);
+      setDecTitle("");
+      setImpact("medium");
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Registrar decisão
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Registrar decisão</ValkDialogTitle>
+            <ValkDialogDescription>
               Documente uma decisão tomada nesta reunião
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -343,42 +337,32 @@ function CreateDecisionDialog({
           <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
             {/* Descrição */}
             <div>
-              <label htmlFor="dec-title" className={labelClass}>
-                Descrição
-              </label>
-              <textarea
-                id="dec-title"
+              <label className="label">Descrição</label>
+              <ValkTextarea
                 name="title"
                 required
                 rows={3}
+                value={decTitle}
+                onChange={(e) => setDecTitle(e.target.value)}
                 placeholder="O que foi decidido?"
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Impacto */}
             <div>
-              <label htmlFor="dec-impact" className={labelClass}>
-                Impacto
-              </label>
-              <select
-                id="dec-impact"
-                name="impact"
-                defaultValue="medium"
+              <label className="label">Impacto</label>
+              <ValkSelect
+                value={impact}
+                onValueChange={setImpact}
+                options={impactOptions}
                 disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="low">Baixo</option>
-                <option value="medium">Médio</option>
-                <option value="high">Alto</option>
-                <option value="critical">Crítico</option>
-              </select>
+              />
             </div>
 
             {/* Quem decidiu */}
             <div>
-              <label className={labelClass}>Quem decidiu</label>
+              <label className="label">Quem decidiu</label>
               <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
                 {participants.map((p) => {
                   const u = resolve(p.user);
@@ -411,7 +395,7 @@ function CreateDecisionDialog({
                           />
                         )}
                       </div>
-                      <Avatar name={u.name} />
+                      <Avatar user={makeAvatarUser(u.name)} size={24} />
                       <span className="text-[13px] text-[#ccc]">
                         {u.name}
                       </span>
@@ -423,23 +407,13 @@ function CreateDecisionDialog({
 
             {/* Produto */}
             <div>
-              <label htmlFor="dec-project" className={labelClass}>
-                Produto
-              </label>
-              <select
-                id="dec-project"
-                name="project_id"
-                defaultValue={projectId ?? ""}
+              <label className="label">Produto</label>
+              <ValkSelect
+                value={decProjectId}
+                onValueChange={setDecProjectId}
+                options={projectOptions}
                 disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="">Nenhum</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 
@@ -465,8 +439,8 @@ function CreateDecisionDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }
 
@@ -525,7 +499,7 @@ function DecisionsSection({
                   <Badge label={imp.label} color={imp.color} />
                   {decider && (
                     <div className="flex items-center gap-1.5">
-                      <Avatar name={decider.name} size={20} />
+                      <Avatar user={makeAvatarUser(decider.name)} size={20} />
                       <span className="text-[11px] text-[#555]">
                         {decider.name}
                       </span>
@@ -602,7 +576,7 @@ function ActionItemRow({
         <div className="mt-1.5 flex items-center gap-2.5">
           {assignee && (
             <div className="flex items-center gap-1.5">
-              <Avatar name={assignee.name} size={18} />
+              <Avatar user={makeAvatarUser(assignee.name)} size={18} />
               <span className="text-[11px] text-[#555]">{assignee.name}</span>
             </div>
           )}
@@ -633,18 +607,25 @@ function InlineActionItemForm({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [itemTitle, setItemTitle] = useState("");
+  const [assigneeId, setAssigneeId] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  const assigneeOptions: ValkSelectOption[] = [
+    { value: "", label: "Responsável" },
+    ...users.map((u) => ({ value: u.id, label: u.name })),
+  ];
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
 
     startTransition(async () => {
       const result = await createActionItem({
         meeting_id: meetingId,
         project_id: projectId,
-        title: fd.get("title") as string,
-        assignee_id: fd.get("assignee_id") as string,
-        due_date: fd.get("due_date") as string,
+        title: itemTitle,
+        assignee_id: assigneeId,
+        due_date: dueDate,
       });
 
       if (result.error) {
@@ -654,6 +635,9 @@ function InlineActionItemForm({
 
       toast.success("Action item criado");
       setOpen(false);
+      setItemTitle("");
+      setAssigneeId("");
+      setDueDate("");
     });
   }
 
@@ -675,33 +659,29 @@ function InlineActionItemForm({
       className="rounded-xl border border-[#1A1A1A] bg-[#0A0A0A] p-4"
     >
       <div className="flex flex-col gap-3">
-        <input
+        <ValkInput
           name="title"
           required
+          value={itemTitle}
+          onChange={(e) => setItemTitle(e.target.value)}
           placeholder="Descrição do action item"
           disabled={isPending}
-          className={inputClass}
           autoFocus
         />
         <div className="grid grid-cols-2 gap-3">
-          <select
-            name="assignee_id"
-            required
+          <ValkSelect
+            value={assigneeId}
+            onValueChange={setAssigneeId}
+            options={assigneeOptions}
             disabled={isPending}
-            className={`${inputClass} appearance-none`}
-          >
-            <option value="">Responsável</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-          <input
+            name="assignee_id"
+          />
+          <ValkInput
             name="due_date"
             type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
             disabled={isPending}
-            className={inputClass}
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -831,6 +811,48 @@ export function MeetingView({
     });
   }
 
+  // Build dropdown sections dynamically based on meeting status
+  const dropdownSections = (() => {
+    const mainItems: { label: string; icon: React.ReactNode; onClick: () => void }[] = [];
+
+    if (meeting.status === "scheduled") {
+      mainItems.push({
+        label: "Iniciar reunião",
+        icon: <Circle size={13} className="text-[#3B82F6]" strokeWidth={1.5} />,
+        onClick: () => handleStatusChange("in_progress"),
+      });
+    }
+
+    if (meeting.status === "scheduled" || meeting.status === "in_progress") {
+      mainItems.push({
+        label: "Concluir",
+        icon: <CheckCircle2 size={13} className="text-[#10B981]" strokeWidth={1.5} />,
+        onClick: () => handleStatusChange("completed"),
+      });
+    }
+
+    const sections: { items: { label: string; icon: React.ReactNode; onClick: () => void; destructive?: boolean }[] }[] = [];
+
+    if (mainItems.length > 0) {
+      sections.push({ items: mainItems });
+    }
+
+    if (meeting.status !== "cancelled" && meeting.status !== "completed") {
+      sections.push({
+        items: [
+          {
+            label: "Cancelar reunião",
+            icon: <MoreHorizontal size={13} strokeWidth={1.5} />,
+            onClick: () => handleStatusChange("cancelled"),
+            destructive: true,
+          },
+        ],
+      });
+    }
+
+    return sections;
+  })();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -875,7 +897,7 @@ export function MeetingView({
               if (!u) return null;
               return (
                 <div key={u.id} className="group relative">
-                  <Avatar name={u.name} size={28} />
+                  <Avatar user={makeAvatarUser(u.name)} size={28} />
                   <div className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#1A1A1A] px-2 py-1 text-[10px] text-[#ccc] opacity-0 transition-opacity group-hover:opacity-100">
                     {u.name}
                   </div>
@@ -892,66 +914,25 @@ export function MeetingView({
 
         {/* Right actions */}
         <RoleGate allowed={["admin", "operator"]}>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  disabled={isPending}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
-                >
-                  {isPending && (
-                    <Loader2 size={12} className="animate-spin" />
-                  )}
-                  Ações
-                  <ChevronDown size={12} strokeWidth={1.5} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {meeting.status === "scheduled" && (
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("in_progress")}
+          {dropdownSections.length > 0 && (
+            <div className="flex items-center gap-2">
+              <ValkDropdown
+                trigger={
+                  <button
+                    disabled={isPending}
+                    className="flex items-center gap-1.5 rounded-lg border border-[#222] bg-transparent px-3.5 py-1.5 text-[12px] font-medium text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
                   >
-                    <Circle
-                      size={13}
-                      className="mr-2 text-[#3B82F6]"
-                      strokeWidth={1.5}
-                    />
-                    Iniciar reunião
-                  </DropdownMenuItem>
-                )}
-                {(meeting.status === "scheduled" ||
-                  meeting.status === "in_progress") && (
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("completed")}
-                  >
-                    <CheckCircle2
-                      size={13}
-                      className="mr-2 text-[#10B981]"
-                      strokeWidth={1.5}
-                    />
-                    Concluir
-                  </DropdownMenuItem>
-                )}
-                {meeting.status !== "cancelled" &&
-                  meeting.status !== "completed" && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleStatusChange("cancelled")}
-                        className="text-[#888] focus:text-[#E24B4A]"
-                      >
-                        <MoreHorizontal
-                          size={13}
-                          className="mr-2"
-                          strokeWidth={1.5}
-                        />
-                        Cancelar reunião
-                      </DropdownMenuItem>
-                    </>
-                  )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                    {isPending && (
+                      <Loader2 size={12} className="animate-spin" />
+                    )}
+                    Ações
+                    <ChevronDown size={12} strokeWidth={1.5} />
+                  </button>
+                }
+                sections={dropdownSections}
+              />
+            </div>
+          )}
         </RoleGate>
       </div>
 

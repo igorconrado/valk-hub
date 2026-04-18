@@ -7,6 +7,7 @@ import { formatDistanceToNow, isPast, parseISO, format, isToday } from "date-fns
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useRole } from "@/lib/hooks/use-role";
+import { Avatar } from "@/components/ds";
 import { getTaskDetail, updateTaskField, resolveTaskBlock } from "./actions";
 import { BlockReasonDialog } from "./block-reason-dialog";
 import { getActionText } from "@/lib/activity-text";
@@ -615,9 +616,14 @@ export function TaskDetailPanel({
                               <div className="h-px bg-[#0F0F0F]" />
                             )}
                             <div className="flex items-center gap-2.5 py-2">
-                              <div className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[#111] text-[8px] font-semibold text-[#444]">
-                                {initials}
-                              </div>
+                              <Avatar
+                                user={{
+                                  name: activityUser?.name ?? "Desconhecido",
+                                  initials,
+                                  color: "#555",
+                                }}
+                                size={20}
+                              />
                               <p className="min-w-0 flex-1 truncate text-[11px] text-[#666]">
                                 <span className="font-medium text-[#888]">
                                   {activityUser?.name ?? "Desconhecido"}{" "}

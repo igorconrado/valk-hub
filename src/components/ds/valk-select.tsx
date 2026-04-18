@@ -19,6 +19,7 @@ interface ValkSelectProps {
   searchable?: boolean
   className?: string
   disabled?: boolean
+  name?: string
 }
 
 export function ValkSelect({
@@ -29,6 +30,7 @@ export function ValkSelect({
   searchable = false,
   className,
   disabled = false,
+  name,
 }: ValkSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
@@ -60,6 +62,7 @@ export function ValkSelect({
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
+      {name && <input type="hidden" name={name} value={value ?? ""} />}
       <button
         type="button"
         disabled={disabled}

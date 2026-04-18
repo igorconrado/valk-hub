@@ -16,14 +16,7 @@ import {
   Menu,
   Settings,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Avatar, ValkDropdown } from "@/components/ds";
 import {
   Sheet,
   SheetContent,
@@ -111,7 +104,6 @@ function NavItems({
 function UserAvatar({
   name,
   size = 30,
-  textSize = "text-[11px]",
 }: {
   name: string;
   size?: number;
@@ -125,12 +117,10 @@ function UserAvatar({
     .toUpperCase();
 
   return (
-    <div
-      className={`flex shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] ${textSize} font-semibold text-[#555]`}
-      style={{ width: size, height: size }}
-    >
-      {initials}
-    </div>
+    <Avatar
+      user={{ name, initials, color: "#555" }}
+      size={size}
+    />
   );
 }
 
@@ -164,8 +154,8 @@ function SidebarUser() {
 
   return (
     <div className="absolute bottom-0 left-0 right-0 border-t border-[#111] px-4 py-3">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <ValkDropdown
+        trigger={
           <button className="flex w-full items-center gap-2.5 rounded-lg transition-colors hover:bg-white/[0.03]">
             <UserAvatar name={user.name} />
             <div className="min-w-0 text-left">
@@ -177,30 +167,26 @@ function SidebarUser() {
               </p>
             </div>
           </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="top" className="w-56">
-          <DropdownMenuLabel className="font-normal">
-            <p className="truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => router.push("/settings")}
-            className="text-[#888]"
-          >
-            <Settings size={14} className="mr-2" />
-            Configurações
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleSignOut}
-            className="text-[#888] focus:text-[#E24B4A]"
-          >
-            <LogOut size={14} className="mr-2" />
-            Sair
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        }
+        sections={[
+          {
+            items: [
+              {
+                label: "Configurações",
+                icon: <Settings size={14} />,
+                onClick: () => router.push("/settings"),
+              },
+              {
+                label: "Sair",
+                icon: <LogOut size={14} />,
+                onClick: handleSignOut,
+                destructive: true,
+              },
+            ],
+          },
+        ]}
+        align="start"
+      />
     </div>
   );
 }

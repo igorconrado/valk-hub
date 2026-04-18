@@ -4,13 +4,16 @@ import { useState, useTransition, useEffect } from "react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkInput,
+  ValkTextarea,
+  ValkSelect,
+} from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { createTask } from "./actions";
 
@@ -32,11 +35,6 @@ const priorities = [
   { value: "urgent", label: "Urgente" },
 ];
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 export function CreateTaskDialog({
   children,
@@ -53,6 +51,8 @@ export function CreateTaskDialog({
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState("task");
   const [projectId, setProjectId] = useState(defaultProjectId ?? "");
+  const [assigneeId, setAssigneeId] = useState("");
+  const [priority, setPriority] = useState("medium");
   const [projects, setProjects] = useState<Project[]>(externalProjects ?? []);
   const [users, setUsers] = useState<User[]>(externalUsers ?? []);
   const [linearSyncStatus, setLinearSyncStatus] = useState<
@@ -144,6 +144,8 @@ export function CreateTaskDialog({
   function resetForm() {
     setType("task");
     setProjectId(defaultProjectId ?? "");
+    setAssigneeId("");
+    setPriority("medium");
     setLinearSyncStatus("none");
   }
 
@@ -153,21 +155,16 @@ export function CreateTaskDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={handleOpenChange}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Nova task
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Nova task</ValkDialogTitle>
+            <ValkDialogDescription>
               Cria uma task para a equipe
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -175,53 +172,45 @@ export function CreateTaskDialog({
           <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
             {/* Titulo */}
             <div>
-              <label htmlFor="title" className={labelClass}>
+              <label htmlFor="title" className="label">
                 Titulo *
               </label>
-              <input
+              <ValkInput
                 id="title"
                 name="title"
                 required
                 placeholder="Ex: Implementar autenticacao"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             {/* Descricao */}
             <div>
-              <label htmlFor="description" className={labelClass}>
+              <label htmlFor="description" className="label">
                 Descricao
               </label>
-              <textarea
+              <ValkTextarea
                 id="description"
                 name="description"
                 rows={3}
                 placeholder="Detalhes da task..."
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Tipo + Produto */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="type" className={labelClass}>
-                  Tipo
-                </label>
-                <select
-                  id="type"
+                <label className="label">Tipo</label>
+                <ValkSelect
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  onValueChange={setType}
+                  options={taskTypes.map((t) => ({
+                    value: t.value,
+                    label: t.label,
+                  }))}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {taskTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                />
                 {/* Linear sync indicators */}
                 {type === "dev" && linearSyncStatus === "synced" && (
                   <p className="mt-1.5 flex items-center gap-1 text-[10px] text-[#E24B4A]">
@@ -241,94 +230,76 @@ export function CreateTaskDialog({
                 )}
               </div>
               <div>
-                <label htmlFor="project_id" className={labelClass}>
-                  Produto
-                </label>
-                <select
-                  id="project_id"
+                <label className="label">Produto</label>
+                <ValkSelect
+                  name="project_id"
                   value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
+                  onValueChange={setProjectId}
+                  options={[
+                    { value: "", label: "Empresa (sem produto)" },
+                    ...projects.map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                    })),
+                  ]}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="">Empresa (sem produto)</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 
             {/* Responsavel + Prioridade */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="assignee_id" className={labelClass}>
-                  Responsavel *
-                </label>
-                <select
-                  id="assignee_id"
+                <label className="label">Responsavel *</label>
+                <ValkSelect
                   name="assignee_id"
-                  required
+                  value={assigneeId}
+                  onValueChange={setAssigneeId}
+                  placeholder="Selecione..."
+                  options={users.map((u) => ({
+                    value: u.id,
+                    label: u.name,
+                  }))}
                   disabled={isPending}
-                  defaultValue=""
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="" disabled>
-                    Selecione...
-                  </option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label htmlFor="priority" className={labelClass}>
-                  Prioridade
-                </label>
-                <select
-                  id="priority"
+                <label className="label">Prioridade</label>
+                <ValkSelect
                   name="priority"
-                  defaultValue="medium"
+                  value={priority}
+                  onValueChange={setPriority}
+                  options={priorities.map((p) => ({
+                    value: p.value,
+                    label: p.label,
+                  }))}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {priorities.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 
             {/* Data limite + Tags */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="due_date" className={labelClass}>
+                <label htmlFor="due_date" className="label">
                   Data limite
                 </label>
-                <input
+                <ValkInput
                   id="due_date"
                   name="due_date"
                   type="date"
                   disabled={isPending}
-                  className={inputClass}
                 />
               </div>
               <div>
-                <label htmlFor="tags" className={labelClass}>
+                <label htmlFor="tags" className="label">
                   Tags
                 </label>
-                <input
+                <ValkInput
                   id="tags"
                   name="tags"
                   placeholder="auth, api, urgente"
                   disabled={isPending}
-                  className={inputClass}
                 />
               </div>
             </div>
@@ -356,7 +327,7 @@ export function CreateTaskDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

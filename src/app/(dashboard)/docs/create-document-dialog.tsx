@@ -5,17 +5,19 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+} from "@/components/ds";
+import { ValkInput } from "@/components/ds";
+import { ValkSelect, type ValkSelectOption } from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { createDocument } from "./actions";
 
-const docTypes = [
+const docTypes: ValkSelectOption[] = [
   { value: "contexto", label: "Contexto" },
   { value: "prd", label: "PRD" },
   { value: "spec", label: "Spec" },
@@ -25,12 +27,6 @@ const docTypes = [
   { value: "relatorio", label: "Relatorio" },
   { value: "livre", label: "Livre" },
 ];
-
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 export function CreateDocumentDialog({
   children,
@@ -42,6 +38,8 @@ export function CreateDocumentDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [docType, setDocType] = useState("livre");
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const router = useRouter();
 
   useEffect(() => {
@@ -61,8 +59,8 @@ export function CreateDocumentDialog({
     startTransition(async () => {
       const result = await createDocument({
         title: fd.get("title") as string,
-        type: fd.get("type") as string,
-        project_id: (fd.get("project_id") as string) || null,
+        type: docType,
+        project_id: projectId || null,
       });
 
       if (result.error) {
@@ -76,78 +74,58 @@ export function CreateDocumentDialog({
     });
   }
 
+  const projectOptions: ValkSelectOption[] = [
+    { value: "", label: "Empresa (sem produto)" },
+    ...projects.map((p) => ({ value: p.id, label: p.name })),
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[420px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[420px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Novo documento
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Novo documento</ValkDialogTitle>
+            <ValkDialogDescription>
               Crie um documento para a base de conhecimento
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
             <div>
-              <label htmlFor="doc-title" className={labelClass}>
+              <label htmlFor="doc-title" className="label">
                 Titulo *
               </label>
-              <input
+              <ValkInput
                 id="doc-title"
                 name="title"
                 required
                 placeholder="Ex: PRD do Vecto"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="doc-type" className={labelClass}>
-                  Tipo
-                </label>
-                <select
-                  id="doc-type"
-                  name="type"
-                  defaultValue="livre"
+                <label className="label">Tipo</label>
+                <ValkSelect
+                  value={docType}
+                  onValueChange={setDocType}
+                  options={docTypes}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {docTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label htmlFor="doc-project" className={labelClass}>
-                  Produto
-                </label>
-                <select
-                  id="doc-project"
-                  name="project_id"
-                  defaultValue={defaultProjectId ?? ""}
+                <label className="label">Produto</label>
+                <ValkSelect
+                  value={projectId}
+                  onValueChange={setProjectId}
+                  options={projectOptions}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="">Empresa (sem produto)</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
           </div>
@@ -173,7 +151,7 @@ export function CreateDocumentDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

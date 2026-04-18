@@ -4,13 +4,17 @@ import { useState, useRef, useCallback, useTransition } from "react";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkInput,
+  ValkTextarea,
+  ValkSelect,
+  type ValkSelectOption,
+} from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile } from "../actions";
 
@@ -33,11 +37,17 @@ const ACCEPTED_TYPES = [
 ];
 const MAX_SIZE = 2 * 1024 * 1024;
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
+const roleOptions: ValkSelectOption[] = [
+  { value: "admin", label: "Admin" },
+  { value: "operator", label: "Operator" },
+  { value: "stakeholder", label: "Stakeholder" },
+];
 
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
+const dedicationOptions: ValkSelectOption[] = [
+  { value: "", label: "\u2014" },
+  { value: "full_time", label: "Full-time" },
+  { value: "partial", label: "Parcial" },
+];
 
 function AvatarUpload({
   value,
@@ -89,8 +99,6 @@ function AvatarUpload({
     const file = e.dataTransfer.files[0];
     if (file) upload(file);
   }
-
-  const initials = "?";
 
   return (
     <div className="flex flex-col items-center">
@@ -163,6 +171,8 @@ export function EditProfileDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [avatarUrl, setAvatarUrl] = useState(person.avatar_url ?? "");
+  const [role, setRole] = useState(person.role);
+  const [dedication, setDedication] = useState(person.dedication ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -195,21 +205,16 @@ export function EditProfileDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Editar perfil
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Editar perfil</ValkDialogTitle>
+            <ValkDialogDescription>
               Atualize as informações do perfil
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -224,48 +229,45 @@ export function EditProfileDialog({
 
             {/* Nome */}
             <div>
-              <label htmlFor="prof-name" className={labelClass}>
+              <label htmlFor="prof-name" className="label">
                 Nome
               </label>
-              <input
+              <ValkInput
                 id="prof-name"
                 name="name"
                 required
                 defaultValue={person.name}
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
 
             {/* Bio */}
             <div>
-              <label htmlFor="prof-bio" className={labelClass}>
+              <label htmlFor="prof-bio" className="label">
                 Bio
               </label>
-              <textarea
+              <ValkTextarea
                 id="prof-bio"
                 name="bio"
                 rows={3}
                 defaultValue={person.bio ?? ""}
                 placeholder="Conte um pouco sobre você..."
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Responsabilidades */}
             <div>
-              <label htmlFor="prof-resp" className={labelClass}>
+              <label htmlFor="prof-resp" className="label">
                 Responsabilidades
               </label>
-              <textarea
+              <ValkTextarea
                 id="prof-resp"
                 name="responsibilities"
                 rows={2}
                 defaultValue={person.responsibilities ?? ""}
                 placeholder="O que você faz na VALK..."
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
@@ -279,53 +281,40 @@ export function EditProfileDialog({
 
                 {/* Role */}
                 <div>
-                  <label htmlFor="prof-role" className={labelClass}>
-                    Role
-                  </label>
-                  <select
-                    id="prof-role"
+                  <label className="label">Role</label>
+                  <ValkSelect
+                    value={role}
+                    onValueChange={setRole}
+                    options={roleOptions}
                     name="role"
-                    defaultValue={person.role}
                     disabled={isPending}
-                    className={`${inputClass} appearance-none`}
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="operator">Operator</option>
-                    <option value="stakeholder">Stakeholder</option>
-                  </select>
+                  />
                 </div>
 
                 {/* Company role */}
                 <div>
-                  <label htmlFor="prof-crole" className={labelClass}>
+                  <label htmlFor="prof-crole" className="label">
                     Cargo
                   </label>
-                  <input
+                  <ValkInput
                     id="prof-crole"
                     name="company_role"
                     defaultValue={person.company_role ?? ""}
                     placeholder="Ex: CTO, Product Manager..."
                     disabled={isPending}
-                    className={inputClass}
                   />
                 </div>
 
                 {/* Dedication */}
                 <div>
-                  <label htmlFor="prof-ded" className={labelClass}>
-                    Dedicação
-                  </label>
-                  <select
-                    id="prof-ded"
+                  <label className="label">Dedicação</label>
+                  <ValkSelect
+                    value={dedication}
+                    onValueChange={setDedication}
+                    options={dedicationOptions}
                     name="dedication"
-                    defaultValue={person.dedication ?? ""}
                     disabled={isPending}
-                    className={`${inputClass} appearance-none`}
-                  >
-                    <option value="">—</option>
-                    <option value="full_time">Full-time</option>
-                    <option value="partial">Parcial</option>
-                  </select>
+                  />
                 </div>
               </>
             )}
@@ -353,7 +342,7 @@ export function EditProfileDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

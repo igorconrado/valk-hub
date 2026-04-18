@@ -4,16 +4,20 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, Loader2, Plus, Scale } from "lucide-react";
+import { Loader2, Plus, Scale } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkTextarea,
+  ValkSelect,
+  ValkCheckbox,
+  Avatar,
+} from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { createDecision } from "@/app/(dashboard)/meetings/actions";
 
@@ -40,34 +44,11 @@ const impactConfig: Record<string, { label: string; color: string }> = {
   critical: { label: "Crítico", color: "#E24B4A" },
 };
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 function resolve<T>(val: T | T[] | null): T | null {
   if (val == null) return null;
   if (Array.isArray(val)) return val[0] ?? null;
   return val;
-}
-
-function Avatar({ name, size = 20 }: { name: string; size?: number }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]"
-      style={{ width: size, height: size }}
-    >
-      {initials}
-    </div>
-  );
 }
 
 function CreateProjectDecisionDialog({
@@ -84,6 +65,8 @@ function CreateProjectDecisionDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [selectedDeciders, setSelectedDeciders] = useState<string[]>([]);
+  const [impact, setImpact] = useState("medium");
+  const [meetingId, setMeetingId] = useState("");
 
   function toggleDecider(id: string) {
     setSelectedDeciders((prev) =>
@@ -116,81 +99,70 @@ function CreateProjectDecisionDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>
               Registrar decisão
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+            </ValkDialogTitle>
+            <ValkDialogDescription>
               Documente uma decisão para este produto
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
             <div>
-              <label htmlFor="pdec-title" className={labelClass}>
+              <label htmlFor="pdec-title" className="label">
                 Descrição
               </label>
-              <textarea
-                id="pdec-title"
+              <ValkTextarea
                 name="title"
                 required
                 rows={3}
                 placeholder="O que foi decidido?"
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             <div>
-              <label htmlFor="pdec-impact" className={labelClass}>
+              <label htmlFor="pdec-impact" className="label">
                 Impacto
               </label>
-              <select
-                id="pdec-impact"
+              <ValkSelect
                 name="impact"
-                defaultValue="medium"
-                disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="low">Baixo</option>
-                <option value="medium">Médio</option>
-                <option value="high">Alto</option>
-                <option value="critical">Crítico</option>
-              </select>
+                value={impact}
+                onValueChange={setImpact}
+                options={[
+                  { value: "low", label: "Baixo" },
+                  { value: "medium", label: "Médio" },
+                  { value: "high", label: "Alto" },
+                  { value: "critical", label: "Crítico" },
+                ]}
+              />
             </div>
 
             <div>
-              <label htmlFor="pdec-meeting" className={labelClass}>
+              <label htmlFor="pdec-meeting" className="label">
                 Reunião
               </label>
-              <select
-                id="pdec-meeting"
+              <ValkSelect
                 name="meeting_id"
-                defaultValue=""
-                disabled={isPending}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="">Nenhuma</option>
-                {meetings.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
+                value={meetingId}
+                onValueChange={setMeetingId}
+                options={[
+                  { value: "", label: "Nenhuma" },
+                  ...meetings.map((m) => ({ value: m.id, label: m.title })),
+                ]}
+              />
             </div>
 
             <div>
-              <label className={labelClass}>Quem decidiu</label>
+              <label className="label">Quem decidiu</label>
               <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
                 {users.map((u) => {
                   const selected = selectedDeciders.includes(u.id);
@@ -206,22 +178,19 @@ function CreateProjectDecisionDialog({
                           : "hover:bg-white/[0.02]"
                       }`}
                     >
-                      <div
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all duration-150 ${
-                          selected
-                            ? "border-[#E24B4A] bg-[#E24B4A]"
-                            : "border-[#333]"
-                        }`}
-                      >
-                        {selected && (
-                          <Check
-                            size={10}
-                            strokeWidth={2.5}
-                            className="text-white"
-                          />
-                        )}
-                      </div>
-                      <Avatar name={u.name} />
+                      <ValkCheckbox
+                        checked={selected}
+                        onCheckedChange={() => toggleDecider(u.id)}
+                        disabled={isPending}
+                      />
+                      <Avatar
+                        user={{
+                          name: u.name,
+                          initials: u.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+                          color: "#555",
+                        }}
+                        size={20}
+                      />
                       <span className="text-[13px] text-[#ccc]">
                         {u.name}
                       </span>
@@ -253,8 +222,8 @@ function CreateProjectDecisionDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }
 
@@ -326,7 +295,16 @@ export function ProjectDecisionsTab({
                 >
                   {imp.label}
                 </span>
-                {decider && <Avatar name={decider.name} />}
+                {decider && (
+                  <Avatar
+                    user={{
+                      name: decider.name,
+                      initials: decider.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+                      color: "#555",
+                    }}
+                    size={20}
+                  />
+                )}
                 <span className="shrink-0 text-[11px] text-[#444]">
                   {format(new Date(date), "dd MMM", { locale: ptBR })}
                 </span>

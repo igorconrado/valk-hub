@@ -4,13 +4,16 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+  ValkInput,
+  ValkTextarea,
+  ValkSelect,
+} from "@/components/ds";
 import { createProject } from "./actions";
 import { LogoUpload } from "@/components/logo-upload";
 
@@ -27,12 +30,6 @@ const thesisTypes = [
   { value: "b2b", label: "B2B" },
 ];
 
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
-
 export function CreateProjectDialog({
   children,
 }: {
@@ -41,6 +38,8 @@ export function CreateProjectDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState("");
+  const [phase, setPhase] = useState("discovery");
+  const [thesisType, setThesisType] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -69,21 +68,18 @@ export function CreateProjectDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>
               Novo produto
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+            </ValkDialogTitle>
+            <ValkDialogDescription>
               Adicione um novo produto ao portfólio da VALK
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -97,101 +93,84 @@ export function CreateProjectDialog({
                 projectId={`new-project`}
               />
               <div className="flex-1">
-                <label htmlFor="name" className={labelClass}>
+                <label htmlFor="name" className="label">
                   Nome
                 </label>
-                <input
+                <ValkInput
                   id="name"
                   name="name"
                   required
                   placeholder="Ex: Vecto"
                   disabled={isPending}
-                  className={inputClass}
                 />
               </div>
             </div>
 
             {/* Descrição */}
             <div>
-              <label htmlFor="description" className={labelClass}>
+              <label htmlFor="description" className="label">
                 Descrição
               </label>
-              <textarea
+              <ValkTextarea
                 id="description"
                 name="description"
                 rows={3}
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Fase + Tese */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="phase" className={labelClass}>
+                <label htmlFor="phase" className="label">
                   Fase
                 </label>
-                <select
-                  id="phase"
+                <ValkSelect
                   name="phase"
-                  defaultValue="discovery"
+                  value={phase}
+                  onValueChange={setPhase}
+                  options={phases}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {phases.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label htmlFor="thesis_type" className={labelClass}>
+                <label htmlFor="thesis_type" className="label">
                   Tese
                 </label>
-                <select
-                  id="thesis_type"
+                <ValkSelect
                   name="thesis_type"
-                  defaultValue=""
+                  value={thesisType}
+                  onValueChange={setThesisType}
+                  options={[{ value: "", label: "—" }, ...thesisTypes]}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="">—</option>
-                  {thesisTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 
             {/* Hipótese central */}
             <div>
-              <label htmlFor="thesis_hypothesis" className={labelClass}>
+              <label htmlFor="thesis_hypothesis" className="label">
                 Hipótese central
               </label>
-              <textarea
+              <ValkTextarea
                 id="thesis_hypothesis"
                 name="thesis_hypothesis"
                 rows={2}
                 placeholder="O que você quer provar com esse produto?"
                 disabled={isPending}
-                className={`${inputClass} resize-none`}
               />
             </div>
 
             {/* Data-alvo */}
             <div>
-              <label htmlFor="launch_target" className={labelClass}>
+              <label htmlFor="launch_target" className="label">
                 Data-alvo
               </label>
-              <input
+              <ValkInput
                 id="launch_target"
                 name="launch_target"
                 type="date"
                 disabled={isPending}
-                className={inputClass}
               />
             </div>
           </div>
@@ -218,7 +197,7 @@ export function CreateProjectDialog({
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

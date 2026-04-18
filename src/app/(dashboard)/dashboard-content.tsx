@@ -18,12 +18,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkInput,
+  Avatar as DsAvatar,
+} from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { ProjectLogo } from "@/components/project-logo";
 import { getActionText } from "@/lib/activity-text";
@@ -79,20 +81,6 @@ function getFirstName(name: string): string {
   return name.split(" ")[0];
 }
 
-function Avatar({ name }: { name: string }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#111] text-[9px] font-semibold text-[#444]">
-      {initials}
-    </div>
-  );
-}
 
 const sectionLabel = "text-[10px] font-semibold uppercase tracking-[0.15em] text-[#333]";
 const cardClass = "rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-[18px_20px]";
@@ -178,11 +166,6 @@ function PendingItemRow({ item }: { item: PendingItem }) {
   );
 }
 
-const metricInputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const metricLabelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 function ChangeIndicator({
   current,
@@ -311,30 +294,27 @@ function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
       </p>
 
       {/* Edit dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="max-w-[380px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-        >
+      <ValkDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ValkDialogContent className="max-w-[380px]">
           <div className="px-7 pt-7">
-            <DialogHeader className="gap-1">
-              <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
+            <ValkDialogHeader>
+              <ValkDialogTitle>
                 Financeiro
-              </DialogTitle>
-              <DialogDescription className="text-[12px] text-[#555]">
+              </ValkDialogTitle>
+              <ValkDialogDescription>
                 Atualize caixa e gasto mensal para calcular runway
-              </DialogDescription>
-            </DialogHeader>
+              </ValkDialogDescription>
+            </ValkDialogHeader>
             <div className="mt-5 h-px bg-[#141414]" />
           </div>
 
           <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
             <div className="flex flex-col gap-4 px-7 py-5">
               <div>
-                <label htmlFor="cash" className={metricLabelClass}>
+                <label htmlFor="cash" className="label">
                   Caixa atual (R$)
                 </label>
-                <input
+                <ValkInput
                   id="cash"
                   name="cash"
                   type="number"
@@ -342,15 +322,14 @@ function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
                   required
                   defaultValue={metrics.cash ?? ""}
                   disabled={isSaving}
-                  className={metricInputClass}
                   placeholder="Ex: 500000"
                 />
               </div>
               <div>
-                <label htmlFor="burn_rate" className={metricLabelClass}>
+                <label htmlFor="burn_rate" className="label">
                   Gasto mensal médio (R$)
                 </label>
-                <input
+                <ValkInput
                   id="burn_rate"
                   name="burn_rate"
                   type="number"
@@ -358,7 +337,6 @@ function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
                   required
                   defaultValue={metrics.burnRate ?? ""}
                   disabled={isSaving}
-                  className={metricInputClass}
                   placeholder="Ex: 35000"
                 />
               </div>
@@ -385,8 +363,8 @@ function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
               </div>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </ValkDialogContent>
+      </ValkDialog>
     </div>
   );
 }
@@ -607,7 +585,7 @@ export function DashboardContent({
                   <div key={activity.id}>
                     {i > 0 && <div className="h-px bg-[#0F0F0F]" />}
                     <div className="flex items-center gap-2.5 py-2.5">
-                      {activity.user && <Avatar name={activity.user.name} />}
+                      {activity.user && <DsAvatar user={{ name: activity.user.name, initials: activity.user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase(), color: "#555" }} size={22} />}
                       <p className="min-w-0 flex-1 truncate text-[13px] text-[#888]">
                         {activity.user && (
                           <span className="font-medium text-[#999]">

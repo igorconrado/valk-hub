@@ -6,13 +6,15 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogDescription,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+} from "@/components/ds";
+import { ValkSelect, ValkInput, ValkToggle } from "@/components/ds";
+import type { ValkSelectOption } from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { createReport } from "./actions";
 
@@ -56,12 +58,6 @@ function getDefaultPeriod(type: string): { start: string; end: string } {
       return { start: end, end };
   }
 }
-
-const inputClass =
-  "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] placeholder-[#333] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
-
-const labelClass =
-  "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[#444]";
 
 const loadingMessages = [
   "Analisando dados...",
@@ -241,22 +237,32 @@ export function GenerateReportDialog({
     }
   }
 
+  const typeOptions: ValkSelectOption[] = reportTypes.map((t) => ({
+    value: t.value,
+    label: t.label,
+  }));
+
+  const projectOptions: ValkSelectOption[] = [
+    {
+      value: "",
+      label: requiresProject.includes(type)
+        ? "Selecione um produto"
+        : "Todos os produtos",
+    },
+    ...projects.map((p) => ({ value: p.id, label: p.name })),
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[460px] gap-0 rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-0"
-      >
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
-          <DialogHeader className="gap-1">
-            <DialogTitle className="font-display text-[17px] font-semibold text-[#eee]">
-              Gerar relatório
-            </DialogTitle>
-            <DialogDescription className="text-[12px] text-[#555]">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Gerar relatório</ValkDialogTitle>
+            <ValkDialogDescription>
               Configure o tipo e período do relatório
-            </DialogDescription>
-          </DialogHeader>
+            </ValkDialogDescription>
+          </ValkDialogHeader>
           <div className="mt-5 h-px bg-[#141414]" />
         </div>
 
@@ -270,79 +276,62 @@ export function GenerateReportDialog({
             <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
               {/* Tipo */}
               <div>
-                <label htmlFor="rpt-type" className={labelClass}>
+                <label htmlFor="rpt-type" className="label">
                   Tipo
                 </label>
-                <select
-                  id="rpt-type"
+                <ValkSelect
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  onValueChange={setType}
+                  options={typeOptions}
                   disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  {reportTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* Produto */}
               <div>
-                <label htmlFor="rpt-project" className={labelClass}>
+                <label htmlFor="rpt-project" className="label">
                   Produto
                   {requiresProject.includes(type) && (
                     <span className="ml-1 text-[#E24B4A]">*</span>
                   )}
                 </label>
-                <select
-                  id="rpt-project"
+                <ValkSelect
                   value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  required={requiresProject.includes(type)}
-                  disabled={isPending}
-                  className={`${inputClass} appearance-none`}
-                >
-                  <option value="">
-                    {requiresProject.includes(type)
+                  onValueChange={setProjectId}
+                  options={projectOptions}
+                  placeholder={
+                    requiresProject.includes(type)
                       ? "Selecione um produto"
-                      : "Todos os produtos"}
-                  </option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                      : "Todos os produtos"
+                  }
+                  disabled={isPending}
+                />
               </div>
 
               {/* Período */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="rpt-start" className={labelClass}>
+                  <label htmlFor="rpt-start" className="label">
                     Início
                   </label>
-                  <input
+                  <ValkInput
                     id="rpt-start"
                     type="date"
                     value={periodStart}
                     onChange={(e) => setPeriodStart(e.target.value)}
                     disabled={isPending}
-                    className={inputClass}
                   />
                 </div>
                 <div>
-                  <label htmlFor="rpt-end" className={labelClass}>
+                  <label htmlFor="rpt-end" className="label">
                     Fim
                   </label>
-                  <input
+                  <ValkInput
                     id="rpt-end"
                     type="date"
                     value={periodEnd}
                     onChange={(e) => setPeriodEnd(e.target.value)}
                     disabled={isPending}
-                    className={inputClass}
                   />
                 </div>
               </div>
@@ -358,20 +347,11 @@ export function GenerateReportDialog({
                     Analisa os dados e gera o relatório automaticamente
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setAiEnabled(!aiEnabled)}
+                <ValkToggle
+                  checked={aiEnabled}
+                  onCheckedChange={setAiEnabled}
                   disabled={isPending}
-                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
-                    aiEnabled ? "bg-[#E24B4A]" : "bg-[#333]"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
-                      aiEnabled ? "translate-x-4" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                />
               </div>
             </div>
 
@@ -401,7 +381,7 @@ export function GenerateReportDialog({
             </div>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

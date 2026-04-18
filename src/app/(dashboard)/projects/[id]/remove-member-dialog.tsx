@@ -4,12 +4,12 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ValkDialog,
+  ValkDialogContent,
+  ValkDialogHeader,
+  ValkDialogTitle,
+  ValkDialogTrigger,
+} from "@/components/ds";
 import { removeMember } from "../actions";
 
 export function RemoveMemberDialog({
@@ -43,17 +43,14 @@ export function RemoveMemberDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-[360px] rounded-[14px] border border-[#1A1A1A] bg-[#0A0A0A] p-7"
-      >
-        <DialogHeader className="gap-1">
-          <DialogTitle className="text-[14px] font-medium text-[#eee]">
+    <ValkDialog open={open} onOpenChange={setOpen}>
+      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
+      <ValkDialogContent className="max-w-[360px] p-7">
+        <ValkDialogHeader>
+          <ValkDialogTitle className="text-[14px]">
             Remover {memberName} do projeto {projectName}?
-          </DialogTitle>
-        </DialogHeader>
+          </ValkDialogTitle>
+        </ValkDialogHeader>
 
         <p className="mt-1 text-[12px] text-[#555]">
           Esta ação pode ser revertida adicionando o membro novamente.
@@ -78,7 +75,7 @@ export function RemoveMemberDialog({
             Remover
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }

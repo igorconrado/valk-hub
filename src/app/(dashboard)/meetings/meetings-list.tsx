@@ -5,6 +5,7 @@ import { Video } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { Avatar } from "@/components/ds";
 
 type Participant = {
   user_id: string;
@@ -70,19 +71,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ParticipantAvatar({ name, index }: { name: string; index: number }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
   return (
-    <div
-      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-[#1A1A1A] text-[8px] font-semibold text-[#555]"
-      style={{ marginLeft: index === 0 ? 0 : -8, zIndex: 10 - index }}
-    >
-      {initials}
+    <div style={{ marginLeft: index === 0 ? 0 : -8, zIndex: 10 - index }}>
+      <Avatar
+        user={{
+          name,
+          initials: name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+          color: "#555",
+        }}
+        size={24}
+        className="border-2 border-[#0A0A0A]"
+      />
     </div>
   );
 }
@@ -104,11 +103,16 @@ function ParticipantAvatars({ participants }: { participants: Participant[] }) {
         );
       })}
       {remaining > 0 && (
-        <div
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-[#1A1A1A] text-[8px] font-semibold text-[#555]"
-          style={{ marginLeft: -8, zIndex: 5 }}
-        >
-          +{remaining}
+        <div style={{ marginLeft: -8, zIndex: 5 }}>
+          <Avatar
+            user={{
+              name: `+${remaining}`,
+              initials: `+${remaining}`,
+              color: "#555",
+            }}
+            size={24}
+            className="border-2 border-[#0A0A0A]"
+          />
         </div>
       )}
     </div>
