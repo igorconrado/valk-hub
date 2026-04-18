@@ -554,7 +554,7 @@ export function TaskDetailPanel({
                                 {createdBy?.name ?? "desconhecido"}
                               </span>
                               <span>·</span>
-                              <span>{timeAgo}</span>
+                              <span suppressHydrationWarning>{timeAgo}</span>
                               {blockedBy?.name && (
                                 <>
                                   <span>·</span>
@@ -627,7 +627,7 @@ export function TaskDetailPanel({
                                   activity.metadata
                                 )}
                               </p>
-                              <span className="shrink-0 text-[10px] text-[#333]">
+                              <span suppressHydrationWarning className="shrink-0 text-[10px] text-[#333]">
                                 {timeAgo}
                               </span>
                             </div>

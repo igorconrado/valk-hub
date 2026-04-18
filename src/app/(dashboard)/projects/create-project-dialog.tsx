@@ -94,7 +94,7 @@ export function CreateProjectDialog({
               <LogoUpload
                 value={logoUrl || null}
                 onChange={setLogoUrl}
-                projectId={`new-${Date.now()}`}
+                projectId={`new-project`}
               />
               <div className="flex-1">
                 <label htmlFor="name" className={labelClass}>

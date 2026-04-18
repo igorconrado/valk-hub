@@ -209,7 +209,7 @@ export function NotificationBell() {
                           {notification.body}
                         </p>
                       )}
-                      <p className="mt-1 text-[11px] text-[#333]">
+                      <p suppressHydrationWarning className="mt-1 text-[11px] text-[#333]">
                         {timeAgo}
                       </p>
                     </div>

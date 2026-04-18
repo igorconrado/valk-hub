@@ -466,7 +466,7 @@ export function ReportView({
             ✦ Gerado por AI
           </span>
         )}
-        <span className="flex items-center gap-1 text-[11px] text-[#333]">
+        <span suppressHydrationWarning className="flex items-center gap-1 text-[11px] text-[#333]">
           {saveStatus === "saving" ? (
             <>
               <Loader2 size={10} className="animate-spin text-[#555]" />

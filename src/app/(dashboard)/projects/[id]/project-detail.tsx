@@ -537,7 +537,7 @@ export function ProjectDetail({
             )}
 
             <span className="text-[#222]">·</span>
-            <span className="text-[#444]">{timeAgo}</span>
+            <span suppressHydrationWarning className="text-[#444]">{timeAgo}</span>
           </div>
           </div>
         </div>
@@ -758,7 +758,7 @@ export function ProjectDetail({
                           por {doc.author?.name ?? "Desconhecido"}
                         </span>
                         <span className="text-[#222]">·</span>
-                        <span className="text-[#333]">
+                        <span suppressHydrationWarning className="text-[#333]">
                           editado {timeAgo}
                         </span>
                       </div>

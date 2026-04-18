@@ -616,7 +616,7 @@ export function DashboardContent({
                         )}
                         {getActionText(activity.action, activity.metadata)}
                       </p>
-                      <span className="shrink-0 text-[11px] text-[#333]">
+                      <span suppressHydrationWarning className="shrink-0 text-[11px] text-[#333]">
                         {timeAgo}
                       </span>
                     </div>

@@ -146,7 +146,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
                 <span className="text-[#333]">·</span>
               </>
             )}
-            <span className="text-[#333]">{timeAgo}</span>
+            <span suppressHydrationWarning className="text-[#333]">{timeAgo}</span>
           </div>
         </div>
       </Link>

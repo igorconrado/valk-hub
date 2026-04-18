@@ -281,7 +281,7 @@ function ActivitySection({ activities }: { activities: Activity[] }) {
                   <p className="min-w-0 flex-1 truncate text-[13px] text-[#888]">
                     {getActionText(activity.action, activity.metadata)}
                   </p>
-                  <span className="shrink-0 text-[11px] text-[#333]">
+                  <span suppressHydrationWarning className="shrink-0 text-[11px] text-[#333]">
                     {timeAgo}
                   </span>
                 </div>
