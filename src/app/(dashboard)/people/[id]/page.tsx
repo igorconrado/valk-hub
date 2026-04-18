@@ -12,7 +12,7 @@ export default async function PersonDetailPage({
 
   const { data: person } = await supabase
     .from("users")
-    .select("id, name, email, role, company_role, avatar_url, dedication")
+    .select("id, name, email, role, company_role, avatar_url, dedication, bio, responsibilities")
     .eq("id", id)
     .single();
 
