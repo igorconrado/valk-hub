@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
+import { NotificationBell } from "./notification-bell";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", enabled: true },
@@ -275,7 +276,10 @@ function Topbar() {
           ))}
         </div>
       </div>
-      {user && <UserAvatar name={user.name} size={26} textSize="text-[10px]" />}
+      <div className="flex items-center gap-1.5">
+        <NotificationBell />
+        {user && <UserAvatar name={user.name} size={26} textSize="text-[10px]" />}
+      </div>
     </header>
   );
 }
