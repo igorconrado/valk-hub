@@ -15,6 +15,10 @@ import {
   LogOut,
   Menu,
   Settings,
+  Search,
+  ChevronRight,
+  ChevronDown,
+  Bell,
 } from "lucide-react";
 import { Avatar, ValkDropdown } from "@/components/ds";
 import {
@@ -23,28 +27,73 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { NotificationBell } from "./notification-bell";
 import { OnboardingWizard } from "./onboarding-wizard";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/", enabled: true },
-  { label: "Projetos", icon: FolderKanban, href: "/projects", enabled: true },
-  { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
-  { label: "Docs", icon: FileText, href: "/docs", enabled: true },
-  { label: "Reuniões", icon: Video, href: "/meetings", enabled: true },
-  { label: "Relatórios", icon: BarChart3, href: "/reports", enabled: true },
-  { label: "People", icon: Users, href: "/people", enabled: true },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Projetos", icon: FolderKanban, href: "/projects" },
+  { label: "Tasks", icon: CheckSquare, href: "/tasks" },
+  { label: "Docs", icon: FileText, href: "/docs" },
+  { label: "Reuniões", icon: Video, href: "/meetings" },
+  { label: "Relatórios", icon: BarChart3, href: "/reports" },
+  { label: "Pessoas", icon: Users, href: "/people" },
 ];
 
-const disabledItems: { label: string; icon: typeof Users; tooltip: string }[] = [];
+/* ─── Workspace Pill ─── */
+function WorkspacePill() {
+  return (
+    <div style={{ padding: "0 16px 14px" }}>
+      <button
+        className="flex w-full items-center gap-2.5 rounded-lg border transition-all"
+        style={{
+          padding: "8px 10px",
+          background: "rgba(255,255,255,0.02)",
+          borderColor: "var(--border-subtle)",
+          transition: "all 200ms var(--ease)",
+        }}
+      >
+        {/* Gradient V icon */}
+        <div
+          className="flex shrink-0 items-center justify-center font-display text-[10px] font-bold text-white"
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 5,
+            background: "linear-gradient(135deg, #E24B4A 0%, #7a1a1a 100%)",
+          }}
+        >
+          V
+        </div>
+        <div className="min-w-0 flex-1 text-left" style={{ lineHeight: 1.2 }}>
+          <div
+            className="font-sans text-[12px] font-medium"
+            style={{ color: "var(--text-primary)" }}
+          >
+            VALK Software
+          </div>
+          <div
+            className="text-[9.5px]"
+            style={{
+              color: "var(--text-muted)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            venture builder
+          </div>
+        </div>
+        <ChevronDown
+          size={12}
+          strokeWidth={2}
+          style={{ color: "var(--text-muted)" }}
+        />
+      </button>
+    </div>
+  );
+}
 
+/* ─── Nav Items ─── */
 function NavItems({
   pathname,
   onNavigate,
@@ -53,7 +102,10 @@ function NavItems({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-col gap-0.5 px-3 py-2">
+    <nav style={{ padding: "4px 12px", flex: 1, overflow: "auto" }}>
+      <div className="label" style={{ padding: "10px 10px 6px" }}>
+        Workspace
+      </div>
       {navItems.map((item) => {
         const isActive =
           item.href === "/"
@@ -65,50 +117,45 @@ function NavItems({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={`relative flex items-center gap-2.5 rounded-lg px-3 py-[9px] transition-colors duration-150 ${
-              isActive
-                ? "bg-white/5 text-[#F0F0F0]"
-                : "text-[#4A4A4A] hover:bg-white/[0.03] hover:text-[#888]"
-            }`}
+            className="relative flex w-full items-center font-sans"
+            style={{
+              gap: 11,
+              padding: "8px 10px",
+              borderRadius: 7,
+              marginBottom: 1,
+              color: isActive ? "#F0F0F0" : "#4A4A4A",
+              background: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+              fontSize: 13,
+              fontWeight: 500,
+              transition: "all 150ms var(--ease)",
+            }}
           >
             {isActive && (
-              <div className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-r bg-[#E24B4A]" />
+              <span
+                className="absolute rounded-r"
+                style={{
+                  left: -12,
+                  top: 6,
+                  bottom: 6,
+                  width: 2,
+                  background: "var(--primary)",
+                }}
+              />
             )}
-            <item.icon size={17} strokeWidth={1.5} />
-            <span className="text-[13px] font-medium">{item.label}</span>
+            <item.icon
+              size={15}
+              strokeWidth={isActive ? 1.75 : 1.5}
+            />
+            <span>{item.label}</span>
           </Link>
         );
       })}
-
-      {/* Separator */}
-      <div className="mx-3 my-2 h-px bg-[#111]" />
-
-      {/* Disabled items */}
-      {disabledItems.map((item) => (
-        <Tooltip key={item.label}>
-          <TooltipTrigger asChild>
-            <div className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-3 py-[9px] text-[#4A4A4A] opacity-25">
-              <item.icon size={17} strokeWidth={1.5} />
-              <span className="text-[13px] font-medium">{item.label}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>{item.tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      ))}
     </nav>
   );
 }
 
-function UserAvatar({
-  name,
-  size = 30,
-}: {
-  name: string;
-  size?: number;
-  textSize?: string;
-}) {
+/* ─── User Avatar helper ─── */
+function UserAvatar({ name, size = 26 }: { name: string; size?: number }) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -116,30 +163,52 @@ function UserAvatar({
     .join("")
     .toUpperCase();
 
-  return (
-    <Avatar
-      user={{ name, initials, color: "#555" }}
-      size={size}
-    />
-  );
+  return <Avatar user={{ name, initials, color: "#555" }} size={size} />;
 }
 
+/* ─── Sidebar Brand ─── */
 function SidebarBrand() {
   return (
-    <div className="px-4 py-5">
-      <div className="flex items-center gap-1.5">
-        <span className="font-display text-[15px] font-semibold tracking-[0.2em] text-white">
-          VALK
-        </span>
-        <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#E24B4A]" />
-      </div>
-      <span className="mt-0.5 inline-block rounded border border-[rgba(226,75,74,0.12)] bg-[rgba(226,75,74,0.08)] px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-[#E24B4A]">
+    <div
+      className="flex items-center"
+      style={{ padding: "22px 20px 20px", gap: 10 }}
+    >
+      <span
+        className="display"
+        style={{
+          fontWeight: 600,
+          fontSize: 15,
+          color: "var(--text-primary)",
+          letterSpacing: "0.3em",
+        }}
+      >
+        VALK
+      </span>
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: "50%",
+          background: "var(--primary)",
+          boxShadow: "0 0 8px rgba(226,75,74,0.5)",
+        }}
+      />
+      <span
+        style={{
+          fontSize: 10,
+          color: "var(--text-muted)",
+          textTransform: "uppercase",
+          letterSpacing: "0.18em",
+          fontWeight: 500,
+        }}
+      >
         hub
       </span>
     </div>
   );
 }
 
+/* ─── Sidebar User Footer ─── */
 function SidebarUser() {
   const { user } = useUser();
   const router = useRouter();
@@ -153,19 +222,45 @@ function SidebarUser() {
   if (!user) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 border-t border-[#111] px-4 py-3">
+    <div
+      className="flex items-center"
+      style={{
+        padding: 14,
+        borderTop: "1px solid var(--border-subtle)",
+        gap: 10,
+      }}
+    >
       <ValkDropdown
         trigger={
-          <button className="flex w-full items-center gap-2.5 rounded-lg transition-colors hover:bg-white/[0.03]">
-            <UserAvatar name={user.name} />
-            <div className="min-w-0 text-left">
-              <p className="truncate text-[13px] font-medium text-[#ccc]">
+          <button className="flex w-full items-center" style={{ gap: 10 }}>
+            <UserAvatar name={user.name} size={26} />
+            <div
+              className="min-w-0 flex-1 text-left"
+              style={{ lineHeight: 1.2 }}
+            >
+              <div
+                className="truncate font-sans"
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-primary)",
+                  fontWeight: 500,
+                }}
+              >
                 {user.name}
-              </p>
-              <p className="truncate text-[10px] text-[#444]">
+              </div>
+              <div
+                className="truncate"
+                style={{ fontSize: 10, color: "var(--text-muted)" }}
+              >
                 {user.company_role ?? user.role}
-              </p>
+              </div>
             </div>
+            <span
+              className="btn icon subtle"
+              style={{ opacity: 0.6 }}
+            >
+              <Settings size={14} />
+            </span>
           </button>
         }
         sections={[
@@ -191,18 +286,30 @@ function SidebarUser() {
   );
 }
 
+/* ─── Desktop Sidebar ─── */
 function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside data-print-hide className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-[#111] bg-[#050505] lg:block">
+    <aside
+      data-print-hide
+      className="fixed inset-y-0 left-0 z-40 hidden lg:flex"
+      style={{
+        width: 240,
+        background: "var(--bg-0)",
+        borderRight: "1px solid #111",
+        flexDirection: "column",
+      }}
+    >
       <SidebarBrand />
+      <WorkspacePill />
       <NavItems pathname={pathname} />
       <SidebarUser />
     </aside>
   );
 }
 
+/* ─── Mobile Sidebar (Sheet) ──�� */
 function MobileSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -210,16 +317,21 @@ function MobileSidebar() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="flex items-center justify-center rounded-lg p-1.5 text-[#666] transition-colors hover:bg-white/[0.03] hover:text-[#ccc] lg:hidden">
+        <button className="flex items-center justify-center rounded-lg p-1.5 transition-colors lg:hidden" style={{ color: "var(--text-tertiary)" }}>
           <Menu size={20} strokeWidth={1.5} />
         </button>
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="w-[280px] border-r border-[#111] bg-[#050505] p-0"
+        className="w-[280px] border-r p-0"
+        style={{
+          background: "var(--bg-0)",
+          borderColor: "var(--border-subtle)",
+        }}
       >
         <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
         <SidebarBrand />
+        <WorkspacePill />
         <NavItems pathname={pathname} onNavigate={() => setOpen(false)} />
         <SidebarUser />
       </SheetContent>
@@ -227,6 +339,7 @@ function MobileSidebar() {
   );
 }
 
+/* ─── Topbar ─── */
 function Topbar() {
   const pathname = usePathname();
   const { user } = useUser();
@@ -246,49 +359,137 @@ function Topbar() {
   }
 
   return (
-    <header data-print-hide className="flex h-[52px] items-center justify-between border-b border-[#111] px-5 lg:px-7">
-      <div className="flex items-center gap-2">
+    <header
+      data-print-hide
+      className="flex items-center"
+      style={{
+        height: 56,
+        borderBottom: "1px solid var(--border-subtle)",
+        padding: "0 28px",
+        gap: 16,
+        background: "var(--bg-0)",
+        position: "relative",
+        zIndex: 5,
+      }}
+    >
+      {/* Left: breadcrumbs */}
+      <div
+        className="flex min-w-0 flex-1 items-center"
+        style={{ gap: 10 }}
+      >
         <MobileSidebar />
-        <div className="flex items-center gap-1.5">
-          {segments.map((seg, i) => (
-            <span key={i} className="flex items-center gap-1.5">
-              {i > 0 && (
-                <span className="text-[13px] text-[#333]">/</span>
-              )}
-              {seg.href ? (
-                <Link
-                  href={seg.href}
-                  className="text-[13px] font-medium text-[#666] transition-colors hover:text-[#999]"
-                >
-                  {seg.label}
-                </Link>
-              ) : (
-                <span className="text-[13px] font-medium text-[#ccc]">
-                  {seg.label}
-                </span>
-              )}
-            </span>
-          ))}
-        </div>
+        {segments.map((seg, i) => (
+          <span key={i} className="flex items-center" style={{ gap: 6 }}>
+            {i > 0 && (
+              <ChevronRight
+                size={12}
+                strokeWidth={2}
+                style={{ color: "var(--text-ghost)" }}
+              />
+            )}
+            {seg.href ? (
+              <Link
+                href={seg.href}
+                className="transition-colors"
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-muted)",
+                  fontWeight: 400,
+                }}
+              >
+                {seg.label}
+              </Link>
+            ) : (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-primary)",
+                  fontWeight: 500,
+                }}
+              >
+                {seg.label}
+              </span>
+            )}
+          </span>
+        ))}
       </div>
-      <div className="flex items-center gap-1.5">
-        <NotificationBell />
-        {user && <UserAvatar name={user.name} size={26} textSize="text-[10px]" />}
+
+      {/* Center: search bar (desktop only) */}
+      <button
+        className="hidden items-center transition-all lg:flex"
+        style={{
+          gap: 10,
+          padding: "7px 12px",
+          background: "var(--bg-1)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: 8,
+          color: "var(--text-muted)",
+          fontSize: 12,
+          width: 220,
+          transition: "all 200ms var(--ease)",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.borderColor = "var(--border-hover)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.borderColor = "var(--border-subtle)")
+        }
+      >
+        <Search size={13} />
+        <span className="flex-1 text-left">Buscar…</span>
+        <kbd
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            padding: "1px 5px",
+            background: "var(--bg-elev)",
+            borderRadius: 3,
+            color: "var(--text-tertiary)",
+          }}
+        >
+          ⌘K
+        </kbd>
+      </button>
+
+      {/* Right: notifications + avatar */}
+      <div className="flex items-center" style={{ gap: 8 }}>
+        <button
+          className="btn icon subtle relative"
+        >
+          <Bell size={15} />
+          <span
+            className="absolute"
+            style={{
+              top: 6,
+              right: 6,
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "var(--primary)",
+              boxShadow: "0 0 6px rgba(226,75,74,0.6)",
+            }}
+          />
+        </button>
+        {user && <UserAvatar name={user.name} size={26} />}
       </div>
     </header>
   );
 }
 
+/* ─── Layout ─── */
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen" style={{ background: "var(--bg-0)" }}>
       <OnboardingWizard />
       <Sidebar />
-      <div data-print-layout className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
+      <div
+        data-print-layout
+        className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto"
+      >
         <Topbar />
         <motion.main
           className="mx-auto w-full max-w-[1080px] flex-1 overflow-x-hidden px-4 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-7"
