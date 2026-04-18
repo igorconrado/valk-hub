@@ -6,15 +6,9 @@ import Link from "next/link";
 import { format, formatDistanceToNow, isPast, parseISO, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  TrendingUp,
-  TrendingDown,
-  Scale,
-  CheckCircle,
-  AlertCircle,
-  Circle,
-  CheckCircle2,
   Loader2,
   Pencil,
+  Circle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,11 +19,14 @@ import {
   ValkDialogTitle,
   ValkInput,
   Avatar as DsAvatar,
+  PhaseBadge,
+  HealthDot,
 } from "@/components/ds";
 import { RoleGate } from "@/components/role-gate";
 import { ProjectLogo } from "@/components/project-logo";
 import { getActionText } from "@/lib/activity-text";
 import { completePendingItem, saveCompanyMetrics } from "./dashboard-actions";
+import type { Phase } from "@/components/ds";
 
 type Project = {
   id: string;
@@ -49,41 +46,6 @@ type Activity = {
   created_at: string;
   user: { name: string } | null;
 };
-
-const phaseStyles: Record<string, { bg: string; text: string; border: string }> = {
-  discovery: { bg: "rgba(59,130,246,0.06)", text: "#5B9BF0", border: "rgba(59,130,246,0.12)" },
-  mvp: { bg: "rgba(245,158,11,0.06)", text: "#E8A840", border: "rgba(245,158,11,0.12)" },
-  validation: { bg: "rgba(139,92,246,0.06)", text: "#A07EF0", border: "rgba(139,92,246,0.12)" },
-  traction: { bg: "rgba(16,185,129,0.06)", text: "#3DC9A0", border: "rgba(16,185,129,0.12)" },
-  scale: { bg: "rgba(226,75,74,0.06)", text: "#E86B6A", border: "rgba(226,75,74,0.12)" },
-  paused: { bg: "rgba(107,114,128,0.06)", text: "#888", border: "rgba(107,114,128,0.12)" },
-  closed: { bg: "rgba(55,65,81,0.06)", text: "#666", border: "rgba(55,65,81,0.12)" },
-};
-
-const phaseLabels: Record<string, string> = {
-  discovery: "Discovery",
-  mvp: "MVP",
-  validation: "Validação",
-  traction: "Tração",
-  scale: "Escala",
-  paused: "Pausado",
-  closed: "Encerrado",
-};
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
-function getFirstName(name: string): string {
-  return name.split(" ")[0];
-}
-
-
-const sectionLabel = "text-[10px] font-semibold uppercase tracking-[0.15em] text-[#333]";
-const cardClass = "rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-[18px_20px]";
 
 type PendingItem = {
   id: string;
@@ -111,14 +73,45 @@ type RecentDecision = {
   date: string;
 };
 
+const validPhases: Phase[] = ["discovery", "mvp", "validation", "traction", "scale", "paused"];
+
+function getFirstName(name: string): string {
+  return name.split(" ")[0];
+}
+
+function makeAvatarUser(name: string) {
+  return {
+    name,
+    initials: name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase(),
+    color: "#555",
+  };
+}
+
+function formatMrr(value: number): string {
+  if (value >= 1000) {
+    return `R$ ${(value / 1000).toFixed(1).replace(".", ",")}`;
+  }
+  return `R$ ${value.toLocaleString("pt-BR")}`;
+}
+
+/* ─── Pending Item Row (handoff style) ─── */
 function PendingItemRow({ item }: { item: PendingItem }) {
   const [isPending, startTransition] = useTransition();
   const [done, setDone] = useState(false);
 
-  const overdue =
-    item.due_date &&
-    isPast(parseISO(item.due_date)) &&
-    !isToday(parseISO(item.due_date));
+  const dueLabel = (() => {
+    if (!item.due_date) return "sem prazo";
+    const d = parseISO(item.due_date);
+    if (isToday(d)) return "hoje";
+    if (isPast(d)) return format(d, "dd MMM", { locale: ptBR });
+    // Tomorrow check
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (d.toDateString() === tomorrow.toDateString()) return "amanhã";
+    return format(d, "dd MMM", { locale: ptBR });
+  })();
+
+  const isOverdue = item.due_date && isPast(parseISO(item.due_date)) && !isToday(parseISO(item.due_date));
 
   function handleComplete() {
     startTransition(async () => {
@@ -134,78 +127,60 @@ function PendingItemRow({ item }: { item: PendingItem }) {
   if (done) return null;
 
   return (
-    <div className="flex items-center gap-2.5 border-b border-[#0F0F0F] py-2 last:border-0">
+    <li className="flex items-center" style={{ gap: 10, padding: "6px 0" }}>
       <button
         onClick={handleComplete}
         disabled={isPending}
-        className="shrink-0 text-[#444] transition-colors hover:text-[#888] disabled:opacity-50"
+        style={{
+          width: 14,
+          height: 14,
+          border: "1.5px solid var(--border-default)",
+          borderRadius: 4,
+          flexShrink: 0,
+          transition: "all 150ms",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--primary)")}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-default)")}
       >
-        {isPending ? (
-          <Loader2 size={14} className="animate-spin text-[#555]" />
-        ) : (
-          <Circle size={14} strokeWidth={1.5} />
-        )}
+        {isPending && <Loader2 size={8} className="animate-spin" style={{ color: "var(--text-muted)" }} />}
       </button>
-      <span className="min-w-0 flex-1 truncate text-[13px] text-[#ddd]">
+      <span
+        style={{
+          fontSize: 13,
+          color: "var(--text-primary)",
+          flex: 1,
+          lineHeight: 1.4,
+        }}
+      >
         {item.title}
       </span>
       <span
-        className={`shrink-0 text-[11px] ${
-          !item.due_date
-            ? "text-[#333]"
-            : overdue
-              ? "font-medium text-[#E24B4A]"
-              : "text-[#444]"
-        }`}
+        className="mono"
+        style={{
+          fontSize: 10,
+          color: dueLabel === "hoje" || isOverdue ? "var(--primary)" : "var(--text-ghost)",
+        }}
       >
-        {item.due_date
-          ? format(parseISO(item.due_date), "dd MMM", { locale: ptBR })
-          : "sem prazo"}
+        {dueLabel}
       </span>
-    </div>
+    </li>
   );
 }
 
-
-function ChangeIndicator({
-  current,
-  previous,
+/* ─── Metrics Edit Dialog ─── */
+function MetricsEditDialog({
+  metrics,
+  open,
+  onOpenChange,
 }: {
-  current: number;
-  previous: number;
+  metrics: MetricsSummary;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
 }) {
-  if (previous === 0) return null;
-  const pct = ((current - previous) / previous) * 100;
-  if (pct === 0) return null;
-  const isUp = pct > 0;
-
-  return (
-    <span
-      className="flex items-center gap-0.5 text-[10px] font-medium"
-      style={{ color: isUp ? "#10B981" : "#E24B4A" }}
-    >
-      {isUp ? (
-        <TrendingUp size={10} strokeWidth={2} />
-      ) : (
-        <TrendingDown size={10} strokeWidth={2} />
-      )}
-      {Math.abs(pct).toFixed(1)}%
-    </span>
-  );
-}
-
-function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [isSaving, startTransition] = useTransition();
-
-  const runwayColor =
-    metrics.runwayMonths === null
-      ? "#555"
-      : metrics.runwayMonths > 6
-        ? "#10B981"
-        : metrics.runwayMonths >= 3
-          ? "#F59E0B"
-          : "#E24B4A";
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -220,155 +195,49 @@ function MetricsCard({ metrics }: { metrics: MetricsSummary }) {
         return;
       }
       toast.success("Métricas salvas");
-      setDialogOpen(false);
+      onOpenChange(false);
     });
   }
 
   return (
-    <div className={cardClass}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <TrendingUp size={14} strokeWidth={1.5} className="text-[#333]" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-            Números do mês
-          </span>
+    <ValkDialog open={open} onOpenChange={onOpenChange}>
+      <ValkDialogContent className="max-w-[380px]">
+        <div className="px-7 pt-7">
+          <ValkDialogHeader>
+            <ValkDialogTitle>Financeiro</ValkDialogTitle>
+            <ValkDialogDescription>
+              Atualize caixa e gasto mensal para calcular runway
+            </ValkDialogDescription>
+          </ValkDialogHeader>
+          <div className="hr mt-5" />
         </div>
-        <RoleGate allowed={["admin"]}>
-          <button
-            onClick={() => setDialogOpen(true)}
-            className="text-[#333] transition-colors hover:text-[#888]"
-          >
-            <Pencil size={12} strokeWidth={1.5} />
-          </button>
-        </RoleGate>
-      </div>
-      <div className="mt-4 flex flex-col gap-3.5">
-        <div>
-          <p className="text-[10px] text-[#444]">MRR</p>
-          <div className="flex items-end gap-2">
-            <p className="font-display text-[20px] font-semibold text-[#ddd]">
-              {metrics.hasMetrics
-                ? `R$ ${metrics.totalMrr.toLocaleString("pt-BR")}`
-                : "R$ 0"}
-            </p>
-            {metrics.hasMetrics && metrics.prevMrr > 0 && (
-              <ChangeIndicator
-                current={metrics.totalMrr}
-                previous={metrics.prevMrr}
-              />
-            )}
-          </div>
-        </div>
-        <div>
-          <p className="text-[10px] text-[#444]">Clientes</p>
-          <div className="flex items-end gap-2">
-            <p className="font-display text-[20px] font-semibold text-[#ddd]">
-              {metrics.hasMetrics
-                ? metrics.totalClients.toLocaleString("pt-BR")
-                : "0"}
-            </p>
-            {metrics.hasMetrics && metrics.prevClients > 0 && (
-              <ChangeIndicator
-                current={metrics.totalClients}
-                previous={metrics.prevClients}
-              />
-            )}
-          </div>
-        </div>
-        <div>
-          <p className="text-[10px] text-[#444]">Runway</p>
-          <p
-            className="font-display text-[20px] font-semibold"
-            style={{ color: runwayColor }}
-          >
-            {metrics.runwayMonths !== null
-              ? `${metrics.runwayMonths} meses`
-              : "—"}
-          </p>
-        </div>
-      </div>
-      <p className="mt-3.5 text-[10px] text-[#222]">
-        {metrics.hasMetrics
-          ? "Soma dos produtos ativos"
-          : "Registre nas métricas de cada produto"}
-      </p>
-
-      {/* Edit dialog */}
-      <ValkDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <ValkDialogContent className="max-w-[380px]">
-          <div className="px-7 pt-7">
-            <ValkDialogHeader>
-              <ValkDialogTitle>
-                Financeiro
-              </ValkDialogTitle>
-              <ValkDialogDescription>
-                Atualize caixa e gasto mensal para calcular runway
-              </ValkDialogDescription>
-            </ValkDialogHeader>
-            <div className="mt-5 h-px bg-[#141414]" />
-          </div>
-
-          <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
-            <div className="flex flex-col gap-4 px-7 py-5">
-              <div>
-                <label htmlFor="cash" className="label">
-                  Caixa atual (R$)
-                </label>
-                <ValkInput
-                  id="cash"
-                  name="cash"
-                  type="number"
-                  step="0.01"
-                  required
-                  defaultValue={metrics.cash ?? ""}
-                  disabled={isSaving}
-                  placeholder="Ex: 500000"
-                />
-              </div>
-              <div>
-                <label htmlFor="burn_rate" className="label">
-                  Gasto mensal médio (R$)
-                </label>
-                <ValkInput
-                  id="burn_rate"
-                  name="burn_rate"
-                  type="number"
-                  step="0.01"
-                  required
-                  defaultValue={metrics.burnRate ?? ""}
-                  disabled={isSaving}
-                  placeholder="Ex: 35000"
-                />
-              </div>
+        <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex flex-col gap-4 px-7 py-5">
+            <div>
+              <label htmlFor="cash" className="label">Caixa atual (R$)</label>
+              <ValkInput id="cash" name="cash" type="number" step="0.01" required defaultValue={metrics.cash ?? ""} disabled={isSaving} placeholder="Ex: 500000" />
             </div>
-
-            <div className="border-t border-[#141414] px-7 py-5">
-              <div className="flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setDialogOpen(false)}
-                  disabled={isSaving}
-                  className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-                >
-                  {isSaving && <Loader2 size={14} className="animate-spin" />}
-                  Salvar
-                </button>
-              </div>
+            <div>
+              <label htmlFor="burn_rate" className="label">Gasto mensal médio (R$)</label>
+              <ValkInput id="burn_rate" name="burn_rate" type="number" step="0.01" required defaultValue={metrics.burnRate ?? ""} disabled={isSaving} placeholder="Ex: 35000" />
             </div>
-          </form>
-        </ValkDialogContent>
-      </ValkDialog>
-    </div>
+          </div>
+          <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "20px 28px" }}>
+            <div className="flex justify-end gap-2.5">
+              <button type="button" onClick={() => onOpenChange(false)} disabled={isSaving} className="btn subtle" style={{ fontSize: 12 }}>Cancelar</button>
+              <button type="submit" disabled={isSaving} className="btn primary" style={{ fontSize: 12 }}>
+                {isSaving && <Loader2 size={14} className="animate-spin" />}
+                Salvar
+              </button>
+            </div>
+          </div>
+        </form>
+      </ValkDialogContent>
+    </ValkDialog>
   );
 }
 
+/* ─── Main Dashboard ─── */
 export function DashboardContent({
   userName,
   projects,
@@ -384,227 +253,310 @@ export function DashboardContent({
   pendingItems: PendingItem[];
   recentDecisions: RecentDecision[];
 }) {
-  // Compute date/greeting on client only to avoid hydration mismatch
-  const [greeting, setGreeting] = useState("");
-  const [today, setToday] = useState("");
+  const [dateStr, setDateStr] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    setGreeting(getGreeting());
-    setToday(format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR }));
+    setDateStr(format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR }));
   }, []);
 
+  // MRR delta percentage
+  const mrrDelta = metrics.prevMrr > 0
+    ? ((metrics.totalMrr - metrics.prevMrr) / metrics.prevMrr * 100)
+    : 0;
+
   return (
-    <div>
-      {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+    <div className="fadeUp">
+      {/* ═══ HERO: MRR + project summary ═══ */}
+      <section
+        className="grid gap-7 items-end"
+        style={{
+          gridTemplateColumns: "1.1fr 1fr",
+          marginBottom: 40,
+        }}
       >
-        <h1 className="font-display text-[24px] font-semibold tracking-[-0.01em] text-[#eee]">
-          {greeting ? `${greeting}, ${getFirstName(userName)}` : "\u00A0"}
-        </h1>
-        <p className="mt-1 text-[12px] capitalize text-[#444]">{today || "\u00A0"}</p>
-      </motion.div>
-
-      {/* Section 1 — Active projects */}
-      <motion.div
-        className="mt-8"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        <h2 className={sectionLabel}>Projetos ativos</h2>
-        <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-          {projects.map((project, i) => {
-            const phase = phaseStyles[project.phase] ?? phaseStyles.paused;
-
-            return (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.15 + i * 0.05 }}
-              >
-                <Link
-                  href={`/projects/${project.id}`}
-                  className="group block min-h-[100px] rounded-[10px] border border-[#141414] bg-[#0A0A0A] px-[18px] py-4 transition-all duration-[250ms] hover:-translate-y-px hover:border-[#1F1F1F] hover:[box-shadow:0_6px_24px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <ProjectLogo
-                      name={project.name}
-                      logoUrl={project.logo_url}
-                      size={24}
-                      fontSize={11}
-                    />
-                    <div className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#10B981] border border-[rgba(16,185,129,0.3)]" />
-                    <span className="text-[13px] font-medium text-[#bbb] transition-colors group-hover:text-[#eee]">
-                      {project.name}
-                    </span>
-                  </div>
-
-                  <div className="mt-2">
-                    <span
-                      className="inline-flex rounded px-1.5 py-px text-[9px] font-medium"
-                      style={{
-                        backgroundColor: phase.bg,
-                        color: phase.text,
-                        border: `1px solid ${phase.border}`,
-                      }}
-                    >
-                      {phaseLabels[project.phase] ?? project.phase}
-                    </span>
-                  </div>
-
-                  {project.owner && (
-                    <p className="mt-2 text-[10px] text-[#444]">
-                      {project.owner.name}
-                    </p>
-                  )}
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Section 2 — Metrics, Decisions, Pending */}
-      <motion.div
-        className="mt-7"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.25 }}
-      >
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {/* Metrics */}
-          <MetricsCard metrics={metrics} />
-
-          {/* Decisions */}
-          <div className={cardClass}>
-            <div className="flex items-center gap-1.5">
-              <Scale size={14} strokeWidth={1.5} className="text-[#333]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Decisões recentes
-              </span>
-            </div>
-            {recentDecisions.length === 0 ? (
-              <div className="mt-3 flex flex-col items-center py-6">
-                <Scale size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
-                <p className="mt-3 text-[11px] text-[#333]">
-                  Nenhuma decisão registrada
-                </p>
-              </div>
-            ) : (
-              <div className="mt-3 flex flex-col">
-                {recentDecisions.map((decision) => (
-                  <Link
-                    key={decision.id}
-                    href={decision.meeting_id ? `/meetings/${decision.meeting_id}` : "#"}
-                    className="flex items-center gap-2.5 border-b border-[#0F0F0F] py-2 transition-colors last:border-0 hover:bg-white/[0.02]"
-                  >
-                    <div className="h-[6px] w-[6px] shrink-0 rounded-full bg-[#E24B4A]" />
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-[#888]">
-                      {decision.title}
-                    </span>
-                    <span className="shrink-0 text-[11px] text-[#444]">
-                      {format(new Date(decision.date), "dd MMM", {
-                        locale: ptBR,
-                      })}
-                    </span>
-                  </Link>
-                ))}
-                <Link
-                  href="/meetings"
-                  className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
-                >
-                  Ver todas →
-                </Link>
-              </div>
-            )}
+        {/* Left: date + hero MRR */}
+        <div>
+          <p
+            style={{
+              fontSize: 11,
+              color: "var(--text-faint)",
+              margin: "0 0 10px",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            {dateStr || "\u00A0"}
+          </p>
+          <div className="hero-num">
+            {formatMrr(metrics.totalMrr)}
+            <span style={{ color: "var(--text-muted)", fontSize: "0.5em" }}>k</span>
           </div>
+          <div className="flex items-center" style={{ gap: 14, marginTop: 14 }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              MRR consolidado
+            </span>
+            {mrrDelta !== 0 && (
+              <span className="mono" style={{ fontSize: 12, color: mrrDelta > 0 ? "var(--status-traction)" : "var(--status-scale)" }}>
+                {mrrDelta > 0 ? "↑" : "↓"} {Math.abs(mrrDelta).toFixed(1)}%
+              </span>
+            )}
+            {metrics.prevMrr > 0 && (
+              <span style={{ fontSize: 11, color: "var(--text-ghost)" }}>vs. mês anterior</span>
+            )}
+            <RoleGate allowed={["admin"]}>
+              <button
+                onClick={() => setDialogOpen(true)}
+                style={{ color: "var(--text-ghost)", transition: "color 150ms" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-ghost)")}
+              >
+                <Pencil size={12} strokeWidth={1.5} />
+              </button>
+            </RoleGate>
+          </div>
+        </div>
 
-          {/* Pending items */}
-          <div className={cardClass}>
-            <div className="flex items-center gap-1.5">
-              <AlertCircle size={14} strokeWidth={1.5} className="text-[#333]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-                Meus pendentes
+        {/* Right: summary tally */}
+        <div
+          className="grid overflow-hidden"
+          style={{
+            gridTemplateColumns: "repeat(4, 1fr)",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: 12,
+            background: "var(--bg-1)",
+          }}
+        >
+          {[
+            { label: "Projetos", count: projects.length, color: "var(--text-primary)" },
+            { label: "MRR", count: metrics.hasMetrics ? `R$${(metrics.totalMrr / 1000).toFixed(0)}k` : "—", color: "var(--status-traction)" },
+            { label: "Clientes", count: metrics.hasMetrics ? metrics.totalClients : "—", color: "var(--status-discovery)" },
+            {
+              label: "Runway",
+              count: metrics.runwayMonths !== null ? `${metrics.runwayMonths}m` : "—",
+              color: metrics.runwayMonths === null ? "var(--text-muted)" : metrics.runwayMonths > 6 ? "var(--status-traction)" : metrics.runwayMonths >= 3 ? "var(--priority-high)" : "var(--primary)",
+              last: true,
+            },
+          ].map((cell, i) => (
+            <div
+              key={cell.label}
+              style={{
+                padding: "16px 18px",
+                borderRight: (cell as { last?: boolean }).last ? "none" : "1px solid var(--border-subtle)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 10,
+                  color: "var(--text-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.14em",
+                  fontWeight: 600,
+                }}
+              >
+                {cell.label}
+              </span>
+              <span
+                className="display"
+                style={{
+                  fontSize: 26,
+                  fontWeight: 600,
+                  color: cell.color,
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {cell.count}
               </span>
             </div>
-            {pendingItems.length === 0 ? (
-              <div className="mt-3 flex flex-col items-center py-6">
-                <CheckCircle size={20} strokeWidth={1.2} className="text-[#1A1A1A]" />
-                <p className="mt-2 text-[11px] text-[#333]">
-                  Sem pendências. Foco no que importa.
-                </p>
-              </div>
-            ) : (
-              <div className="mt-3 flex flex-col">
-                {pendingItems.slice(0, 5).map((item) => (
-                  <PendingItemRow key={`${item.source}-${item.id}`} item={item} />
-                ))}
-                {pendingItems.length > 5 && (
-                  <Link
-                    href="/tasks?assignee=me"
-                    className="mt-2 self-start text-[10px] text-[#555] transition-colors hover:text-[#E24B4A]"
-                  >
-                    Ver todas →
-                  </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ ACTIVE PROJECTS ═══ */}
+      <section style={{ marginBottom: 44 }}>
+        <div className="flex items-baseline justify-between" style={{ marginBottom: 18 }}>
+          <div>
+            <h2 className="display" style={{ fontSize: 20, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>
+              Produtos ativos
+            </h2>
+            <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "4px 0 0" }}>
+              {projects.length} produto{projects.length !== 1 ? "s" : ""} em andamento
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="grid gap-3.5"
+          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
+        >
+          {projects.map((project) => (
+            <Link
+              key={project.id}
+              href={`/projects/${project.id}`}
+              className="triage-card"
+            >
+              <div className="flex items-center" style={{ gap: 10, marginBottom: 10 }}>
+                <ProjectLogo name={project.name} logoUrl={project.logo_url} size={24} fontSize={11} />
+                <HealthDot state="good" />
+                <span
+                  className="display"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    letterSpacing: "-0.01em",
+                    flex: 1,
+                  }}
+                >
+                  {project.name}
+                </span>
+                {validPhases.includes(project.phase as Phase) && (
+                  <PhaseBadge phase={project.phase as Phase} />
                 )}
               </div>
-            )}
-          </div>
+              {project.owner && (
+                <div className="flex items-center" style={{ gap: 6 }}>
+                  <DsAvatar user={makeAvatarUser(project.owner.name)} size={18} />
+                  <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+                    {project.owner.name}
+                  </span>
+                </div>
+              )}
+            </Link>
+          ))}
         </div>
-      </motion.div>
+      </section>
 
-      {/* Section 3 — Activity feed */}
-      <motion.div
-        className="mt-7"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.35 }}
+      {/* ═══ SUPPORTING ROW: Pending + Decisions ═══ */}
+      <section
+        className="grid gap-5"
+        style={{
+          gridTemplateColumns: "1fr 1fr",
+          marginBottom: 36,
+        }}
       >
-        <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-[20px_22px]">
-          <h2 className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#333]">
-            Atividade recente
-          </h2>
+        {/* Pending */}
+        <div className="card" style={{ padding: 22 }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+            <h2 className="label">Pendentes · {getFirstName(userName)}</h2>
+            <span className="mono" style={{ fontSize: 10, color: "var(--text-ghost)" }}>
+              {pendingItems.length}
+            </span>
+          </div>
+          {pendingItems.length === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--text-ghost)", textAlign: "center", padding: "24px 0" }}>
+              Sem pendências. Foco no que importa.
+            </p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              {pendingItems.slice(0, 6).map((item) => (
+                <PendingItemRow key={`${item.source}-${item.id}`} item={item} />
+              ))}
+            </ul>
+          )}
+        </div>
 
+        {/* Decisions */}
+        <div className="card" style={{ padding: 22 }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+            <h2 className="label">Decisões recentes</h2>
+            <Link href="/meetings" style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              todas
+            </Link>
+          </div>
+          {recentDecisions.length === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--text-ghost)", textAlign: "center", padding: "24px 0" }}>
+              Nenhuma decisão registrada
+            </p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+              {recentDecisions.map((d) => (
+                <li key={d.id} className="flex" style={{ gap: 10, alignItems: "flex-start" }}>
+                  <span
+                    className="mono"
+                    style={{ fontSize: 10, color: "var(--text-ghost)", width: 36, paddingTop: 2 }}
+                  >
+                    {format(new Date(d.date), "dd/MM", { locale: ptBR })}
+                  </span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <Link
+                      href={d.meeting_id ? `/meetings/${d.meeting_id}` : "#"}
+                      style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.45 }}
+                    >
+                      {d.title}
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* ═══ ACTIVITY FEED ═══ */}
+      <section>
+        <div className="flex items-baseline justify-between" style={{ marginBottom: 14 }}>
+          <h2 className="label">O que aconteceu</h2>
+          <button style={{ fontSize: 11, color: "var(--text-muted)" }}>ver tudo</button>
+        </div>
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           {activities.length === 0 ? (
-            <p className="py-8 text-center text-[12px] text-[#333]">
+            <p style={{ padding: "32px 20px", textAlign: "center", fontSize: 12, color: "var(--text-ghost)" }}>
               Nenhuma atividade ainda
             </p>
           ) : (
-            <div className="mt-3.5">
-              {activities.map((activity, i) => {
-                const timeAgo = formatDistanceToNow(
-                  new Date(activity.created_at),
-                  { addSuffix: true, locale: ptBR }
-                );
+            activities.slice(0, 12).map((activity, i) => {
+              const timeAgo = formatDistanceToNow(new Date(activity.created_at), {
+                addSuffix: true,
+                locale: ptBR,
+              });
 
-                return (
-                  <div key={activity.id}>
-                    {i > 0 && <div className="h-px bg-[#0F0F0F]" />}
-                    <div className="flex items-center gap-2.5 py-2.5">
-                      {activity.user && <DsAvatar user={{ name: activity.user.name, initials: activity.user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase(), color: "#555" }} size={22} />}
-                      <p className="min-w-0 flex-1 truncate text-[13px] text-[#888]">
-                        {activity.user && (
-                          <span className="font-medium text-[#999]">
-                            {activity.user.name}{" "}
-                          </span>
-                        )}
-                        {getActionText(activity.action, activity.metadata)}
-                      </p>
-                      <span suppressHydrationWarning className="shrink-0 text-[11px] text-[#333]">
-                        {timeAgo}
+              return (
+                <div
+                  key={activity.id}
+                  className="flex items-center"
+                  style={{
+                    padding: "13px 20px",
+                    gap: 12,
+                    borderBottom: i < Math.min(activities.length, 12) - 1 ? "1px solid var(--border-subtle)" : "none",
+                  }}
+                >
+                  {activity.user && (
+                    <DsAvatar user={makeAvatarUser(activity.user.name)} size={22} />
+                  )}
+                  <div
+                    className="min-w-0 flex-1 truncate"
+                    style={{ fontSize: 12.5, color: "var(--text-secondary)" }}
+                  >
+                    {activity.user && (
+                      <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                        {activity.user.name}
                       </span>
-                    </div>
+                    )}{" "}
+                    <span style={{ color: "var(--text-muted)" }}>
+                      {getActionText(activity.action, activity.metadata)}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                  <span
+                    suppressHydrationWarning
+                    className="mono"
+                    style={{ fontSize: 10, color: "var(--text-ghost)", flexShrink: 0 }}
+                  >
+                    {timeAgo}
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
-      </motion.div>
+      </section>
+
+      {/* Metrics edit dialog */}
+      <MetricsEditDialog metrics={metrics} open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
