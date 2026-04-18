@@ -72,3 +72,69 @@ export async function updateProfile(input: UpdateProfileInput) {
   revalidatePath("/people");
   return { error: null };
 }
+
+// --- Invite user ---
+
+type InviteUserInput = {
+  name: string;
+  email: string;
+  role: string;
+  company_role: string | null;
+  dedication: string | null;
+};
+
+export async function inviteUser(input: InviteUserInput) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autenticado" };
+
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id, role")
+    .eq("auth_id", user.id)
+    .single();
+  if (!dbUser) return { error: "Usuário não encontrado" };
+
+  if (dbUser.role !== "admin") {
+    return { error: "Apenas admins podem convidar" };
+  }
+
+  // Check if email already exists
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", input.email)
+    .maybeSingle();
+
+  if (existing) {
+    return { error: "Este email já está cadastrado" };
+  }
+
+  const { data: newUser, error } = await supabase
+    .from("users")
+    .insert({
+      name: input.name,
+      email: input.email,
+      role: input.role,
+      company_role: input.company_role || null,
+      dedication: input.dedication || null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+
+  await supabase.from("activity_log").insert({
+    user_id: dbUser.id,
+    action: "invited_user",
+    entity_type: "user",
+    entity_id: newUser.id,
+    metadata: { name: input.name, email: input.email },
+  });
+
+  revalidatePath("/people");
+  return { error: null, name: input.name };
+}
