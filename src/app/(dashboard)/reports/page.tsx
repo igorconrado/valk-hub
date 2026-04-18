@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/page-header";
 import { ReportsList } from "./reports-list";
 import { NewReportButton } from "./new-report-button";
 
@@ -20,19 +19,21 @@ export default async function ReportsPage() {
       .order("name"),
   ]);
 
+  const total = (reports as any[])?.length ?? 0;
+
   return (
-    <div>
-      <PageHeader
-        title="Relatórios"
-        description="Análises e resultados da empresa"
-        action={<NewReportButton />}
-      />
-      <div className="mt-6">
-        <ReportsList
-          reports={(reports as any[]) ?? []}
-          projects={projects ?? []}
-        />
+    <div className="fadeUp">
+      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Relatórios</h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>{total} relatórios gerados</p>
+        </div>
+        <NewReportButton />
       </div>
+      <ReportsList
+        reports={(reports as any[]) ?? []}
+        projects={projects ?? []}
+      />
     </div>
   );
 }

@@ -176,7 +176,21 @@ export function DocsContent({
   });
 
   return (
-    <div>
+    <div className="fadeUp">
+      {/* Header */}
+      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Docs</h1>
+          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>{docs.length} documentos no workspace</p>
+        </div>
+        <CreateDocumentDialog>
+          <button className="btn primary flex items-center gap-1.5">
+            <Plus size={14} strokeWidth={1.5} />
+            Novo documento
+          </button>
+        </CreateDocumentDialog>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search
