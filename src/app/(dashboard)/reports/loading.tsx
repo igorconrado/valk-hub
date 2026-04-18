@@ -1,16 +1,16 @@
 import { PageHeader } from "@/components/page-header";
-import { ProjectCardSkeleton } from "@/components/skeletons";
+import { ReportCardSkeleton } from "@/components/skeletons";
 
-export default function ProjectsLoading() {
+export default function ReportsLoading() {
   return (
     <div>
       <PageHeader
-        title="Projetos"
-        description="Tudo que a VALK está construindo"
+        title="Relatórios"
+        description="Análises e resultados da empresa"
       />
       <div className="mt-6 grid grid-cols-1 gap-3 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <ProjectCardSkeleton key={i} />
+          <ReportCardSkeleton key={i} />
         ))}
       </div>
     </div>

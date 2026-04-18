@@ -157,6 +157,13 @@
   }
 }
 
+/* ========== Shimmer animation for skeletons ========== */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* ========== Print styles for PDF export ========== */
 @media print {
   @page {
