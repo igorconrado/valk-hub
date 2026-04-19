@@ -159,6 +159,43 @@
       "reports": "Reports"
     }
   },
+  "people": {
+    "title": "People",
+    "subtitle": "Team and ownership structure",
+    "partnershipType": {
+      "founder_operator": "Founder operator",
+      "founder_investor": "Founder investor",
+      "employee": "Employee",
+      "advisor": "Advisor"
+    },
+    "dedication": {
+      "full_time": "Full-time",
+      "partial": "Part-time"
+    },
+    "areas": {
+      "tech": "Tech",
+      "product": "Product",
+      "growth": "Growth",
+      "commercial": "Commercial",
+      "ops": "Ops",
+      "finance": "Finance",
+      "design": "Design",
+      "research": "Research",
+      "legal": "Legal"
+    },
+    "vesting": {
+      "not_applicable": "No vesting",
+      "cliff": "In cliff",
+      "vesting": "Vesting",
+      "fully_vested": "Fully vested"
+    },
+    "equityLabel": "Ownership",
+    "vested": "Vested",
+    "ownerOf": "Owns",
+    "recentDecisions": "Recent decisions",
+    "noDecisions": "No decisions registered.",
+    "noMembers": "No team members yet."
+  },
   "notifications": {
     "title": "Notifications",
     "bellAriaLabel": "Open notifications",

@@ -159,6 +159,43 @@
       "reports": "Relatórios"
     }
   },
+  "people": {
+    "title": "Pessoas",
+    "subtitle": "Time e estrutura societária",
+    "partnershipType": {
+      "founder_operator": "Sócio operador",
+      "founder_investor": "Sócio investidor",
+      "employee": "Funcionário",
+      "advisor": "Advisor"
+    },
+    "dedication": {
+      "full_time": "Full-time",
+      "partial": "Parcial"
+    },
+    "areas": {
+      "tech": "Tech",
+      "product": "Produto",
+      "growth": "Growth",
+      "commercial": "Comercial",
+      "ops": "Ops",
+      "finance": "Finanças",
+      "design": "Design",
+      "research": "Research",
+      "legal": "Jurídico"
+    },
+    "vesting": {
+      "not_applicable": "Sem vesting",
+      "cliff": "Em cliff",
+      "vesting": "Em vesting",
+      "fully_vested": "Vested 100%"
+    },
+    "equityLabel": "Sociedade",
+    "vested": "Vestido",
+    "ownerOf": "Dono de",
+    "recentDecisions": "Últimas decisões",
+    "noDecisions": "Nenhuma decisão registrada.",
+    "noMembers": "Nenhum membro no time ainda."
+  },
   "notifications": {
     "title": "Notificações",
     "bellAriaLabel": "Abrir notificações",
