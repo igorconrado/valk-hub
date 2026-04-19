@@ -8,11 +8,6 @@ import { Loader2, Plus, Scale } from "lucide-react";
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
   ValkTextarea,
   ValkSelect,
   ValkCheckbox,
@@ -99,131 +94,125 @@ function CreateProjectDecisionDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>
-              Registrar decisão
-            </ValkDialogTitle>
-            <ValkDialogDescription>
-              Documente uma decisão para este produto
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <span onClick={() => setOpen(true)}>
+        {children}
+      </span>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
-            <div>
-              <label htmlFor="pdec-title" className="label">
-                Descrição
-              </label>
-              <ValkTextarea
-                name="title"
-                required
-                rows={3}
-                placeholder="O que foi decidido?"
-                disabled={isPending}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="pdec-impact" className="label">
-                Impacto
-              </label>
-              <ValkSelect
-                name="impact"
-                value={impact}
-                onValueChange={setImpact}
-                options={[
-                  { value: "low", label: "Baixo" },
-                  { value: "medium", label: "Médio" },
-                  { value: "high", label: "Alto" },
-                  { value: "critical", label: "Crítico" },
-                ]}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="pdec-meeting" className="label">
-                Reunião
-              </label>
-              <ValkSelect
-                name="meeting_id"
-                value={meetingId}
-                onValueChange={setMeetingId}
-                options={[
-                  { value: "", label: "Nenhuma" },
-                  ...meetings.map((m) => ({ value: m.id, label: m.title })),
-                ]}
-              />
-            </div>
-
-            <div>
-              <label className="label">Quem decidiu</label>
-              <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
-                {users.map((u) => {
-                  const selected = selectedDeciders.includes(u.id);
-                  return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => toggleDecider(u.id)}
-                      disabled={isPending}
-                      className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors duration-150 ${
-                        selected
-                          ? "bg-white/[0.04]"
-                          : "hover:bg-white/[0.02]"
-                      }`}
-                    >
-                      <ValkCheckbox
-                        checked={selected}
-                        onCheckedChange={() => toggleDecider(u.id)}
-                        disabled={isPending}
-                      />
-                      <Avatar
-                        user={{
-                          name: u.name,
-                          initials: u.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
-                          color: "#555",
-                        }}
-                        size={20}
-                      />
-                      <span className="text-[13px] text-[#ccc]">
-                        {u.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Registrar decisao"
+        subtitle="Documente uma decisao para este produto"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="create-project-decision-form"
+              disabled={isPending}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Registrar
+            </button>
+          </>
+        }
+      >
+        <form id="create-project-decision-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+          <div>
+            <label htmlFor="pdec-title" className="label">
+              Descricao
+            </label>
+            <ValkTextarea
+              name="title"
+              required
+              rows={3}
+              placeholder="O que foi decidido?"
+              disabled={isPending}
+            />
           </div>
 
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Registrar
-              </button>
+          <div>
+            <label htmlFor="pdec-impact" className="label">
+              Impacto
+            </label>
+            <ValkSelect
+              name="impact"
+              value={impact}
+              onValueChange={setImpact}
+              options={[
+                { value: "low", label: "Baixo" },
+                { value: "medium", label: "Medio" },
+                { value: "high", label: "Alto" },
+                { value: "critical", label: "Critico" },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="pdec-meeting" className="label">
+              Reuniao
+            </label>
+            <ValkSelect
+              name="meeting_id"
+              value={meetingId}
+              onValueChange={setMeetingId}
+              options={[
+                { value: "", label: "Nenhuma" },
+                ...meetings.map((m) => ({ value: m.id, label: m.title })),
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="label">Quem decidiu</label>
+            <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
+              {users.map((u) => {
+                const selected = selectedDeciders.includes(u.id);
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleDecider(u.id)}
+                    disabled={isPending}
+                    className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors duration-150 ${
+                      selected
+                        ? "bg-white/[0.04]"
+                        : "hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <ValkCheckbox
+                      checked={selected}
+                      onCheckedChange={() => toggleDecider(u.id)}
+                      disabled={isPending}
+                    />
+                    <Avatar
+                      user={{
+                        name: u.name,
+                        initials: u.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+                        color: "#555",
+                      }}
+                      size={20}
+                    />
+                    <span className="text-[13px] text-[#ccc]">
+                      {u.name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </form>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }
 

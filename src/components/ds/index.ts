@@ -19,16 +19,7 @@ export {
   type ValkDropdownItem,
   type ValkDropdownSection,
 } from "./valk-dropdown"
-export {
-  ValkDialog,
-  ValkDialogTrigger,
-  ValkDialogContent,
-  ValkDialogHeader,
-  ValkDialogFooter,
-  ValkDialogTitle,
-  ValkDialogDescription,
-  ValkDialogClose,
-} from "./valk-dialog"
+export { ValkDialog } from "./valk-dialog"
 export { ValkTabs, ValkTabsList, ValkTabsTrigger, ValkTabsContent } from "./valk-tabs"
 export { ValkToggle } from "./valk-toggle"
 export { ValkCheckbox } from "./valk-checkbox"

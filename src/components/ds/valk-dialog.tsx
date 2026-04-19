@@ -4,8 +4,6 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
-  DialogTrigger,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogFooter,
@@ -13,86 +11,75 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 
+const sizeMap = {
+  md: "sm:max-w-[560px]",
+  lg: "sm:max-w-[760px]",
+} as const
+
 interface ValkDialogProps {
   open?: boolean
-  onOpenChange?: (open: boolean) => void
-  children: React.ReactNode
+  onClose: () => void
+  title: string
+  subtitle?: string
+  size?: keyof typeof sizeMap
+  footer?: React.ReactNode
+  children?: React.ReactNode
 }
 
-function ValkDialog({ open, onOpenChange, children }: ValkDialogProps) {
+function ValkDialog({
+  open,
+  onClose,
+  title,
+  subtitle,
+  size = "md",
+  footer,
+  children,
+}: ValkDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {children}
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose()
+      }}
+    >
+      <DialogContent
+        className={cn(
+          "w-[calc(100%-2rem)] gap-0 rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--bg-1)] p-0 sm:w-auto",
+          sizeMap[size]
+        )}
+        showCloseButton={false}
+      >
+        {/* Header */}
+        <div className="shrink-0 px-6 pt-6">
+          <DialogHeader className="gap-1">
+            <DialogTitle className="font-display text-[17px] font-semibold text-[var(--text-primary)]">
+              {title}
+            </DialogTitle>
+            {subtitle && (
+              <DialogDescription className="font-sans text-[12px] text-[var(--text-muted)]">
+                {subtitle}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="mt-5 h-px bg-[#141414]" />
+        </div>
+
+        {/* Body */}
+        {children && (
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-5">
+            {children}
+          </div>
+        )}
+
+        {/* Footer */}
+        {footer && (
+          <DialogFooter className="border-t border-[#141414] px-6 py-5">
+            <div className="flex justify-end gap-2.5">{footer}</div>
+          </DialogFooter>
+        )}
+      </DialogContent>
     </Dialog>
   )
 }
 
-function ValkDialogTrigger({ children, ...props }: React.ComponentProps<typeof DialogTrigger>) {
-  return (
-    <DialogTrigger asChild {...props}>
-      {children}
-    </DialogTrigger>
-  )
-}
-
-function ValkDialogContent({
-  children,
-  className,
-  showCloseButton = false,
-  ...props
-}: React.ComponentProps<typeof DialogContent>) {
-  return (
-    <DialogContent
-      className={cn(
-        "w-[calc(100%-2rem)] gap-0 rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--bg-1)] p-0 sm:w-auto",
-        className
-      )}
-      showCloseButton={showCloseButton}
-      {...props}
-    >
-      {children}
-    </DialogContent>
-  )
-}
-
-function ValkDialogHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <DialogHeader className={cn("gap-1", className)} {...props} />
-}
-
-function ValkDialogFooter({ className, ...props }: React.ComponentProps<typeof DialogFooter>) {
-  return (
-    <DialogFooter
-      className={cn("border-t-[var(--border-subtle)] bg-[var(--bg-card)]/50", className)}
-      {...props}
-    />
-  )
-}
-
-function ValkDialogTitle({ className, ...props }: React.ComponentProps<typeof DialogTitle>) {
-  return (
-    <DialogTitle
-      className={cn("font-display text-[17px] font-semibold text-[var(--text-primary)]", className)}
-      {...props}
-    />
-  )
-}
-
-function ValkDialogDescription({ className, ...props }: React.ComponentProps<typeof DialogDescription>) {
-  return (
-    <DialogDescription
-      className={cn("font-sans text-[12px] text-[var(--text-muted)]", className)}
-      {...props}
-    />
-  )
-}
-
-export {
-  ValkDialog,
-  ValkDialogTrigger,
-  ValkDialogContent,
-  ValkDialogHeader,
-  ValkDialogFooter,
-  ValkDialogTitle,
-  ValkDialogDescription,
-  DialogClose as ValkDialogClose,
-}
+export { ValkDialog }

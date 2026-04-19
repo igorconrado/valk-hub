@@ -15,10 +15,6 @@ import { useTranslations } from "next-intl";
 import { formatBRL } from "@/lib/format";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
   ValkNumberInput,
   Avatar as DsAvatar,
   PhaseBadge,
@@ -196,39 +192,40 @@ function MetricsEditDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={onOpenChange}>
-      <ValkDialogContent className="max-w-[380px]">
-        <div className="px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>{tFin("title")}</ValkDialogTitle>
-            <ValkDialogDescription>
-              {tFin("subtitle")}
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="hr mt-5" />
+    <ValkDialog
+      open={open}
+      onClose={() => onOpenChange(false)}
+      title={tFin("title")}
+      subtitle={tFin("subtitle")}
+      footer={
+        <>
+          <button type="button" onClick={() => onOpenChange(false)} disabled={isSaving} className="btn subtle" style={{ fontSize: 12 }}>{tc("cancel")}</button>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => {
+              const form = document.getElementById("metrics-edit-form") as HTMLFormElement | null;
+              form?.requestSubmit();
+            }}
+            className="btn primary"
+            style={{ fontSize: 12 }}
+          >
+            {isSaving && <Loader2 size={14} className="animate-spin" />}
+            {tc("save")}
+          </button>
+        </>
+      }
+    >
+      <form id="metrics-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
+        <div>
+          <label className="label">{tFin("currentCash")}</label>
+          <ValkNumberInput value={cash} onChange={setCash} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 500000,00" disabled={isSaving} />
         </div>
-        <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col gap-4 px-7 py-5">
-            <div>
-              <label className="label">{tFin("currentCash")}</label>
-              <ValkNumberInput value={cash} onChange={setCash} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 500000,00" disabled={isSaving} />
-            </div>
-            <div>
-              <label className="label">{tFin("monthlySpend")}</label>
-              <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 35000,00" disabled={isSaving} />
-            </div>
-          </div>
-          <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "20px 28px" }}>
-            <div className="flex justify-end gap-2.5">
-              <button type="button" onClick={() => onOpenChange(false)} disabled={isSaving} className="btn subtle" style={{ fontSize: 12 }}>{tc("cancel")}</button>
-              <button type="submit" disabled={isSaving} className="btn primary" style={{ fontSize: 12 }}>
-                {isSaving && <Loader2 size={14} className="animate-spin" />}
-                {tc("save")}
-              </button>
-            </div>
-          </div>
-        </form>
-      </ValkDialogContent>
+        <div>
+          <label className="label">{tFin("monthlySpend")}</label>
+          <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 35000,00" disabled={isSaving} />
+        </div>
+      </form>
     </ValkDialog>
   );
 }

@@ -8,11 +8,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
   Avatar,
   ValkInput,
   ValkTextarea,
@@ -27,7 +22,7 @@ type Project = { id: string; name: string };
 
 const meetingTypes: ValkSelectOption[] = [
   { value: "daily_ops", label: "Daily Ops" },
-  { value: "biweekly", label: "Quinzenal de Sócios" },
+  { value: "biweekly", label: "Quinzenal de Socios" },
   { value: "monthly", label: "Mensal de Resultado" },
   { value: "adhoc", label: "Avulsa" },
 ];
@@ -148,7 +143,7 @@ export function CreateMeetingDialog({
         return;
       }
 
-      toast.success("Reunião agendada");
+      toast.success("Reuniao agendada");
       setOpen(false);
       resetForm();
       router.push(`/meetings/${result.id}`);
@@ -156,171 +151,166 @@ export function CreateMeetingDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>Nova reunião</ValkDialogTitle>
-            <ValkDialogDescription>
-              Agende uma reunião e defina os participantes
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <span onClick={() => setOpen(true)}>
+        {children}
+      </span>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
-            {/* Tipo */}
-            <div>
-              <label className="label">Tipo</label>
-              <ValkSelect
-                value={type}
-                onValueChange={(v) => {
-                  setType(v);
-                  setTitleManuallyEdited(false);
-                }}
-                options={meetingTypes}
-                disabled={isPending}
-              />
-            </div>
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Nova reuniao"
+        subtitle="Agende uma reuniao e defina os participantes"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="create-meeting-form"
+              disabled={isPending}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Agendar
+            </button>
+          </>
+        }
+      >
+        <form id="create-meeting-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+          {/* Tipo */}
+          <div>
+            <label className="label">Tipo</label>
+            <ValkSelect
+              value={type}
+              onValueChange={(v) => {
+                setType(v);
+                setTitleManuallyEdited(false);
+              }}
+              options={meetingTypes}
+              disabled={isPending}
+            />
+          </div>
 
-            {/* Título */}
-            <div>
-              <label className="label">Título</label>
-              <ValkInput
-                name="title"
-                required
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setTitleManuallyEdited(true);
-                }}
-                placeholder={
-                  type === "adhoc" ? "Ex: Alinhamento com investidor" : ""
-                }
-                disabled={isPending}
-              />
-            </div>
+          {/* Titulo */}
+          <div>
+            <label className="label">Titulo</label>
+            <ValkInput
+              name="title"
+              required
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setTitleManuallyEdited(true);
+              }}
+              placeholder={
+                type === "adhoc" ? "Ex: Alinhamento com investidor" : ""
+              }
+              disabled={isPending}
+            />
+          </div>
 
-            {/* Data e hora */}
-            <div>
-              <label className="label">Data e hora</label>
-              <ValkInput
-                type="datetime-local"
-                required
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                disabled={isPending}
-              />
-            </div>
+          {/* Data e hora */}
+          <div>
+            <label className="label">Data e hora</label>
+            <ValkInput
+              type="datetime-local"
+              required
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              disabled={isPending}
+            />
+          </div>
 
-            {/* Produto relacionado */}
-            <div>
-              <label className="label">Produto relacionado</label>
-              <ValkSelect
-                value={projectId}
-                onValueChange={setProjectId}
-                options={projectOptions}
-                disabled={isPending}
-              />
-            </div>
+          {/* Produto relacionado */}
+          <div>
+            <label className="label">Produto relacionado</label>
+            <ValkSelect
+              value={projectId}
+              onValueChange={setProjectId}
+              options={projectOptions}
+              disabled={isPending}
+            />
+          </div>
 
-            {/* Participantes */}
-            <div>
-              <label className="label">Participantes</label>
-              <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
-                {users.map((u) => {
-                  const selected = selectedParticipants.includes(u.id);
-                  return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => toggleParticipant(u.id)}
-                      disabled={isPending}
-                      className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors duration-150 ${
+          {/* Participantes */}
+          <div>
+            <label className="label">Participantes</label>
+            <div className="space-y-1 rounded-lg border border-[#1A1A1A] bg-[#050505] p-2">
+              {users.map((u) => {
+                const selected = selectedParticipants.includes(u.id);
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleParticipant(u.id)}
+                    disabled={isPending}
+                    className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors duration-150 ${
+                      selected
+                        ? "bg-white/[0.04]"
+                        : "hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <div
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all duration-150 ${
                         selected
-                          ? "bg-white/[0.04]"
-                          : "hover:bg-white/[0.02]"
+                          ? "border-[#E24B4A] bg-[#E24B4A]"
+                          : "border-[#333]"
                       }`}
                     >
-                      <div
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all duration-150 ${
-                          selected
-                            ? "border-[#E24B4A] bg-[#E24B4A]"
-                            : "border-[#333]"
-                        }`}
-                      >
-                        {selected && (
-                          <Check size={10} strokeWidth={2.5} className="text-white" />
-                        )}
-                      </div>
-                      <Avatar
-                        user={{
-                          name: u.name,
-                          initials: u.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
-                          color: "#555",
-                        }}
-                        size={24}
-                      />
-                      <div className="min-w-0 text-left">
-                        <p className="truncate text-[13px] text-[#ccc]">
-                          {u.name}
+                      {selected && (
+                        <Check size={10} strokeWidth={2.5} className="text-white" />
+                      )}
+                    </div>
+                    <Avatar
+                      user={{
+                        name: u.name,
+                        initials: u.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase(),
+                        color: "#555",
+                      }}
+                      size={24}
+                    />
+                    <div className="min-w-0 text-left">
+                      <p className="truncate text-[13px] text-[#ccc]">
+                        {u.name}
+                      </p>
+                      {u.company_role && (
+                        <p className="truncate text-[10px] text-[#444]">
+                          {u.company_role}
                         </p>
-                        {u.company_role && (
-                          <p className="truncate text-[10px] text-[#444]">
-                            {u.company_role}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-                {users.length === 0 && (
-                  <p className="py-3 text-center text-[12px] text-[#333]">
-                    Carregando...
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Pauta inicial */}
-            <div>
-              <label className="label">Pauta inicial</label>
-              <ValkTextarea
-                name="description"
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tópicos a discutir..."
-                disabled={isPending}
-              />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+              {users.length === 0 && (
+                <p className="py-3 text-center text-[12px] text-[#333]">
+                  Carregando...
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Agendar
-              </button>
-            </div>
+          {/* Pauta inicial */}
+          <div>
+            <label className="label">Pauta inicial</label>
+            <ValkTextarea
+              name="description"
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Topicos a discutir..."
+              disabled={isPending}
+            />
           </div>
         </form>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }

@@ -6,14 +6,10 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
+  ValkInput,
+  ValkSelect,
+  type ValkSelectOption,
 } from "@/components/ds";
-import { ValkInput } from "@/components/ds";
-import { ValkSelect, type ValkSelectOption } from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { createDocument } from "./actions";
 
@@ -80,78 +76,77 @@ export function CreateDocumentDialog({
   ];
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[420px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>Novo documento</ValkDialogTitle>
-            <ValkDialogDescription>
-              Crie um documento para a base de conhecimento
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        {children}
+      </button>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Novo documento"
+        subtitle="Crie um documento para a base de conhecimento"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => {
+                const form = document.getElementById("create-doc-form") as HTMLFormElement | null;
+                form?.requestSubmit();
+              }}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Criar e editar
+            </button>
+          </>
+        }
+      >
+        <form id="create-doc-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+          <div>
+            <label htmlFor="doc-title" className="label">
+              Titulo *
+            </label>
+            <ValkInput
+              id="doc-title"
+              name="title"
+              required
+              placeholder="Ex: PRD do Vecto"
+              disabled={isPending}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="doc-title" className="label">
-                Titulo *
-              </label>
-              <ValkInput
-                id="doc-title"
-                name="title"
-                required
-                placeholder="Ex: PRD do Vecto"
+              <label className="label">Tipo</label>
+              <ValkSelect
+                value={docType}
+                onValueChange={setDocType}
+                options={docTypes}
                 disabled={isPending}
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Tipo</label>
-                <ValkSelect
-                  value={docType}
-                  onValueChange={setDocType}
-                  options={docTypes}
-                  disabled={isPending}
-                />
-              </div>
-              <div>
-                <label className="label">Produto</label>
-                <ValkSelect
-                  value={projectId}
-                  onValueChange={setProjectId}
-                  options={projectOptions}
-                  disabled={isPending}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
+            <div>
+              <label className="label">Produto</label>
+              <ValkSelect
+                value={projectId}
+                onValueChange={setProjectId}
+                options={projectOptions}
                 disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Criar e editar
-              </button>
+              />
             </div>
           </div>
         </form>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }
