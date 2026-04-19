@@ -338,7 +338,7 @@ export function DashboardContent({
         >
           {[
             { label: "Projetos", count: projects.length, color: "var(--text-primary)" },
-            { label: "MRR", count: metrics.hasMetrics ? `R$${(metrics.totalMrr / 1000).toFixed(0)}k` : "—", color: "var(--status-traction)" },
+            { label: "MRR", count: metrics.hasMetrics ? formatBRL(metrics.totalMrr, { compact: true }) : "—", color: "var(--status-traction)" },
             { label: "Clientes", count: metrics.hasMetrics ? metrics.totalClients : "—", color: "var(--status-discovery)" },
             {
               label: "Runway",
