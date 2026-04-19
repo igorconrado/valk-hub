@@ -89,5 +89,16 @@
       "meeting": "Reuniões",
       "user": "Pessoas"
     }
+  },
+  "projectDetail": {
+    "tabs": {
+      "sprint": "Sprint",
+      "tasks": "Tasks",
+      "docs": "Docs",
+      "metrics": "Métricas",
+      "decisions": "Decisões",
+      "history": "Histórico",
+      "reports": "Relatórios"
+    }
   }
 }

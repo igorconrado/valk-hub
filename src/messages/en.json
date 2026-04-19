@@ -89,5 +89,16 @@
       "meeting": "Meetings",
       "user": "People"
     }
+  },
+  "projectDetail": {
+    "tabs": {
+      "sprint": "Sprint",
+      "tasks": "Tasks",
+      "docs": "Docs",
+      "metrics": "Metrics",
+      "decisions": "Decisions",
+      "history": "History",
+      "reports": "Reports"
+    }
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow, format, parseISO, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { syncLinearCycles } from "../actions";
@@ -80,14 +81,14 @@ const phaseLabels: Record<string, string> = {
   closed: "Encerrado",
 };
 
-const tabs = [
-  { id: "sprint", label: "Sprint", icon: LinkIcon, placeholder: "Linear conecta na Sprint 2" },
-  { id: "tasks", label: "Tasks", icon: CheckCircle, placeholder: "Sprint 2 traz as tasks" },
-  { id: "docs", label: "Docs", icon: FileText, placeholder: "Docs chegam na Sprint 2" },
-  { id: "metrics", label: "Métricas", icon: BarChart3, placeholder: "Sem números ainda", sub: "Lança, mede, aprende" },
-  { id: "decisions", label: "Decisões", icon: Scale, placeholder: "Decisões entram na Sprint 2" },
-  { id: "history", label: "Histórico", icon: Clock, placeholder: "Histórico começa na primeira sprint" },
-  { id: "reports", label: "Relatórios", icon: BarChart3, placeholder: "Nenhum relatório pra esse produto." },
+const TAB_DEFS = [
+  { id: "sprint", key: "sprint" as const, icon: LinkIcon },
+  { id: "tasks", key: "tasks" as const, icon: CheckCircle },
+  { id: "docs", key: "docs" as const, icon: FileText },
+  { id: "metrics", key: "metrics" as const, icon: BarChart3 },
+  { id: "decisions", key: "decisions" as const, icon: Scale },
+  { id: "history", key: "history" as const, icon: Clock },
+  { id: "reports", key: "reports" as const, icon: BarChart3 },
 ];
 
 function Avatar({ name, size = 26 }: { name: string; size?: number }) {
@@ -462,6 +463,8 @@ export function ProjectDetail({
   stripeConfigured: boolean;
 }) {
   const [activeTab, setActiveTab] = useState("sprint");
+  const tTabs = useTranslations("projectDetail.tabs");
+  const tabs = TAB_DEFS.map((t) => ({ ...t, label: tTabs(t.key) }));
   const [taskView, setTaskView] = useState<"list" | "kanban">("list");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const cycleSynced = useRef(false);
@@ -794,13 +797,8 @@ export function ProjectDetail({
             className="text-[#1A1A1A]"
           />
           <p className="mt-3 text-[13px] text-[#444]">
-            {activeTabData.placeholder}
+            {activeTabData.label}
           </p>
-          {"sub" in activeTabData && activeTabData.sub && (
-            <p className="mt-1 text-[11px] text-[#333]">
-              {activeTabData.sub}
-            </p>
-          )}
         </div>
       )}
 
