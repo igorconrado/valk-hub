@@ -23,4 +23,5 @@ export const STATUS_COLORS: Record<string, string> = {
   on_hold:  '#F59E0B',
   review:   '#A78BFA',
   done:     '#10B981',
+  cancelled: '#4B5563',
 };
