@@ -12,24 +12,7 @@ import {
   type Priority,
 } from "@/components/ds";
 
-type TaskRow = {
-  id: string;
-  project_id: string | null;
-  title: string;
-  description: string | null;
-  type: string;
-  assignee_id: string;
-  status: string;
-  priority: string;
-  due_date: string | null;
-  tags: string[];
-  linear_issue_id: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  assignee: { id: string; name: string; avatar_url: string | null } | null;
-  project: { id: string; name: string; logo_url: string | null } | null;
-};
+import type { KanbanTask } from "./task-kanban-view";
 
 function TypeBadge({ type }: { type: string }) {
   const t = useTranslations("tasks.types");
@@ -94,7 +77,7 @@ export function TaskListView({
   tasks,
   onTaskClick,
 }: {
-  tasks: TaskRow[];
+  tasks: KanbanTask[];
   users: { id: string; name: string }[];
   onTaskClick?: (taskId: string) => void;
 }) {
