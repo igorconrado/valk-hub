@@ -5,11 +5,6 @@ import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
   ValkInput,
   ValkSelect,
   Avatar,
@@ -47,6 +42,13 @@ export function AddMemberDialog({
 
   const selectedUser = availableUsers.find((u) => u.id === selectedUserId);
 
+  function handleClose() {
+    setOpen(false);
+    setSearch("");
+    setSelectedUserId(null);
+    setRole("member");
+  }
+
   function handleSubmit() {
     if (!selectedUserId) return;
 
@@ -59,41 +61,44 @@ export function AddMemberDialog({
       }
 
       toast.success(`${result.memberName} adicionado ao projeto`);
-      setOpen(false);
-      setSearch("");
-      setSelectedUserId(null);
-      setRole("member");
+      handleClose();
     });
   }
 
   return (
-    <ValkDialog
-      open={open}
-      onOpenChange={(v) => {
-        setOpen(v);
-        if (!v) {
-          setSearch("");
-          setSelectedUserId(null);
-          setRole("member");
-        }
-      }}
-    >
-      <ValkDialogTrigger asChild>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>
-              Adicionar membro
-            </ValkDialogTitle>
-            <ValkDialogDescription>
-              Selecione um usuário para adicionar ao projeto
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        {children}
+      </button>
 
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
+      <ValkDialog
+        open={open}
+        onClose={handleClose}
+        title="Adicionar membro"
+        subtitle="Selecione um usuário para adicionar ao projeto"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isPending || !selectedUserId}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Adicionar
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4.5">
           {/* Search */}
           <div>
             <label className="label">Membro</label>
@@ -177,33 +182,8 @@ export function AddMemberDialog({
               ]}
             />
           </div>
-
-          </div>
-
-          {/* Sticky footer */}
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isPending || !selectedUserId}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Adicionar
-              </button>
-            </div>
-          </div>
         </div>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }

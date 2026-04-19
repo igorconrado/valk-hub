@@ -18,10 +18,6 @@ import { BarChart3, Plus, Trash2, TrendingUp, TrendingDown, Loader2 } from "luci
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
   ValkInput,
   ValkNumberInput,
 } from "@/components/ds";
@@ -133,77 +129,66 @@ function AddSnapshotDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={onOpenChange}>
-      <ValkDialogContent className="max-w-[420px]">
-        <div className="px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>
-              Snapshot de metricas
-            </ValkDialogTitle>
-            <ValkDialogDescription>
-              Registre os numeros atuais do produto
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
+    <ValkDialog
+      open={open}
+      onClose={() => onOpenChange(false)}
+      title="Snapshot de metricas"
+      subtitle="Registre os numeros atuais do produto"
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+            className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="add-snapshot-form"
+            disabled={isPending}
+            className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+          >
+            {isPending && <Loader2 size={14} className="animate-spin" />}
+            Salvar
+          </button>
+        </>
+      }
+    >
+      <form id="add-snapshot-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <div>
+          <label htmlFor="date" className="label">
+            Data
+          </label>
+          <ValkInput
+            id="date"
+            name="date"
+            type="date"
+            defaultValue={today}
+            required
+            disabled={isPending}
+          />
         </div>
-
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col gap-3.5 overflow-y-auto px-7 py-5">
-            <div>
-              <label htmlFor="date" className="label">
-                Data
+        <div className="grid grid-cols-2 gap-3">
+          {METRIC_FIELDS.map((f) => (
+            <div key={f.key}>
+              <label className="label">
+                {f.label}
               </label>
-              <ValkInput
-                id="date"
-                name="date"
-                type="date"
-                defaultValue={today}
-                required
+              <ValkNumberInput
+                value={metricValues[f.key] ?? 0}
+                onChange={(v) => setMetric(f.key, v)}
+                prefix={f.prefix || undefined}
+                suffix={"suffix" in f ? (f as { suffix: string }).suffix || undefined : undefined}
+                step={f.key === "churn" ? 0.1 : 1}
+                min={0}
                 disabled={isPending}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {METRIC_FIELDS.map((f) => (
-                <div key={f.key}>
-                  <label className="label">
-                    {f.label}
-                  </label>
-                  <ValkNumberInput
-                    value={metricValues[f.key] ?? 0}
-                    onChange={(v) => setMetric(f.key, v)}
-                    prefix={f.prefix || undefined}
-                    suffix={"suffix" in f ? (f as { suffix: string }).suffix || undefined : undefined}
-                    step={f.key === "churn" ? 0.1 : 1}
-                    min={0}
-                    disabled={isPending}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => onOpenChange(false)}
-                disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Salvar
-              </button>
-            </div>
-          </div>
-        </form>
-      </ValkDialogContent>
+          ))}
+        </div>
+      </form>
     </ValkDialog>
   );
 }

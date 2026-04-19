@@ -5,11 +5,6 @@ import { ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
   ValkInput,
   ValkTextarea,
   ValkSelect,
@@ -205,144 +200,139 @@ export function EditProfileDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>Editar perfil</ValkDialogTitle>
-            <ValkDialogDescription>
-              Atualize as informações do perfil
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <span onClick={() => setOpen(true)}>
+        {children}
+      </span>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
-            {/* Avatar */}
-            <AvatarUpload
-              value={avatarUrl || null}
-              onChange={setAvatarUrl}
-              userId={person.id}
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Editar perfil"
+        subtitle="Atualize as informacoes do perfil"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="edit-profile-form"
+              disabled={isPending}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Salvar
+            </button>
+          </>
+        }
+      >
+        <form id="edit-profile-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+          {/* Avatar */}
+          <AvatarUpload
+            value={avatarUrl || null}
+            onChange={setAvatarUrl}
+            userId={person.id}
+          />
+
+          {/* Nome */}
+          <div>
+            <label htmlFor="prof-name" className="label">
+              Nome
+            </label>
+            <ValkInput
+              id="prof-name"
+              name="name"
+              required
+              defaultValue={person.name}
+              disabled={isPending}
             />
-
-            {/* Nome */}
-            <div>
-              <label htmlFor="prof-name" className="label">
-                Nome
-              </label>
-              <ValkInput
-                id="prof-name"
-                name="name"
-                required
-                defaultValue={person.name}
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Bio */}
-            <div>
-              <label htmlFor="prof-bio" className="label">
-                Bio
-              </label>
-              <ValkTextarea
-                id="prof-bio"
-                name="bio"
-                rows={3}
-                defaultValue={person.bio ?? ""}
-                placeholder="Conte um pouco sobre você..."
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Responsabilidades */}
-            <div>
-              <label htmlFor="prof-resp" className="label">
-                Responsabilidades
-              </label>
-              <ValkTextarea
-                id="prof-resp"
-                name="responsibilities"
-                rows={2}
-                defaultValue={person.responsibilities ?? ""}
-                placeholder="O que você faz na VALK..."
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Admin-only fields */}
-            {isAdmin && (
-              <>
-                <div className="h-px bg-[#141414]" />
-                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
-                  Administração
-                </h3>
-
-                {/* Role */}
-                <div>
-                  <label className="label">Role</label>
-                  <ValkSelect
-                    value={role}
-                    onValueChange={setRole}
-                    options={roleOptions}
-                    name="role"
-                    disabled={isPending}
-                  />
-                </div>
-
-                {/* Company role */}
-                <div>
-                  <label htmlFor="prof-crole" className="label">
-                    Cargo
-                  </label>
-                  <ValkInput
-                    id="prof-crole"
-                    name="company_role"
-                    defaultValue={person.company_role ?? ""}
-                    placeholder="Ex: CTO, Product Manager..."
-                    disabled={isPending}
-                  />
-                </div>
-
-                {/* Dedication */}
-                <div>
-                  <label className="label">Dedicação</label>
-                  <ValkSelect
-                    value={dedication}
-                    onValueChange={setDedication}
-                    options={dedicationOptions}
-                    name="dedication"
-                    disabled={isPending}
-                  />
-                </div>
-              </>
-            )}
           </div>
 
-          {/* Footer */}
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Salvar
-              </button>
-            </div>
+          {/* Bio */}
+          <div>
+            <label htmlFor="prof-bio" className="label">
+              Bio
+            </label>
+            <ValkTextarea
+              id="prof-bio"
+              name="bio"
+              rows={3}
+              defaultValue={person.bio ?? ""}
+              placeholder="Conte um pouco sobre voce..."
+              disabled={isPending}
+            />
           </div>
+
+          {/* Responsabilidades */}
+          <div>
+            <label htmlFor="prof-resp" className="label">
+              Responsabilidades
+            </label>
+            <ValkTextarea
+              id="prof-resp"
+              name="responsibilities"
+              rows={2}
+              defaultValue={person.responsibilities ?? ""}
+              placeholder="O que voce faz na VALK..."
+              disabled={isPending}
+            />
+          </div>
+
+          {/* Admin-only fields */}
+          {isAdmin && (
+            <>
+              <div className="h-px bg-[#141414]" />
+              <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+                Administracao
+              </h3>
+
+              {/* Role */}
+              <div>
+                <label className="label">Role</label>
+                <ValkSelect
+                  value={role}
+                  onValueChange={setRole}
+                  options={roleOptions}
+                  name="role"
+                  disabled={isPending}
+                />
+              </div>
+
+              {/* Company role */}
+              <div>
+                <label htmlFor="prof-crole" className="label">
+                  Cargo
+                </label>
+                <ValkInput
+                  id="prof-crole"
+                  name="company_role"
+                  defaultValue={person.company_role ?? ""}
+                  placeholder="Ex: CTO, Product Manager..."
+                  disabled={isPending}
+                />
+              </div>
+
+              {/* Dedication */}
+              <div>
+                <label className="label">Dedicacao</label>
+                <ValkSelect
+                  value={dedication}
+                  onValueChange={setDedication}
+                  options={dedicationOptions}
+                  name="dedication"
+                  disabled={isPending}
+                />
+              </div>
+            </>
+          )}
         </form>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }

@@ -7,13 +7,10 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
+  ValkSelect,
+  ValkInput,
+  ValkToggle,
 } from "@/components/ds";
-import { ValkSelect, ValkInput, ValkToggle } from "@/components/ds";
 import type { ValkSelectOption } from "@/components/ds";
 import { createClient } from "@/lib/supabase/client";
 import { createReport } from "./actions";
@@ -61,7 +58,7 @@ function getDefaultPeriod(type: string): { start: string; end: string } {
 
 const loadingMessages = [
   "Analisando dados...",
-  "Gerando relatório...",
+  "Gerando relatorio...",
   "Finalizando...",
 ];
 
@@ -146,7 +143,7 @@ export function GenerateReportDialog({
     e.preventDefault();
 
     if (requiresProject.includes(type) && !projectId) {
-      toast.error("Selecione um produto para este tipo de relatório");
+      toast.error("Selecione um produto para este tipo de relatorio");
       return;
     }
 
@@ -156,7 +153,7 @@ export function GenerateReportDialog({
       reportTypes.find((t) => t.value === type)?.label ?? type;
     const title = projectName
       ? `${typeLabel} — ${projectName}`
-      : `Relatório ${typeLabel}`;
+      : `Relatorio ${typeLabel}`;
 
     if (aiEnabled) {
       // Step 2: AI generation
@@ -176,7 +173,7 @@ export function GenerateReportDialog({
 
         if (!res.ok) {
           const err = await res.json();
-          toast.error(err.error ?? "Erro ao gerar relatório");
+          toast.error(err.error ?? "Erro ao gerar relatorio");
           setGenerating(false);
           return;
         }
@@ -201,13 +198,13 @@ export function GenerateReportDialog({
             return;
           }
 
-          toast.success("Relatório gerado com AI");
+          toast.success("Relatorio gerado com AI");
           setOpen(false);
           resetForm();
           router.push(`/reports/${result.id}`);
         });
       } catch {
-        toast.error("Erro de conexão ao gerar relatório");
+        toast.error("Erro de conexao ao gerar relatorio");
         setGenerating(false);
       }
     } else {
@@ -229,7 +226,7 @@ export function GenerateReportDialog({
           return;
         }
 
-        toast.success("Relatório criado");
+        toast.success("Relatorio criado");
         setOpen(false);
         resetForm();
         router.push(`/reports/${result.id}`);
@@ -253,135 +250,133 @@ export function GenerateReportDialog({
   ];
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>Gerar relatório</ValkDialogTitle>
-            <ValkDialogDescription>
-              Configure o tipo e período do relatório
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <span onClick={() => setOpen(true)}>
+        {children}
+      </span>
 
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Gerar relatorio"
+        subtitle="Configure o tipo e periodo do relatorio"
+        footer={
+          generating ? undefined : (
+            <>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                disabled={isPending}
+                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="generate-report-form"
+                disabled={isPending}
+                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+              >
+                {isPending && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                {aiEnabled && <span>✦</span>}
+                Gerar relatorio
+              </button>
+            </>
+          )
+        }
+      >
         {generating ? (
           <GeneratingOverlay />
         ) : (
           <form
+            id="generate-report-form"
             onSubmit={handleSubmit}
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex flex-col gap-4.5"
           >
-            <div className="flex max-h-[60vh] flex-col gap-4.5 overflow-y-auto px-7 py-5">
-              {/* Tipo */}
+            {/* Tipo */}
+            <div>
+              <label htmlFor="rpt-type" className="label">
+                Tipo
+              </label>
+              <ValkSelect
+                value={type}
+                onValueChange={setType}
+                options={typeOptions}
+                disabled={isPending}
+              />
+            </div>
+
+            {/* Produto */}
+            <div>
+              <label htmlFor="rpt-project" className="label">
+                Produto
+                {requiresProject.includes(type) && (
+                  <span className="ml-1 text-[#E24B4A]">*</span>
+                )}
+              </label>
+              <ValkSelect
+                value={projectId}
+                onValueChange={setProjectId}
+                options={projectOptions}
+                placeholder={
+                  requiresProject.includes(type)
+                    ? "Selecione um produto"
+                    : "Todos os produtos"
+                }
+                disabled={isPending}
+              />
+            </div>
+
+            {/* Periodo */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="rpt-type" className="label">
-                  Tipo
+                <label htmlFor="rpt-start" className="label">
+                  Inicio
                 </label>
-                <ValkSelect
-                  value={type}
-                  onValueChange={setType}
-                  options={typeOptions}
+                <ValkInput
+                  id="rpt-start"
+                  type="date"
+                  value={periodStart}
+                  onChange={(e) => setPeriodStart(e.target.value)}
                   disabled={isPending}
                 />
               </div>
-
-              {/* Produto */}
               <div>
-                <label htmlFor="rpt-project" className="label">
-                  Produto
-                  {requiresProject.includes(type) && (
-                    <span className="ml-1 text-[#E24B4A]">*</span>
-                  )}
+                <label htmlFor="rpt-end" className="label">
+                  Fim
                 </label>
-                <ValkSelect
-                  value={projectId}
-                  onValueChange={setProjectId}
-                  options={projectOptions}
-                  placeholder={
-                    requiresProject.includes(type)
-                      ? "Selecione um produto"
-                      : "Todos os produtos"
-                  }
-                  disabled={isPending}
-                />
-              </div>
-
-              {/* Período */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="rpt-start" className="label">
-                    Início
-                  </label>
-                  <ValkInput
-                    id="rpt-start"
-                    type="date"
-                    value={periodStart}
-                    onChange={(e) => setPeriodStart(e.target.value)}
-                    disabled={isPending}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="rpt-end" className="label">
-                    Fim
-                  </label>
-                  <ValkInput
-                    id="rpt-end"
-                    type="date"
-                    value={periodEnd}
-                    onChange={(e) => setPeriodEnd(e.target.value)}
-                    disabled={isPending}
-                  />
-                </div>
-              </div>
-
-              {/* AI toggle */}
-              <div className="flex items-center justify-between rounded-lg border border-[#1A1A1A] bg-[#050505] px-4 py-3">
-                <div>
-                  <p className="text-[13px] text-[#ccc]">
-                    Gerar com AI{" "}
-                    <span className="text-[#E24B4A]">✦</span>
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-[#444]">
-                    Analisa os dados e gera o relatório automaticamente
-                  </p>
-                </div>
-                <ValkToggle
-                  checked={aiEnabled}
-                  onCheckedChange={setAiEnabled}
+                <ValkInput
+                  id="rpt-end"
+                  type="date"
+                  value={periodEnd}
+                  onChange={(e) => setPeriodEnd(e.target.value)}
                   disabled={isPending}
                 />
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-              <div className="flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  disabled={isPending}
-                  className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-                >
-                  {isPending && (
-                    <Loader2 size={14} className="animate-spin" />
-                  )}
-                  {aiEnabled && <span>✦</span>}
-                  Gerar relatório
-                </button>
+            {/* AI toggle */}
+            <div className="flex items-center justify-between rounded-lg border border-[#1A1A1A] bg-[#050505] px-4 py-3">
+              <div>
+                <p className="text-[13px] text-[#ccc]">
+                  Gerar com AI{" "}
+                  <span className="text-[#E24B4A]">✦</span>
+                </p>
+                <p className="mt-0.5 text-[11px] text-[#444]">
+                  Analisa os dados e gera o relatorio automaticamente
+                </p>
               </div>
+              <ValkToggle
+                checked={aiEnabled}
+                onCheckedChange={setAiEnabled}
+                disabled={isPending}
+              />
             </div>
           </form>
         )}
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }

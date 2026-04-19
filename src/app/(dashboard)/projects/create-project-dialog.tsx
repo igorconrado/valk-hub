@@ -5,11 +5,6 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   ValkDialog,
-  ValkDialogContent,
-  ValkDialogDescription,
-  ValkDialogHeader,
-  ValkDialogTitle,
-  ValkDialogTrigger,
   ValkInput,
   ValkTextarea,
   ValkSelect,
@@ -68,136 +63,132 @@ export function CreateProjectDialog({
   }
 
   return (
-    <ValkDialog open={open} onOpenChange={setOpen}>
-      <ValkDialogTrigger>{children}</ValkDialogTrigger>
-      <ValkDialogContent className="max-w-[460px]">
-        <div className="shrink-0 px-7 pt-7">
-          <ValkDialogHeader>
-            <ValkDialogTitle>
-              Novo produto
-            </ValkDialogTitle>
-            <ValkDialogDescription>
-              Adicione um novo produto ao portfólio da VALK
-            </ValkDialogDescription>
-          </ValkDialogHeader>
-          <div className="mt-5 h-px bg-[#141414]" />
-        </div>
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        {children}
+      </button>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col gap-4.5 overflow-y-auto px-7 py-5">
-            {/* Logo + Nome */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:gap-4">
-              <LogoUpload
-                value={logoUrl || null}
-                onChange={setLogoUrl}
-                projectId={`new-project`}
-              />
-              <div className="flex-1">
-                <label htmlFor="name" className="label">
-                  Nome
-                </label>
-                <ValkInput
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Ex: Vecto"
-                  disabled={isPending}
-                />
-              </div>
-            </div>
-
-            {/* Descrição */}
-            <div>
-              <label htmlFor="description" className="label">
-                Descrição
-              </label>
-              <ValkTextarea
-                id="description"
-                name="description"
-                rows={3}
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Fase + Tese */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="phase" className="label">
-                  Fase
-                </label>
-                <ValkSelect
-                  name="phase"
-                  value={phase}
-                  onValueChange={setPhase}
-                  options={phases}
-                  disabled={isPending}
-                />
-              </div>
-              <div>
-                <label htmlFor="thesis_type" className="label">
-                  Tese
-                </label>
-                <ValkSelect
-                  name="thesis_type"
-                  value={thesisType}
-                  onValueChange={setThesisType}
-                  options={[{ value: "", label: "—" }, ...thesisTypes]}
-                  disabled={isPending}
-                />
-              </div>
-            </div>
-
-            {/* Hipótese central */}
-            <div>
-              <label htmlFor="thesis_hypothesis" className="label">
-                Hipótese central
-              </label>
-              <ValkTextarea
-                id="thesis_hypothesis"
-                name="thesis_hypothesis"
-                rows={2}
-                placeholder="O que você quer provar com esse produto?"
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Data-alvo */}
-            <div>
-              <label htmlFor="launch_target" className="label">
-                Data-alvo
+      <ValkDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Novo produto"
+        subtitle="Adicione um novo produto ao portfólio da VALK"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+              className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => {
+                const form = document.getElementById("create-project-form") as HTMLFormElement | null;
+                form?.requestSubmit();
+              }}
+              className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
+            >
+              {isPending && <Loader2 size={14} className="animate-spin" />}
+              Criar
+            </button>
+          </>
+        }
+      >
+        <form id="create-project-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+          {/* Logo + Nome */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-4">
+            <LogoUpload
+              value={logoUrl || null}
+              onChange={setLogoUrl}
+              projectId={`new-project`}
+            />
+            <div className="flex-1">
+              <label htmlFor="name" className="label">
+                Nome
               </label>
               <ValkInput
-                id="launch_target"
-                name="launch_target"
-                type="date"
+                id="name"
+                name="name"
+                required
+                placeholder="Ex: Vecto"
                 disabled={isPending}
               />
             </div>
           </div>
 
-          {/* Sticky footer */}
-          <div className="shrink-0 border-t border-[#141414] px-7 py-5">
-            <div className="flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
+          {/* Descrição */}
+          <div>
+            <label htmlFor="description" className="label">
+              Descrição
+            </label>
+            <ValkTextarea
+              id="description"
+              name="description"
+              rows={3}
+              disabled={isPending}
+            />
+          </div>
+
+          {/* Fase + Tese */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="phase" className="label">
+                Fase
+              </label>
+              <ValkSelect
+                name="phase"
+                value={phase}
+                onValueChange={setPhase}
+                options={phases}
                 disabled={isPending}
-                className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
+              />
+            </div>
+            <div>
+              <label htmlFor="thesis_type" className="label">
+                Tese
+              </label>
+              <ValkSelect
+                name="thesis_type"
+                value={thesisType}
+                onValueChange={setThesisType}
+                options={[{ value: "", label: "\u2014" }, ...thesisTypes]}
                 disabled={isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
-              >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
-                Criar
-              </button>
+              />
             </div>
           </div>
+
+          {/* Hipótese central */}
+          <div>
+            <label htmlFor="thesis_hypothesis" className="label">
+              Hipótese central
+            </label>
+            <ValkTextarea
+              id="thesis_hypothesis"
+              name="thesis_hypothesis"
+              rows={2}
+              placeholder="O que você quer provar com esse produto?"
+              disabled={isPending}
+            />
+          </div>
+
+          {/* Data-alvo */}
+          <div>
+            <label htmlFor="launch_target" className="label">
+              Data-alvo
+            </label>
+            <ValkInput
+              id="launch_target"
+              name="launch_target"
+              type="date"
+              disabled={isPending}
+            />
+          </div>
         </form>
-      </ValkDialogContent>
-    </ValkDialog>
+      </ValkDialog>
+    </>
   );
 }
