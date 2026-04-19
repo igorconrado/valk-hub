@@ -8,7 +8,7 @@ import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { ProjectLogo } from "@/components/project-logo";
-import { Avatar, HealthDot, PhaseBadge, type Phase } from "@/components/ds";
+import { Avatar, PhaseBadge, type Phase } from "@/components/ds";
 
 type Project = {
   id: string;
@@ -58,7 +58,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {/* Top: health + name + phase + more */}
         <div className="flex items-start justify-between" style={{ marginBottom: 14 }}>
           <div className="flex items-center" style={{ gap: 10 }}>
-            <HealthDot state="good" />
+            <ProjectLogo name={project.name} logoUrl={project.logo_url} size={32} fontSize={14} />
             <h3
               className="display"
               style={{ fontSize: 19, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}

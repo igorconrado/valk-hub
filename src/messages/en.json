@@ -16,7 +16,9 @@
     "docs": "Docs",
     "meetings": "Meetings",
     "reports": "Reports",
-    "people": "People"
+    "people": "People",
+    "triage": "Triage",
+    "financial": "Financial"
   },
   "kanban": {
     "backlog": "BACKLOG",

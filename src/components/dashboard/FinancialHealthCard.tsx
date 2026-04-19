@@ -46,7 +46,7 @@ export function FinancialHealthCard({
           : "#E24B4A";
 
   return (
-    <DashboardCard title="Saude financeira">
+    <DashboardCard title="Saude financeira" action={{ label: "Ver detalhes", href: "/financeiro" }}>
       <div className="space-y-3">
         <Metric label="Caixa" value={currentCash != null ? formatBRL(currentCash) : "—"} />
         <Metric
