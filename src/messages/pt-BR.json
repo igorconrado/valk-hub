@@ -71,5 +71,23 @@
     "monthlySpend": "Gasto mensal médio (R$)",
     "runway": "Runway",
     "months": "meses"
+  },
+  "search": {
+    "placeholder": "Buscar tasks, docs, reuniões, projetos, pessoas...",
+    "emptyState": "Digite pra buscar tasks, docs, reuniões, projetos ou pessoas",
+    "noResults": "Nada encontrado pra \"{query}\"",
+    "footer": {
+      "navigate": "navegar",
+      "open": "abrir",
+      "close": "fechar",
+      "results": "resultados"
+    },
+    "groups": {
+      "task": "Tasks",
+      "project": "Projetos",
+      "document": "Docs",
+      "meeting": "Reuniões",
+      "user": "Pessoas"
+    }
   }
 }
