@@ -52,7 +52,6 @@ export default async function DashboardPage() {
   let prevClients = 0;
   let hasMetrics = false;
 
-  // Previous month boundary for comparison
   const now = new Date();
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
     .toISOString()
@@ -124,6 +123,7 @@ export default async function DashboardPage() {
     id: string;
     title: string;
     due_date: string | null;
+    priority: string | null;
     source: "task" | "action_item";
     meeting_id: string | null;
   };
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
     const [{ data: tasks }, { data: actionItems }] = await Promise.all([
       supabase
         .from("tasks")
-        .select("id, title, due_date")
+        .select("id, title, due_date, priority")
         .eq("assignee_id", dbUserId)
         .not("status", "in", "(done,cancelled)")
         .order("due_date", { ascending: true, nullsFirst: false }),
@@ -150,6 +150,7 @@ export default async function DashboardPage() {
       id: t.id as string,
       title: t.title as string,
       due_date: t.due_date as string | null,
+      priority: (t.priority as string) ?? null,
       source: "task" as const,
       meeting_id: null,
     }));
@@ -158,11 +159,11 @@ export default async function DashboardPage() {
       id: a.id as string,
       title: a.title as string,
       due_date: a.due_date as string | null,
+      priority: null,
       source: "action_item" as const,
       meeting_id: a.meeting_id as string | null,
     }));
 
-    // Merge and sort: due_date ASC, nulls last
     pendingItems = [...taskItems, ...aiItems].sort((a, b) => {
       if (!a.due_date && !b.due_date) return 0;
       if (!a.due_date) return 1;
@@ -174,16 +175,46 @@ export default async function DashboardPage() {
   // Fetch recent decisions
   const { data: recentDecisions } = await supabase
     .from("decisions")
-    .select("id, title, meeting_id, decided_at, created_at")
+    .select("id, description, impact_level, meeting_id")
     .order("created_at", { ascending: false })
     .limit(5);
 
-  const normalizedDecisions = (recentDecisions ?? []).map((d) => ({
-    id: d.id as string,
-    title: d.title as string,
-    meeting_id: d.meeting_id as string | null,
-    date: (d.decided_at ?? d.created_at) as string,
-  }));
+  // Fetch upcoming meetings (next 3, not cancelled)
+  const todayStr = now.toISOString().split("T")[0];
+  const { data: upcomingMeetings } = await supabase
+    .from("meetings")
+    .select("id, type, title, date")
+    .gte("date", todayStr)
+    .neq("status", "cancelled")
+    .order("date", { ascending: true })
+    .limit(3);
+
+  // Fetch triage summary (graceful if RPC doesn't exist)
+  let triageSummary = { scaleCount: 0, onTrackCount: 0, atRiskCount: 0, killCount: 0, pendingDecisions: 0 };
+  try {
+    const { data: triageData } = await supabase.rpc("get_triage_summary");
+    if (triageData && Array.isArray(triageData) && triageData[0]) {
+      const t = triageData[0] as Record<string, number>;
+      triageSummary = {
+        scaleCount: t.scale_count ?? 0,
+        onTrackCount: t.on_track_count ?? 0,
+        atRiskCount: t.at_risk_count ?? 0,
+        killCount: t.kill_count ?? 0,
+        pendingDecisions: t.pending_decisions ?? 0,
+      };
+    } else if (triageData && !Array.isArray(triageData)) {
+      const t = triageData as Record<string, number>;
+      triageSummary = {
+        scaleCount: t.scale_count ?? 0,
+        onTrackCount: t.on_track_count ?? 0,
+        atRiskCount: t.at_risk_count ?? 0,
+        killCount: t.kill_count ?? 0,
+        pendingDecisions: t.pending_decisions ?? 0,
+      };
+    }
+  } catch {
+    // RPC may not exist yet — use defaults
+  }
 
   return (
     <DashboardContent
@@ -200,8 +231,28 @@ export default async function DashboardPage() {
         burnRate,
         hasMetrics,
       }}
-      pendingItems={pendingItems}
-      recentDecisions={normalizedDecisions}
+      pendingItems={pendingItems.slice(0, 5).map((p) => ({
+        id: p.id,
+        kind: p.source,
+        title: p.title,
+        due_date: p.due_date,
+        priority: p.priority ?? undefined,
+        href: p.source === "task" ? `/tasks?taskId=${p.id}` : p.meeting_id ? `/meetings/${p.meeting_id}` : "/meetings",
+      }))}
+      pendingTotalCount={pendingItems.length}
+      recentDecisions={(recentDecisions ?? []).map((d) => ({
+        id: d.id as string,
+        description: d.description as string,
+        impact_level: (d.impact_level as string) ?? null,
+        meeting_id: d.meeting_id as string | null,
+      }))}
+      upcomingMeetings={(upcomingMeetings ?? []).map((m) => ({
+        id: m.id as string,
+        type: m.type as string,
+        title: m.title as string | null,
+        date: m.date as string,
+      }))}
+      triageSummary={triageSummary}
     />
   );
 }
