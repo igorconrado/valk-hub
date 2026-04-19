@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { SearchCommandPalette } from "@/components/search/SearchCommandPalette";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -19,7 +20,6 @@ import {
   Settings,
   Search,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import { Avatar, ValkDropdown } from "@/components/ds";
 import {
@@ -388,23 +388,7 @@ function Topbar({ onSearchOpen }: { onSearchOpen: () => void }) {
 
       {/* Right: notifications + avatar */}
       <div className="flex items-center" style={{ gap: 8 }}>
-        <button
-          className="btn icon subtle relative"
-        >
-          <Bell size={15} />
-          <span
-            className="absolute"
-            style={{
-              top: 6,
-              right: 6,
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "var(--primary)",
-              boxShadow: "0 0 6px rgba(226,75,74,0.6)",
-            }}
-          />
-        </button>
+        <NotificationBell />
         {user && <UserAvatar name={user.name} size={26} />}
       </div>
     </header>

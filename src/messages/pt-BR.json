@@ -100,5 +100,14 @@
       "history": "Histórico",
       "reports": "Relatórios"
     }
+  },
+  "notifications": {
+    "title": "Notificações",
+    "bellAriaLabel": "Abrir notificações",
+    "markAllRead": "Marcar todas como lidas",
+    "viewAll": "Ver todas",
+    "empty": "Nenhuma notificação ainda.",
+    "allRead": "Todas as notificações lidas.",
+    "loading": "Carregando..."
   }
 }
