@@ -5,27 +5,8 @@ import { List, Kanban, Plus, Filter, ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
-import { TaskKanbanView } from "./task-kanban-view";
+import { TaskKanbanView, type KanbanTask } from "./task-kanban-view";
 import { TaskDetailPanel } from "./task-detail-panel";
-
-type TaskRow = {
-  id: string;
-  project_id: string | null;
-  title: string;
-  description: string | null;
-  type: string;
-  assignee_id: string;
-  status: string;
-  priority: string;
-  due_date: string | null;
-  tags: string[];
-  linear_issue_id: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  assignee: { id: string; name: string; avatar_url: string | null } | null;
-  project: { id: string; name: string; logo_url: string | null } | null;
-};
 
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
@@ -69,7 +50,7 @@ function useFilterOptions() {
   return { STATUS_OPTIONS, TYPE_OPTIONS, PRIORITY_OPTIONS };
 }
 
-/* ─── FilterPill (matches handoff) ─── */
+/* ─── FilterPill ─── */
 function FilterPill({
   label,
   value,
@@ -154,7 +135,7 @@ function FilterPill({
   );
 }
 
-/* ─── Segmented Control (matches handoff) ─── */
+/* ─── Segmented Control ─── */
 function Segmented({
   value,
   onChange,
@@ -203,7 +184,7 @@ export function TasksContent({
   projects,
   users,
 }: {
-  tasks: TaskRow[];
+  tasks: KanbanTask[];
   projects: FilterProject[];
   users: FilterUser[];
 }) {
@@ -231,7 +212,7 @@ export function TasksContent({
 
   const projectOptions: [string, string][] = [
     ["all", tF("all")],
-    ["company", "Empresa"],
+    ["company", "VALK (Administrativas)"],
     ...projects.map((p) => [p.id, p.name] as [string, string]),
   ];
 
@@ -260,7 +241,7 @@ export function TasksContent({
         <div>
           <h1
             className="display"
-            style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
+            style={{ fontSize: 28, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
           >
             Tasks
           </h1>
@@ -288,7 +269,7 @@ export function TasksContent({
 
       {/* Filters */}
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>
-        <Filter size={13} style={{ color: "var(--text-muted)" }} />
+        <Filter size={16} style={{ color: "#444" }} />
         <FilterPill label={tF("product")} value={filterProject} options={projectOptions} onChange={setFilterProject} />
         <FilterPill label={tF("status")} value={filterStatus} options={STATUS_OPTIONS} onChange={setFilterStatus} />
         <FilterPill label={tF("type")} value={filterType} options={TYPE_OPTIONS} onChange={setFilterType} />

@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { isPast, parseISO, format, isToday } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -22,10 +20,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
+import { STATUS_COLORS } from "@/lib/task-colors";
+import { TaskCard } from "@/components/tasks/TaskCard";
 import { updateTaskStatus } from "./actions";
 import { BlockReasonDialog } from "./block-reason-dialog";
 
-type TaskRow = {
+export type KanbanTask = {
   id: string;
   project_id: string | null;
   title: string;
@@ -40,117 +40,47 @@ type TaskRow = {
   created_by: string;
   created_at: string;
   updated_at: string;
+  display_id?: string;
+  ready_to_advance?: boolean | null;
   assignee: { id: string; name: string; avatar_url: string | null } | null;
-  project: { id: string; name: string; logo_url: string | null } | null;
+  project: { id: string; name: string; logo_url: string | null; task_prefix?: string } | null;
+  subtasks_count?: { total: number; done: number };
 };
 
 const COLUMN_DEFS = [
-  { id: "backlog", key: "backlog" as const, color: "#444" },
-  { id: "doing", key: "doing" as const, color: "#3B82F6" },
-  { id: "on_hold", key: "onHold" as const, color: "#F59E0B" },
-  { id: "review", key: "review" as const, color: "#8B5CF6" },
-  { id: "done", key: "done" as const, color: "#10B981" },
+  { id: "backlog", key: "backlog" as const },
+  { id: "doing", key: "doing" as const },
+  { id: "on_hold", key: "onHold" as const },
+  { id: "review", key: "review" as const },
+  { id: "done", key: "done" as const },
 ];
 
-const priorityColors: Record<string, string> = {
-  urgent: "#E24B4A",
-  high: "#F59E0B",
-  medium: "#3B82F6",
-  low: "#444",
-};
-
-function useTypeLabels() {
-  const t = useTranslations("tasks.types");
-  return (type: string) => {
-    const keys = ["dev", "task", "meeting_prep", "report", "research", "decision", "growth", "design", "ops"];
-    return keys.includes(type) ? t(type as keyof IntlMessages["tasks"]["types"]) : type;
+/* ─── Adapt KanbanTask to TaskCard props ─── */
+function toCardTask(task: KanbanTask) {
+  return {
+    id: task.id,
+    display_id: task.display_id ?? task.id.slice(0, 7).toUpperCase(),
+    title: task.title,
+    type: task.type,
+    priority: task.priority,
+    status: task.status,
+    due_date: task.due_date,
+    ready_to_advance: task.ready_to_advance === true,
+    linear_issue_id: task.linear_issue_id,
+    assignee: task.assignee,
+    project: task.project
+      ? { name: task.project.name, task_prefix: task.project.task_prefix ?? "" }
+      : null,
+    subtasks_count: task.subtasks_count,
   };
 }
 
-function KanbanCard({
-  task,
-  isDragging,
-  onTitleClick,
-}: {
-  task: TaskRow;
-  isDragging?: boolean;
-  onTitleClick?: (taskId: string) => void;
-}) {
-  const getTypeLabel = useTypeLabels();
-  const overdue =
-    task.due_date &&
-    isPast(parseISO(task.due_date)) &&
-    !isToday(parseISO(task.due_date));
-
-  const initials = task.assignee
-    ? task.assignee.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : null;
-
-  return (
-    <div
-      className={`rounded-lg border border-[#141414] bg-[#0A0A0A] p-3 transition-all duration-150 ${
-        isDragging
-          ? "rotate-[2deg] shadow-xl shadow-black/40 ring-1 ring-[#E24B4A]/20"
-          : "hover:border-[#1F1F1F]"
-      }`}
-    >
-      <p
-        onClick={(e) => {
-          if (onTitleClick) {
-            e.stopPropagation();
-            onTitleClick(task.id);
-          }
-        }}
-        className={`text-[13px] font-medium leading-snug text-[#ddd] ${
-          onTitleClick ? "cursor-pointer hover:text-white" : ""
-        }`}
-      >
-        {task.title}
-      </p>
-      <div className="mt-2 flex items-center gap-2">
-        <div
-          className="h-[6px] w-[6px] shrink-0 rounded-full"
-          style={{
-            backgroundColor: priorityColors[task.priority] ?? "#444",
-          }}
-        />
-        <span className="inline-flex items-center rounded-full border border-[#1A1A1A] bg-[#0F0F0F] px-1.5 py-px text-[9px] font-medium text-[#555]">
-          {getTypeLabel(task.type)}
-        </span>
-        {initials && (
-          <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
-            {initials}
-          </div>
-        )}
-      </div>
-      <div className="mt-1.5 flex items-center justify-between">
-        <span className="text-[10px] text-[#444]">
-          {task.project?.name ?? "Empresa"}
-        </span>
-        {task.due_date && (
-          <span
-            className={`text-[10px] ${
-              overdue ? "font-medium text-[#E24B4A]" : "text-[#444]"
-            }`}
-          >
-            {format(parseISO(task.due_date), "dd MMM", { locale: ptBR })}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
+/* ─── Sortable wrapper ─── */
 function SortableCard({
   task,
   onTitleClick,
 }: {
-  task: TaskRow;
+  task: KanbanTask;
   onTitleClick?: (taskId: string) => void;
 }) {
   const {
@@ -170,45 +100,52 @@ function SortableCard({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <KanbanCard task={task} onTitleClick={onTitleClick} />
+      <TaskCard
+        task={toCardTask(task)}
+        onClick={() => onTitleClick?.(task.id)}
+      />
     </div>
   );
 }
 
+/* ─── Droppable column ─── */
 function DroppableColumn({
   column,
   tasks,
   onTitleClick,
 }: {
-  column: (typeof COLUMN_DEFS)[number] & { label: string };
-  tasks: TaskRow[];
+  column: { id: string; label: string };
+  tasks: KanbanTask[];
   onTitleClick?: (taskId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const statusColor = STATUS_COLORS[column.id] ?? "#6B7280";
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-[200px] w-[260px] shrink-0 flex-col rounded-xl transition-colors duration-150 lg:w-auto lg:flex-1 ${
-        isOver ? "bg-white/[0.02]" : ""
-      }`}
+      className="flex flex-1 shrink-0 flex-col rounded-xl border transition-colors duration-150"
+      style={{
+        background: isOver ? "rgba(255,255,255,0.015)" : "#0D0D0D",
+        borderColor: isOver ? "var(--border-hover)" : "#1A1A1A",
+        padding: 12,
+        minHeight: "calc(100vh - 280px)",
+        minWidth: 220,
+      }}
     >
       {/* Column header */}
-      <div className="mb-3 flex items-center gap-2 px-1">
+      <div className="mb-3 flex items-center gap-2">
         <div
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: column.color }}
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ background: statusColor }}
         />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#666]">
+        <span
+          className="font-sans text-[11px] font-semibold uppercase text-[#888]"
+          style={{ letterSpacing: "0.08em" }}
+        >
           {column.label}
         </span>
-        <span
-          className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-semibold"
-          style={{
-            backgroundColor: `${column.color}15`,
-            color: column.color,
-          }}
-        >
+        <span className="ml-auto font-mono text-[11px] text-[#444]">
           {tasks.length}
         </span>
       </div>
@@ -235,17 +172,18 @@ function DroppableColumn({
   );
 }
 
+/* ─── Kanban board ─── */
 export function TaskKanbanView({
   tasks,
   users,
   onTaskClick,
 }: {
-  tasks: TaskRow[];
+  tasks: KanbanTask[];
   users: { id: string; name: string }[];
   onTaskClick?: (taskId: string) => void;
 }) {
   const [localTasks, setLocalTasks] = useState(tasks);
-  const [activeTask, setActiveTask] = useState<TaskRow | null>(null);
+  const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
   const [blockDialog, setBlockDialog] = useState<{
     taskId: string;
     open: boolean;
@@ -255,7 +193,6 @@ export function TaskKanbanView({
   const COLUMNS = COLUMN_DEFS.map((c) => ({ ...c, label: tK(c.key) }));
 
   // Sync when parent tasks change (e.g. after revalidation)
-  const tasksKey = tasks.map((t) => `${t.id}:${t.status}`).join(",");
   useState(() => {
     setLocalTasks(tasks);
   });
@@ -265,7 +202,7 @@ export function TaskKanbanView({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const task = event.active.data.current?.task as TaskRow | undefined;
+    const task = event.active.data.current?.task as KanbanTask | undefined;
     if (task) setActiveTask(task);
   }, []);
 
@@ -279,28 +216,22 @@ export function TaskKanbanView({
       const task = localTasks.find((t) => t.id === taskId);
       if (!task) return;
 
-      // Determine the target column
       let targetStatus: string | null = null;
-
-      // If dropped on a column directly
       const columnIds = COLUMN_DEFS.map((c) => c.id);
       if (columnIds.includes(over.id as string)) {
         targetStatus = over.id as string;
       } else {
-        // Dropped on another card — find that card's status
         const overTask = localTasks.find((t) => t.id === over.id);
         if (overTask) targetStatus = overTask.status;
       }
 
       if (!targetStatus || targetStatus === task.status) return;
 
-      // If moving to "on_hold", show block reason dialog first
       if (targetStatus === "on_hold") {
         setBlockDialog({ taskId, open: true });
         return;
       }
 
-      // Optimistic update
       setLocalTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: targetStatus } : t))
       );
@@ -312,7 +243,6 @@ export function TaskKanbanView({
 
   const handleBlockDialogComplete = useCallback(() => {
     setBlockDialog({ taskId: "", open: false });
-    // The server action + revalidation handles the state update
     setLocalTasks((prev) =>
       prev.map((t) =>
         t.id === blockDialog.taskId ? { ...t, status: "on_hold" } : t
@@ -333,7 +263,10 @@ export function TaskKanbanView({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-3 overflow-x-auto pb-4 [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:gap-4">
+        <div
+          className="grid gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{ gridTemplateColumns: "repeat(5, minmax(220px, 1fr))" }}
+        >
           {grouped.map((col) => (
             <DroppableColumn
               key={col.id}
@@ -346,7 +279,10 @@ export function TaskKanbanView({
 
         <DragOverlay>
           {activeTask ? (
-            <KanbanCard task={activeTask} isDragging />
+            <TaskCard
+              task={toCardTask(activeTask)}
+              onClick={() => {}}
+            />
           ) : null}
         </DragOverlay>
       </DndContext>
