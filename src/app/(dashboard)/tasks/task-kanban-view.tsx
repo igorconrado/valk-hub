@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { isPast, parseISO, format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTranslations } from "next-intl";
 import {
   DndContext,
   DragOverlay,
@@ -43,12 +44,12 @@ type TaskRow = {
   project: { id: string; name: string; logo_url: string | null } | null;
 };
 
-const COLUMNS = [
-  { id: "backlog", label: "Backlog", color: "#444" },
-  { id: "doing", label: "Doing", color: "#3B82F6" },
-  { id: "on_hold", label: "On Hold", color: "#F59E0B" },
-  { id: "review", label: "Review", color: "#8B5CF6" },
-  { id: "done", label: "Done", color: "#10B981" },
+const COLUMN_DEFS = [
+  { id: "backlog", key: "backlog" as const, color: "#444" },
+  { id: "doing", key: "doing" as const, color: "#3B82F6" },
+  { id: "on_hold", key: "onHold" as const, color: "#F59E0B" },
+  { id: "review", key: "review" as const, color: "#8B5CF6" },
+  { id: "done", key: "done" as const, color: "#10B981" },
 ];
 
 const priorityColors: Record<string, string> = {
@@ -58,14 +59,13 @@ const priorityColors: Record<string, string> = {
   low: "#444",
 };
 
-const typeLabels: Record<string, string> = {
-  dev: "Dev",
-  task: "Task",
-  meeting_prep: "Reuniao",
-  report: "Report",
-  research: "Pesquisa",
-  decision: "Decisao",
-};
+function useTypeLabels() {
+  const t = useTranslations("tasks.types");
+  return (type: string) => {
+    const keys = ["dev", "task", "meeting_prep", "report", "research", "decision", "growth", "design", "ops"];
+    return keys.includes(type) ? t(type as keyof IntlMessages["tasks"]["types"]) : type;
+  };
+}
 
 function KanbanCard({
   task,
@@ -76,6 +76,7 @@ function KanbanCard({
   isDragging?: boolean;
   onTitleClick?: (taskId: string) => void;
 }) {
+  const getTypeLabel = useTypeLabels();
   const overdue =
     task.due_date &&
     isPast(parseISO(task.due_date)) &&
@@ -119,7 +120,7 @@ function KanbanCard({
           }}
         />
         <span className="inline-flex items-center rounded-full border border-[#1A1A1A] bg-[#0F0F0F] px-1.5 py-px text-[9px] font-medium text-[#555]">
-          {typeLabels[task.type] ?? task.type}
+          {getTypeLabel(task.type)}
         </span>
         {initials && (
           <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1A1A1A] text-[8px] font-semibold text-[#555]">
@@ -179,7 +180,7 @@ function DroppableColumn({
   tasks,
   onTitleClick,
 }: {
-  column: (typeof COLUMNS)[number];
+  column: (typeof COLUMN_DEFS)[number] & { label: string };
   tasks: TaskRow[];
   onTitleClick?: (taskId: string) => void;
 }) {
@@ -249,6 +250,9 @@ export function TaskKanbanView({
     taskId: string;
     open: boolean;
   }>({ taskId: "", open: false });
+  const tK = useTranslations("kanban");
+
+  const COLUMNS = COLUMN_DEFS.map((c) => ({ ...c, label: tK(c.key) }));
 
   // Sync when parent tasks change (e.g. after revalidation)
   const tasksKey = tasks.map((t) => `${t.id}:${t.status}`).join(",");
@@ -279,7 +283,7 @@ export function TaskKanbanView({
       let targetStatus: string | null = null;
 
       // If dropped on a column directly
-      const columnIds = COLUMNS.map((c) => c.id);
+      const columnIds = COLUMN_DEFS.map((c) => c.id);
       if (columnIds.includes(over.id as string)) {
         targetStatus = over.id as string;
       } else {

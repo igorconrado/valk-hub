@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "loading": "Loading...",
+    "confirm": "Confirm"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "docs": "Docs",
+    "meetings": "Meetings",
+    "reports": "Reports",
+    "people": "People"
+  },
+  "kanban": {
+    "backlog": "BACKLOG",
+    "doing": "IN PROGRESS",
+    "onHold": "ON HOLD",
+    "review": "REVIEW",
+    "done": "DONE",
+    "readyToAdvance": "Ready to advance"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "newTask": "New task",
+    "list": "List",
+    "kanban": "Kanban",
+    "filters": {
+      "label": "Filters",
+      "product": "Product",
+      "status": "Status",
+      "type": "Type",
+      "assignee": "Assignee",
+      "priority": "Priority",
+      "all": "All"
+    },
+    "types": {
+      "dev": "Dev",
+      "task": "Task",
+      "meeting_prep": "Prep",
+      "report": "Report",
+      "research": "Research",
+      "decision": "Decision",
+      "growth": "Growth",
+      "design": "Design",
+      "ops": "Ops"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "subtasks": "Subtasks",
+    "addSubtask": "Add subtask"
+  },
+  "dashboard": {
+    "mrrConsolidated": "Consolidated MRR",
+    "editMrr": "Edit MRR"
+  },
+  "financial": {
+    "title": "Financial",
+    "subtitle": "Update cash and monthly spend to calculate runway",
+    "currentCash": "Current cash (R$)",
+    "monthlySpend": "Average monthly spend (R$)",
+    "runway": "Runway",
+    "months": "months"
+  }
+}

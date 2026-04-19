@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { isPast, parseISO, format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTranslations } from "next-intl";
 import {
   Avatar,
   StatusBadge,
@@ -30,19 +31,14 @@ type TaskRow = {
   project: { id: string; name: string; logo_url: string | null } | null;
 };
 
-const typeLabels: Record<string, string> = {
-  dev: "Dev",
-  task: "Task",
-  meeting_prep: "Reuniao",
-  report: "Report",
-  research: "Pesquisa",
-  decision: "Decisao",
-};
-
 function TypeBadge({ type }: { type: string }) {
+  const t = useTranslations("tasks.types");
+  const keys = ["dev", "task", "meeting_prep", "report", "research", "decision", "growth", "design", "ops"];
+  const label = keys.includes(type) ? t(type as keyof IntlMessages["tasks"]["types"]) : type;
+
   return (
     <span className="inline-flex shrink-0 items-center rounded-full border border-[#1A1A1A] bg-[#0F0F0F] px-2 py-0.5 text-[9px] font-medium text-[#555]">
-      {typeLabels[type] ?? type}
+      {label}
     </span>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -31,14 +32,16 @@ import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { OnboardingWizard } from "./onboarding-wizard";
 
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "Projetos", icon: FolderKanban, href: "/projects" },
-  { label: "Tasks", icon: CheckSquare, href: "/tasks" },
-  { label: "Docs", icon: FileText, href: "/docs" },
-  { label: "Reuniões", icon: Video, href: "/meetings" },
-  { label: "Relatórios", icon: BarChart3, href: "/reports" },
-  { label: "Pessoas", icon: Users, href: "/people" },
+type NavKey = "dashboard" | "projects" | "tasks" | "docs" | "meetings" | "reports" | "people";
+
+const navItems: { key: NavKey; icon: typeof LayoutDashboard; href: string }[] = [
+  { key: "dashboard", icon: LayoutDashboard, href: "/" },
+  { key: "projects", icon: FolderKanban, href: "/projects" },
+  { key: "tasks", icon: CheckSquare, href: "/tasks" },
+  { key: "docs", icon: FileText, href: "/docs" },
+  { key: "meetings", icon: Video, href: "/meetings" },
+  { key: "reports", icon: BarChart3, href: "/reports" },
+  { key: "people", icon: Users, href: "/people" },
 ];
 
 /* ─── Workspace Pill ─── */
@@ -101,6 +104,8 @@ function NavItems({
   pathname: string;
   onNavigate?: () => void;
 }) {
+  const t = useTranslations("nav");
+
   return (
     <nav style={{ padding: "4px 12px", flex: 1, overflow: "auto" }}>
       <div className="label" style={{ padding: "10px 10px 6px" }}>
@@ -146,7 +151,7 @@ function NavItems({
               size={15}
               strokeWidth={isActive ? 1.75 : 1.5}
             />
-            <span>{item.label}</span>
+            <span>{t(item.key)}</span>
           </Link>
         );
       })}

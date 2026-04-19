@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "close": "Fechar",
+    "loading": "Carregando...",
+    "confirm": "Confirmar"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projetos",
+    "tasks": "Tasks",
+    "docs": "Docs",
+    "meetings": "Reuniões",
+    "reports": "Relatórios",
+    "people": "Pessoas"
+  },
+  "kanban": {
+    "backlog": "BACKLOG",
+    "doing": "EM PROGRESSO",
+    "onHold": "PAUSADO",
+    "review": "REVISÃO",
+    "done": "CONCLUÍDO",
+    "readyToAdvance": "Pronta pra avançar"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "newTask": "Nova task",
+    "list": "Lista",
+    "kanban": "Kanban",
+    "filters": {
+      "label": "Filtros",
+      "product": "Produto",
+      "status": "Status",
+      "type": "Tipo",
+      "assignee": "Responsável",
+      "priority": "Prioridade",
+      "all": "Todos"
+    },
+    "types": {
+      "dev": "Dev",
+      "task": "Task",
+      "meeting_prep": "Preparo",
+      "report": "Relatório",
+      "research": "Research",
+      "decision": "Decisão",
+      "growth": "Growth",
+      "design": "Design",
+      "ops": "Ops"
+    },
+    "priorities": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "subtasks": "Subtasks",
+    "addSubtask": "Adicionar subtask"
+  },
+  "dashboard": {
+    "mrrConsolidated": "MRR consolidado",
+    "editMrr": "Editar MRR"
+  },
+  "financial": {
+    "title": "Financeiro",
+    "subtitle": "Atualize caixa e gasto mensal para calcular runway",
+    "currentCash": "Caixa atual (R$)",
+    "monthlySpend": "Gasto mensal médio (R$)",
+    "runway": "Runway",
+    "months": "meses"
+  }
+}

@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   ValkDialog,
   ValkDialogContent,
@@ -20,21 +21,6 @@ import { createTask } from "./actions";
 type Project = { id: string; name: string };
 type User = { id: string; name: string };
 
-const taskTypes = [
-  { value: "dev", label: "Dev" },
-  { value: "task", label: "Task" },
-  { value: "meeting_prep", label: "Reuniao" },
-  { value: "research", label: "Pesquisa" },
-  { value: "decision", label: "Decisao" },
-];
-
-const priorities = [
-  { value: "low", label: "Baixa" },
-  { value: "medium", label: "Media" },
-  { value: "high", label: "Alta" },
-  { value: "urgent", label: "Urgente" },
-];
-
 
 export function CreateTaskDialog({
   children,
@@ -47,9 +33,32 @@ export function CreateTaskDialog({
   projects?: Project[];
   users?: User[];
 }) {
+  const tc = useTranslations("common");
+  const tT = useTranslations("tasks.types");
+  const tP = useTranslations("tasks.priorities");
+  const t = useTranslations("tasks");
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState("task");
+
+  const taskTypes = [
+    { value: "dev", label: tT("dev") },
+    { value: "task", label: tT("task") },
+    { value: "meeting_prep", label: tT("meeting_prep") },
+    { value: "research", label: tT("research") },
+    { value: "decision", label: tT("decision") },
+    { value: "report", label: tT("report") },
+    { value: "growth", label: tT("growth") },
+    { value: "design", label: tT("design") },
+    { value: "ops", label: tT("ops") },
+  ];
+
+  const priorities = [
+    { value: "low", label: tP("low") },
+    { value: "medium", label: tP("medium") },
+    { value: "high", label: tP("high") },
+    { value: "urgent", label: tP("urgent") },
+  ];
   const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [assigneeId, setAssigneeId] = useState("");
   const [priority, setPriority] = useState("medium");
@@ -160,7 +169,7 @@ export function CreateTaskDialog({
       <ValkDialogContent className="max-w-[460px]">
         <div className="shrink-0 px-7 pt-7">
           <ValkDialogHeader>
-            <ValkDialogTitle>Nova task</ValkDialogTitle>
+            <ValkDialogTitle>{t("newTask")}</ValkDialogTitle>
             <ValkDialogDescription>
               Cria uma task para a equipe
             </ValkDialogDescription>
@@ -314,7 +323,7 @@ export function CreateTaskDialog({
                 disabled={isPending}
                 className="rounded-lg px-4 py-2.5 text-[12px] text-[#555] transition-colors hover:text-[#888]"
               >
-                Cancelar
+                {tc("cancel")}
               </button>
               <button
                 type="submit"
@@ -322,7 +331,7 @@ export function CreateTaskDialog({
                 className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
               >
                 {isPending && <Loader2 size={14} className="animate-spin" />}
-                Criar
+                {tc("create")}
               </button>
             </div>
           </div>

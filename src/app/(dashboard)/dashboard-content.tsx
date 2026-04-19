@@ -11,6 +11,7 @@ import {
   Circle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   ValkDialog,
   ValkDialogContent,
@@ -183,6 +184,8 @@ function MetricsEditDialog({
   const [isSaving, startTransition] = useTransition();
   const [cash, setCash] = useState(metrics.cash ?? 0);
   const [burnRate, setBurnRate] = useState(metrics.burnRate ?? 0);
+  const tFin = useTranslations("financial");
+  const tc = useTranslations("common");
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -203,9 +206,9 @@ function MetricsEditDialog({
       <ValkDialogContent className="max-w-[380px]">
         <div className="px-7 pt-7">
           <ValkDialogHeader>
-            <ValkDialogTitle>Financeiro</ValkDialogTitle>
+            <ValkDialogTitle>{tFin("title")}</ValkDialogTitle>
             <ValkDialogDescription>
-              Atualize caixa e gasto mensal para calcular runway
+              {tFin("subtitle")}
             </ValkDialogDescription>
           </ValkDialogHeader>
           <div className="hr mt-5" />
@@ -213,20 +216,20 @@ function MetricsEditDialog({
         <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-col gap-4 px-7 py-5">
             <div>
-              <label className="label">Caixa atual</label>
+              <label className="label">{tFin("currentCash")}</label>
               <ValkNumberInput value={cash} onChange={setCash} prefix="R$" step={1000} min={0} disabled={isSaving} />
             </div>
             <div>
-              <label className="label">Gasto mensal médio</label>
+              <label className="label">{tFin("monthlySpend")}</label>
               <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" step={1000} min={0} disabled={isSaving} />
             </div>
           </div>
           <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "20px 28px" }}>
             <div className="flex justify-end gap-2.5">
-              <button type="button" onClick={() => onOpenChange(false)} disabled={isSaving} className="btn subtle" style={{ fontSize: 12 }}>Cancelar</button>
+              <button type="button" onClick={() => onOpenChange(false)} disabled={isSaving} className="btn subtle" style={{ fontSize: 12 }}>{tc("cancel")}</button>
               <button type="submit" disabled={isSaving} className="btn primary" style={{ fontSize: 12 }}>
                 {isSaving && <Loader2 size={14} className="animate-spin" />}
-                Salvar
+                {tc("save")}
               </button>
             </div>
           </div>
@@ -254,6 +257,8 @@ export function DashboardContent({
 }) {
   const [dateStr, setDateStr] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const tDash = useTranslations("dashboard");
+  const tFin = useTranslations("financial");
 
   useEffect(() => {
     setDateStr(format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR }));
@@ -293,7 +298,7 @@ export function DashboardContent({
           </div>
           <div className="flex items-center" style={{ gap: 14, marginTop: 14 }}>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              MRR consolidado
+              {tDash("mrrConsolidated")}
             </span>
             {mrrDelta !== 0 && (
               <span className="mono" style={{ fontSize: 12, color: mrrDelta > 0 ? "var(--status-traction)" : "var(--status-scale)" }}>
