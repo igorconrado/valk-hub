@@ -100,5 +100,14 @@
       "history": "History",
       "reports": "Reports"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bellAriaLabel": "Open notifications",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all",
+    "empty": "No notifications yet.",
+    "allRead": "All notifications read.",
+    "loading": "Loading..."
   }
 }
