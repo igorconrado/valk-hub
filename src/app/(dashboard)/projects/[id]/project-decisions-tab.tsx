@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,6 +58,7 @@ function CreateProjectDecisionDialog({
   users: User[];
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [selectedDeciders, setSelectedDeciders] = useState<string[]>([]);
@@ -102,7 +104,7 @@ function CreateProjectDecisionDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Registrar decisao"
+        title={t("dialogs.registerDecision")}
         subtitle="Documente uma decisao para este produto"
         footer={
           <>

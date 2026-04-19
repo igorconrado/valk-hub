@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -286,6 +287,7 @@ export function MetricsTab({
   projectId: string;
   snapshots: Snapshot[];
 }) {
+  const t = useTranslations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { isAdmin } = useRole();
@@ -346,7 +348,7 @@ export function MetricsTab({
     }));
 
   function handleDelete(snapshotId: string) {
-    if (!confirm("Excluir este snapshot?")) return;
+    if (!confirm(t("confirmations.deleteSnapshot"))) return;
     startTransition(async () => {
       const result = await deleteMetricsSnapshot(snapshotId, projectId);
       if (result.error) toast.error(result.error);

@@ -19,6 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { ValkDropdown, ValkInput } from "@/components/ds";
 import {
   AreaChart,
@@ -294,6 +295,7 @@ export function ReportView({
   );
   const [isPublishing, startPublishTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
+  const t = useTranslations();
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -367,7 +369,7 @@ export function ReportView({
   }
 
   function handleDelete() {
-    if (!confirm("Excluir este relatório permanentemente?")) return;
+    if (!confirm(t("confirmations.deleteReport"))) return;
     startDeleteTransition(async () => {
       toast.success("Relatório excluído.");
       await deleteReport(report.id);
@@ -508,7 +510,7 @@ export function ReportView({
                 {
                   items: [
                     {
-                      label: "Excluir",
+                      label: t("common.delete"),
                       icon: <Trash2 size={13} />,
                       onClick: handleDelete,
                       destructive: true,

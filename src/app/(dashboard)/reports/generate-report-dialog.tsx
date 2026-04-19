@@ -12,6 +12,7 @@ import {
   ValkToggle,
 } from "@/components/ds";
 import type { ValkSelectOption } from "@/components/ds";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { createReport } from "./actions";
 
@@ -102,6 +103,7 @@ export function GenerateReportDialog({
   defaultProjectId?: string;
 }) {
   const router = useRouter();
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -258,7 +260,7 @@ export function GenerateReportDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Gerar relatorio"
+        title={t("dialogs.generateReport")}
         subtitle="Configure o tipo e periodo do relatorio"
         footer={
           generating ? undefined : (

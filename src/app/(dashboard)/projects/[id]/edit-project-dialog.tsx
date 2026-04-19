@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -69,6 +70,7 @@ function StripeSection({
   project: Project;
   configured: boolean;
 }) {
+  const t = useTranslations();
   const [stripeId, setStripeId] = useState(project.stripe_product_id ?? "");
   const [isSaving, startSaveTransition] = useTransition();
 
@@ -120,7 +122,7 @@ function StripeSection({
               {isSaving ? (
                 <Loader2 size={12} className="animate-spin" />
               ) : (
-                "Salvar"
+                t("common.save")
               )}
             </button>
           </div>
@@ -141,6 +143,7 @@ export function EditProjectDialog({
   linearConfig?: LinearSyncConfig;
   stripeConfigured?: boolean;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState(project.logo_url ?? "");
@@ -277,7 +280,7 @@ export function EditProjectDialog({
       <ValkDialog
         open={open}
         onClose={handleClose}
-        title="Editar projeto"
+        title={t("dialogs.editProject")}
         subtitle="Atualize as informacoes do projeto"
         size="lg"
         footer={
@@ -297,7 +300,7 @@ export function EditProjectDialog({
               className="flex items-center gap-2 rounded-lg bg-[#E24B4A] px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-150 hover:bg-[#D4403F] hover:[box-shadow:0_4px_20px_rgba(226,75,74,0.2)] disabled:opacity-70"
             >
               {isPending && <Loader2 size={14} className="animate-spin" />}
-              Salvar
+              {t("common.save")}
             </button>
           </>
         }

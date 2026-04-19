@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -31,6 +32,7 @@ export function CreateDocumentDialog({
   children: React.ReactNode;
   defaultProjectId?: string;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
@@ -84,7 +86,7 @@ export function CreateDocumentDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Novo documento"
+        title={t("dialogs.newDoc")}
         subtitle="Crie um documento para a base de conhecimento"
         footer={
           <>

@@ -329,6 +329,7 @@ export function TaskDetailDialog({
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
+  const t = useTranslations();
   const tc = useTranslations("common");
   const tK = useTranslations("kanban");
   const tP = useTranslations("tasks.priorities");
@@ -571,13 +572,13 @@ export function TaskDetailDialog({
                       <InlineSelect
                         label="Responsavel"
                         value={task.assignee_id}
-                        displayValue={task.assignee ? (task.assignee as { name: string }).name : "Sem responsavel"}
+                        displayValue={task.assignee ? (task.assignee as { name: string }).name : tTasks("noAssignee")}
                         options={assigneeOptions}
                         onChange={(v) => handleFieldUpdate("assignee_id", v)}
                         canEdit={canEdit}
                       />
                       <InlineSelect
-                        label="Produto"
+                        label={t("fields.product")}
                         value={task.project_id ?? ""}
                         displayValue={(task.project as { name: string } | null)?.name ?? "Empresa"}
                         options={projectOptions}
@@ -661,7 +662,7 @@ export function TaskDetailDialog({
                             task.description ? "whitespace-pre-wrap text-[#999]" : "text-[#333] italic"
                           } ${canEdit ? "cursor-text transition-colors hover:bg-white/[0.02]" : ""}`}
                         >
-                          {task.description || "Adicionar descricao..."}
+                          {task.description || tTasks("addDescription")}
                         </div>
                       )}
                     </div>

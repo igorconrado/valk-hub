@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { ValkDropdown, type ValkDropdownSection } from "@/components/ds";
 import { useRole } from "@/lib/hooks/use-role";
 import { RoleGate } from "@/components/role-gate";
@@ -142,6 +143,7 @@ export function DocumentView({
   );
   const [versionPanelOpen, setVersionPanelOpen] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const t = useTranslations();
   const { isAdmin, isOperator, isStakeholder } = useRole();
   const canEdit = isAdmin || isOperator;
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -216,7 +218,7 @@ export function DocumentView({
   }
 
   function handleDelete() {
-    if (!confirm("Excluir este documento permanentemente?")) return;
+    if (!confirm(t("confirmations.deleteDoc"))) return;
     startDeleteTransition(async () => {
       toast.success("Documento excluido.");
       await deleteDocument(doc.id);
@@ -350,7 +352,7 @@ export function DocumentView({
                 {
                   items: [
                     {
-                      label: "Excluir",
+                      label: t("common.delete"),
                       icon: <Trash2 size={13} />,
                       onClick: handleDelete,
                       destructive: true,
