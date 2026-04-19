@@ -18,7 +18,6 @@ import {
   Settings,
   Search,
   ChevronRight,
-  ChevronDown,
   Bell,
 } from "lucide-react";
 import { Avatar, ValkDropdown } from "@/components/ds";
@@ -44,33 +43,6 @@ const navItems: { key: NavKey; icon: typeof LayoutDashboard; href: string }[] = 
   { key: "people", icon: Users, href: "/people" },
 ];
 
-/* ─── Workspace Pill ─── */
-function WorkspacePill() {
-  return (
-    <div className="mx-3 mt-4 mb-6">
-      <button
-        onClick={() => console.log("workspace dropdown: todo")}
-        className="flex w-full items-center gap-3 rounded-xl border border-[#1A1A1A] bg-[#0D0D0D] p-3 transition-all hover:border-[#2A2A2A]"
-      >
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-          style={{ background: "linear-gradient(135deg, #E24B4A, #A32D2D)" }}
-        >
-          <span className="font-display text-base font-bold text-white">V</span>
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-            VALK Software
-          </span>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            venture builder
-          </span>
-        </div>
-      </button>
-    </div>
-  );
-}
-
 /* ─── Nav Items ─── */
 function NavItems({
   pathname,
@@ -82,7 +54,7 @@ function NavItems({
   const t = useTranslations("nav");
 
   return (
-    <nav style={{ padding: "4px 12px", flex: 1, overflow: "auto" }}>
+    <nav style={{ padding: "4px 12px", paddingTop: 8, flex: 1, overflow: "auto" }}>
       <div className="label" style={{ padding: "10px 10px 6px" }}>
         Workspace
       </div>
@@ -265,7 +237,6 @@ function Sidebar() {
       }}
     >
       <SidebarBrand />
-      <WorkspacePill />
       <NavItems pathname={pathname} />
       <SidebarUser />
     </aside>
@@ -294,7 +265,6 @@ function MobileSidebar() {
       >
         <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
         <SidebarBrand />
-        <WorkspacePill />
         <NavItems pathname={pathname} onNavigate={() => setOpen(false)} />
         <SidebarUser />
       </SheetContent>
