@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { saveNotificationPreferences, savePreferences } from "./actions";
 
 type User = {
@@ -73,6 +75,7 @@ function Toggle({
 }
 
 function ProfileSection({ user }: { user: User }) {
+  const tc = useTranslations("common");
   const initials = user.name
     .split(" ")
     .map((n) => n[0])
@@ -110,7 +113,7 @@ function ProfileSection({ user }: { user: User }) {
           href={`/people/${user.id}`}
           className="shrink-0 rounded-lg border border-[#222] px-3 py-1.5 text-[11px] text-[#888] transition-all duration-150 hover:border-[#333] hover:bg-white/[0.02] hover:text-[#ccc]"
         >
-          Editar
+          {tc("edit")}
         </Link>
       </div>
     </div>
@@ -168,6 +171,7 @@ function PreferencesSection({
   defaultTaskView: string;
   timezone: string;
 }) {
+  const tTasks = useTranslations("tasks");
   const [view, setView] = useState(defaultTaskView);
   const [tz, setTz] = useState(timezone);
   const [isSaving, startTransition] = useTransition();
@@ -207,7 +211,7 @@ function PreferencesSection({
                   : "text-[#555] hover:text-[#888]"
               }`}
             >
-              Lista
+              {tTasks("list")}
             </button>
             <button
               onClick={() => handleViewChange("kanban")}
@@ -218,7 +222,7 @@ function PreferencesSection({
                   : "text-[#555] hover:text-[#888]"
               }`}
             >
-              Kanban
+              {tTasks("kanban")}
             </button>
           </div>
         </div>
@@ -239,6 +243,46 @@ function PreferencesSection({
             ))}
           </select>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LocaleSection() {
+  const router = useRouter();
+
+  function handleLocaleChange(newLocale: string) {
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
+    router.refresh();
+  }
+
+  // Read current locale from cookie
+  const current =
+    typeof document !== "undefined"
+      ? (document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("NEXT_LOCALE="))
+          ?.split("=")[1] ?? "pt-BR")
+      : "pt-BR";
+
+  const [locale, setLocale] = useState(current);
+
+  return (
+    <div className={sectionClass}>
+      <h2 className={sectionTitle}>Idioma / Language</h2>
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-[13px] text-[#ddd]">Idioma / Language</span>
+        <select
+          value={locale}
+          onChange={(e) => {
+            setLocale(e.target.value);
+            handleLocaleChange(e.target.value);
+          }}
+          className="appearance-none rounded-lg border border-[#1A1A1A] bg-[#050505] px-3 py-1.5 text-[11px] text-[#888] outline-none transition-colors focus:border-[#333]"
+        >
+          <option value="pt-BR">Portugues (BR)</option>
+          <option value="en">English</option>
+        </select>
       </div>
     </div>
   );
@@ -285,6 +329,7 @@ export function SettingsView({
         defaultTaskView={defaultTaskView}
         timezone={timezone}
       />
+      <LocaleSection />
       <AboutSection />
     </motion.div>
   );

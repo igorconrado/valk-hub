@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { List, Kanban, Plus, Filter, ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView } from "./task-kanban-view";
@@ -29,32 +30,44 @@ type TaskRow = {
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
 
-const STATUS_OPTIONS: [string, string][] = [
-  ["all", "Todos"],
-  ["backlog", "Backlog"],
-  ["doing", "Doing"],
-  ["on_hold", "On Hold"],
-  ["review", "Review"],
-  ["done", "Done"],
-];
+function useFilterOptions() {
+  const tK = useTranslations("kanban");
+  const tT = useTranslations("tasks.types");
+  const tP = useTranslations("tasks.priorities");
+  const tF = useTranslations("tasks.filters");
 
-const TYPE_OPTIONS: [string, string][] = [
-  ["all", "Todos"],
-  ["dev", "Dev"],
-  ["task", "Task"],
-  ["meeting_prep", "Reunião"],
-  ["research", "Pesquisa"],
-  ["decision", "Decisão"],
-  ["report", "Report"],
-];
+  const STATUS_OPTIONS: [string, string][] = [
+    ["all", tF("all")],
+    ["backlog", tK("backlog")],
+    ["doing", tK("doing")],
+    ["on_hold", tK("onHold")],
+    ["review", tK("review")],
+    ["done", tK("done")],
+  ];
 
-const PRIORITY_OPTIONS: [string, string][] = [
-  ["all", "Todas"],
-  ["urgent", "Urgente"],
-  ["high", "Alta"],
-  ["medium", "Média"],
-  ["low", "Baixa"],
-];
+  const TYPE_OPTIONS: [string, string][] = [
+    ["all", tF("all")],
+    ["dev", tT("dev")],
+    ["task", tT("task")],
+    ["meeting_prep", tT("meeting_prep")],
+    ["research", tT("research")],
+    ["decision", tT("decision")],
+    ["report", tT("report")],
+    ["growth", tT("growth")],
+    ["design", tT("design")],
+    ["ops", tT("ops")],
+  ];
+
+  const PRIORITY_OPTIONS: [string, string][] = [
+    ["all", tF("all")],
+    ["urgent", tP("urgent")],
+    ["high", tP("high")],
+    ["medium", tP("medium")],
+    ["low", tP("low")],
+  ];
+
+  return { STATUS_OPTIONS, TYPE_OPTIONS, PRIORITY_OPTIONS };
+}
 
 /* ─── FilterPill (matches handoff) ─── */
 function FilterPill({
@@ -194,6 +207,9 @@ export function TasksContent({
   projects: FilterProject[];
   users: FilterUser[];
 }) {
+  const t = useTranslations("tasks");
+  const tF = useTranslations("tasks.filters");
+  const { STATUS_OPTIONS, TYPE_OPTIONS, PRIORITY_OPTIONS } = useFilterOptions();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [filterProject, setFilterProject] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -214,13 +230,13 @@ export function TasksContent({
   }
 
   const projectOptions: [string, string][] = [
-    ["all", "Todos"],
+    ["all", tF("all")],
     ["company", "Empresa"],
     ...projects.map((p) => [p.id, p.name] as [string, string]),
   ];
 
   const assigneeOptions: [string, string][] = [
-    ["all", "Todos"],
+    ["all", tF("all")],
     ...users.map((u) => [u.id, u.name] as [string, string]),
   ];
 
@@ -257,14 +273,14 @@ export function TasksContent({
             value={view}
             onChange={handleViewChange}
             options={[
-              { value: "list", label: "Lista", icon: <List size={12} /> },
-              { value: "kanban", label: "Kanban", icon: <Kanban size={12} /> },
+              { value: "list", label: t("list"), icon: <List size={12} /> },
+              { value: "kanban", label: t("kanban"), icon: <Kanban size={12} /> },
             ]}
           />
           <CreateTaskDialog projects={projects} users={users}>
             <button className="btn primary">
               <Plus size={13} strokeWidth={2.5} />
-              Nova task
+              {t("newTask")}
             </button>
           </CreateTaskDialog>
         </div>
@@ -273,11 +289,11 @@ export function TasksContent({
       {/* Filters */}
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>
         <Filter size={13} style={{ color: "var(--text-muted)" }} />
-        <FilterPill label="Produto" value={filterProject} options={projectOptions} onChange={setFilterProject} />
-        <FilterPill label="Status" value={filterStatus} options={STATUS_OPTIONS} onChange={setFilterStatus} />
-        <FilterPill label="Tipo" value={filterType} options={TYPE_OPTIONS} onChange={setFilterType} />
-        <FilterPill label="Responsável" value={filterAssignee} options={assigneeOptions} onChange={setFilterAssignee} />
-        <FilterPill label="Prioridade" value={filterPriority} options={PRIORITY_OPTIONS} onChange={setFilterPriority} />
+        <FilterPill label={tF("product")} value={filterProject} options={projectOptions} onChange={setFilterProject} />
+        <FilterPill label={tF("status")} value={filterStatus} options={STATUS_OPTIONS} onChange={setFilterStatus} />
+        <FilterPill label={tF("type")} value={filterType} options={TYPE_OPTIONS} onChange={setFilterType} />
+        <FilterPill label={tF("assignee")} value={filterAssignee} options={assigneeOptions} onChange={setFilterAssignee} />
+        <FilterPill label={tF("priority")} value={filterPriority} options={PRIORITY_OPTIONS} onChange={setFilterPriority} />
       </div>
 
       {/* Content */}

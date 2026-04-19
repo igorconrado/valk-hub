@@ -6,6 +6,7 @@ import { X, ExternalLink, Check } from "lucide-react";
 import { formatDistanceToNow, isPast, parseISO, format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { useRole } from "@/lib/hooks/use-role";
 import { Avatar } from "@/components/ds";
 import { getTaskDetail, updateTaskField, resolveTaskBlock } from "./actions";
@@ -14,30 +15,34 @@ import { getActionText } from "@/lib/activity-text";
 
 type TaskDetail = NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
 
-const statusOptions = [
-  { value: "backlog", label: "Backlog", color: "#444" },
-  { value: "doing", label: "Doing", color: "#3B82F6" },
-  { value: "on_hold", label: "On Hold", color: "#F59E0B" },
-  { value: "review", label: "Review", color: "#8B5CF6" },
-  { value: "done", label: "Done", color: "#10B981" },
-  { value: "cancelled", label: "Cancelled", color: "#666" },
-];
+function useDetailLabels() {
+  const tK = useTranslations("kanban");
+  const tP = useTranslations("tasks.priorities");
+  const tT = useTranslations("tasks.types");
 
-const priorityOptions = [
-  { value: "low", label: "Baixa", color: "#444" },
-  { value: "medium", label: "Media", color: "#3B82F6" },
-  { value: "high", label: "Alta", color: "#F59E0B" },
-  { value: "urgent", label: "Urgente", color: "#E24B4A" },
-];
+  const statusOptions = [
+    { value: "backlog", label: tK("backlog"), color: "#444" },
+    { value: "doing", label: tK("doing"), color: "#3B82F6" },
+    { value: "on_hold", label: tK("onHold"), color: "#F59E0B" },
+    { value: "review", label: tK("review"), color: "#8B5CF6" },
+    { value: "done", label: tK("done"), color: "#10B981" },
+    { value: "cancelled", label: "Cancelled", color: "#666" },
+  ];
 
-const typeLabels: Record<string, string> = {
-  dev: "Dev",
-  task: "Task",
-  meeting_prep: "Reuniao",
-  report: "Report",
-  research: "Pesquisa",
-  decision: "Decisao",
-};
+  const priorityOptions = [
+    { value: "low", label: tP("low"), color: "#444" },
+    { value: "medium", label: tP("medium"), color: "#3B82F6" },
+    { value: "high", label: tP("high"), color: "#F59E0B" },
+    { value: "urgent", label: tP("urgent"), color: "#E24B4A" },
+  ];
+
+  const getTypeLabel = (type: string) => {
+    const keys = ["dev", "task", "meeting_prep", "report", "research", "decision", "growth", "design", "ops"];
+    return keys.includes(type) ? tT(type as keyof IntlMessages["tasks"]["types"]) : type;
+  };
+
+  return { statusOptions, priorityOptions, getTypeLabel };
+}
 
 function DropdownPill({
   options,
@@ -178,6 +183,8 @@ export function TaskDetailPanel({
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
+  const tc = useTranslations("common");
+  const { statusOptions, priorityOptions, getTypeLabel } = useDetailLabels();
 
   const fetchData = useCallback(async (id: string) => {
     setLoading(true);
@@ -349,7 +356,7 @@ export function TaskDetailPanel({
                       canEdit={canEdit}
                     />
                     <span className="inline-flex items-center rounded-full border border-[#1A1A1A] bg-[#0F0F0F] px-2 py-0.5 text-[10px] font-medium text-[#555]">
-                      {typeLabels[task.type] ?? task.type}
+                      {getTypeLabel(task.type)}
                     </span>
                   </div>
 
@@ -486,13 +493,13 @@ export function TaskDetailPanel({
                             }}
                             className="text-[11px] text-[#444] transition-colors hover:text-[#888]"
                           >
-                            Cancelar
+                            {tc("cancel")}
                           </button>
                           <button
                             onClick={handleDescSave}
                             className="rounded-md bg-[#E24B4A] px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-[#D4403F]"
                           >
-                            Salvar
+                            {tc("save")}
                           </button>
                         </div>
                       </div>
