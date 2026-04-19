@@ -13,7 +13,9 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar } from "@/components/ds";
-import { TYPE_COLORS, PRIORITY_COLORS } from "@/lib/task-colors";
+import { TYPE_COLORS } from "@/lib/task-colors";
+import { getInitials } from "@/lib/color-hash";
+import { PriorityChip } from "./PriorityChip";
 
 interface TaskCardProps {
   task: {
@@ -35,21 +37,11 @@ interface TaskCardProps {
   onClick: () => void;
 }
 
-function makeInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
 export function TaskCard({ task, onClick }: TaskCardProps) {
   const tTypes = useTranslations("tasks.types");
   const tKanban = useTranslations("kanban");
 
   const typeColor = TYPE_COLORS[task.type] ?? { bg: "rgba(107,114,128,0.12)", text: "#9CA3AF" };
-  const priorityColor = PRIORITY_COLORS[task.priority] ?? "#6B7280";
 
   const typeKeys = ["dev", "task", "meeting_prep", "report", "research", "decision", "growth", "design", "ops"];
   const typeLabel = typeKeys.includes(task.type)
@@ -117,10 +109,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
       {/* Top row */}
       <div className="flex items-center gap-2">
-        <div
-          className="h-2 w-2 shrink-0 rounded-full"
-          style={{ background: priorityColor }}
-        />
+        <PriorityChip priority={task.priority} />
         <span
           className="font-mono text-[11px] text-[#555]"
           style={{ letterSpacing: "0.02em" }}
@@ -172,7 +161,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           <Avatar
             user={{
               name: task.assignee.name,
-              initials: makeInitials(task.assignee.name),
+              initials: getInitials(task.assignee.name),
               color: "#555",
               avatar_url: task.assignee.avatar_url,
             }}
