@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView, type KanbanTask } from "./task-kanban-view";
-import { TaskDetailPanel } from "./task-detail-panel";
+import { TaskDetailDialog } from "@/components/tasks/TaskDetailDialog";
 
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
@@ -293,7 +293,7 @@ export function TasksContent({
         <TaskKanbanView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
       )}
 
-      <TaskDetailPanel taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
+      <TaskDetailDialog taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
     </div>
   );
 }

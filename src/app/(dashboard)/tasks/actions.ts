@@ -321,6 +321,36 @@ export async function getTaskDetail(taskId: string) {
 
     if (!task) return null;
 
+    // Fetch subtasks if this is a root task (parent_task_id IS NULL)
+    const isRoot = !(task as Record<string, unknown>).parent_task_id;
+    let subtasks: {
+      id: string;
+      title: string;
+      status: string;
+      display_id: string;
+      assignee_id: string | null;
+      assignee: { id: string; name: string; avatar_url: string | null } | null;
+    }[] = [];
+
+    if (isRoot) {
+      const { data: subs } = await supabase
+        .from("tasks")
+        .select(
+          "id, title, status, display_id, assignee_id, assignee:users!assignee_id(id, name, avatar_url)"
+        )
+        .eq("parent_task_id", taskId)
+        .order("created_at", { ascending: true });
+
+      subtasks = (subs ?? []).map((s) => ({
+        id: s.id,
+        title: s.title,
+        status: s.status,
+        display_id: ((s as Record<string, unknown>).display_id as string) ?? s.id.slice(0, 7),
+        assignee_id: s.assignee_id,
+        assignee: Array.isArray(s.assignee) ? s.assignee[0] ?? null : s.assignee,
+      }));
+    }
+
     const { data: blocks } = await supabase
       .from("task_blocks")
       .select(
@@ -348,7 +378,13 @@ export async function getTaskDetail(taskId: string) {
       .order("name");
 
     return {
-      task,
+      task: {
+        ...task,
+        display_id: (task as Record<string, unknown>).display_id as string | undefined,
+        parent_task_id: (task as Record<string, unknown>).parent_task_id as string | null,
+        ready_to_advance: (task as Record<string, unknown>).ready_to_advance as boolean | null,
+      },
+      subtasks,
       blocks: blocks ?? [],
       activities: activities ?? [],
       projects: projects ?? [],
@@ -459,6 +495,93 @@ export async function createTaskBlock(
         });
       }
     }
+
+    revalidatePath("/tasks");
+    return { error: null };
+  } catch (err) {
+    return { error: formatActionError(err) };
+  }
+}
+
+// --- Create subtask ---
+
+export async function createSubtask(parentTaskId: string, title: string) {
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
+
+    const { data: parent } = await supabase
+      .from("tasks")
+      .select("project_id, assignee_id")
+      .eq("id", parentTaskId)
+      .single();
+
+    if (!parent) return { error: "Task pai nao encontrada" };
+
+    const { error } = await supabase.from("tasks").insert({
+      title,
+      parent_task_id: parentTaskId,
+      type: "task",
+      status: "backlog",
+      priority: "medium",
+      project_id: parent.project_id,
+      assignee_id: parent.assignee_id,
+      created_by: dbUser.id,
+    });
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/tasks");
+    return { error: null };
+  } catch (err) {
+    return { error: formatActionError(err) };
+  }
+}
+
+// --- Toggle subtask status (backlog <-> done) ---
+
+export async function toggleSubtaskStatus(subtaskId: string) {
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
+
+    const { data: subtask } = await supabase
+      .from("tasks")
+      .select("status")
+      .eq("id", subtaskId)
+      .single();
+
+    if (!subtask) return { error: "Subtask nao encontrada" };
+
+    const newStatus = subtask.status === "done" ? "backlog" : "done";
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", subtaskId);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/tasks");
+    return { error: null };
+  } catch (err) {
+    return { error: formatActionError(err) };
+  }
+}
+
+// --- Delete subtask ---
+
+export async function deleteSubtask(subtaskId: string) {
+  try {
+    const { supabase, dbUser, error: authError } = await getAuthUser();
+    if (authError || !dbUser) return { error: authError };
+
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", subtaskId);
+
+    if (error) return { error: error.message };
 
     revalidatePath("/tasks");
     return { error: null };
