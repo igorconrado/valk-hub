@@ -22,7 +22,7 @@ function Stat({ label, count, color }: { label: string; count: number; color: st
 
 export function TriageSummaryCard(props: TriageSummaryProps) {
   return (
-    <DashboardCard title="Triagem da semana">
+    <DashboardCard title="Triagem da semana" action={{ label: "Abrir triagem", href: "/triage" }}>
       <div className="grid grid-cols-2 gap-3">
         <Stat label="Escalar" count={props.scaleCount} color="#10B981" />
         <Stat label="Em risco" count={props.atRiskCount} color="#F59E0B" />

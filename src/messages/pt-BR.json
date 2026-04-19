@@ -16,7 +16,9 @@
     "docs": "Docs",
     "meetings": "Reuniões",
     "reports": "Relatórios",
-    "people": "Pessoas"
+    "people": "Pessoas",
+    "triage": "Triagem",
+    "financial": "Financeiro"
   },
   "kanban": {
     "backlog": "BACKLOG",

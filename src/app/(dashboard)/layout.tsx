@@ -9,11 +9,13 @@ import { SearchCommandPalette } from "@/components/search/SearchCommandPalette";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   LayoutDashboard,
+  Scale,
   FolderKanban,
   CheckSquare,
   FileText,
   BarChart3,
   Video,
+  Banknote,
   Users,
   LogOut,
   Menu,
@@ -32,15 +34,17 @@ import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { OnboardingWizard } from "./onboarding-wizard";
 
-type NavKey = "dashboard" | "projects" | "tasks" | "docs" | "meetings" | "reports" | "people";
+type NavKey = "dashboard" | "triage" | "projects" | "tasks" | "docs" | "meetings" | "reports" | "financial" | "people";
 
 const navItems: { key: NavKey; icon: typeof LayoutDashboard; href: string }[] = [
   { key: "dashboard", icon: LayoutDashboard, href: "/" },
+  { key: "triage", icon: Scale, href: "/triage" },
   { key: "projects", icon: FolderKanban, href: "/projects" },
   { key: "tasks", icon: CheckSquare, href: "/tasks" },
   { key: "docs", icon: FileText, href: "/docs" },
   { key: "meetings", icon: Video, href: "/meetings" },
   { key: "reports", icon: BarChart3, href: "/reports" },
+  { key: "financial", icon: Banknote, href: "/financeiro" },
   { key: "people", icon: Users, href: "/people" },
 ];
 
