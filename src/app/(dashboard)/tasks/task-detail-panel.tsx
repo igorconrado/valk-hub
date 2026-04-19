@@ -183,6 +183,7 @@ export function TaskDetailPanel({
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
+  const t = useTranslations();
   const tc = useTranslations("common");
   const { statusOptions, priorityOptions, getTypeLabel } = useDetailLabels();
 
@@ -375,14 +376,14 @@ export function TaskDetailPanel({
                       displayValue={
                         task.assignee
                           ? task.assignee.name
-                          : "Sem responsavel"
+                          : t("tasks.noAssignee")
                       }
                       options={assigneeOptions}
                       onChange={(v) => handleFieldUpdate("assignee_id", v)}
                       canEdit={canEdit}
                     />
                     <InlineSelect
-                      label="Produto"
+                      label={t("fields.product")}
                       value={task.project_id ?? ""}
                       displayValue={task.project?.name ?? "Empresa"}
                       options={projectOptions}
@@ -516,7 +517,7 @@ export function TaskDetailPanel({
                             : ""
                         }`}
                       >
-                        {task.description || "Adicionar descricao..."}
+                        {task.description || t("tasks.addDescription")}
                       </div>
                     )}
                   </div>

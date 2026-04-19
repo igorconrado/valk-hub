@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -163,6 +164,7 @@ export function EditProfileDialog({
   isAdmin: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [avatarUrl, setAvatarUrl] = useState(person.avatar_url ?? "");
@@ -208,7 +210,7 @@ export function EditProfileDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Editar perfil"
+        title={t("dialogs.editProfile")}
         subtitle="Atualize as informacoes do perfil"
         footer={
           <>

@@ -7,7 +7,13 @@
     "create": "Criar",
     "close": "Fechar",
     "loading": "Carregando...",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "add": "Adicionar",
+    "back": "Voltar",
+    "viewAll": "Ver todas",
+    "search": "Buscar",
+    "none": "Nenhum",
+    "noneFem": "Nenhuma"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -33,6 +39,10 @@
     "newTask": "Nova task",
     "list": "Lista",
     "kanban": "Kanban",
+    "noTasks": "Nenhuma task encontrada com esses filtros.",
+    "addDescription": "Adicionar descricao...",
+    "noAssignee": "Sem responsavel",
+    "taskDetails": "Detalhes da task...",
     "filters": {
       "label": "Filtros",
       "product": "Produto",
@@ -62,6 +72,49 @@
     "subtasks": "Subtasks",
     "addSubtask": "Adicionar subtask"
   },
+  "fields": {
+    "title": "Título",
+    "description": "Descrição",
+    "date": "Data",
+    "dueDate": "Data limite",
+    "status": "Status",
+    "priority": "Prioridade",
+    "type": "Tipo",
+    "name": "Nome",
+    "email": "Email",
+    "tags": "Tags",
+    "assignee": "Responsável",
+    "product": "Produto"
+  },
+  "empty": {
+    "noDocs": "Nenhum documento ainda.",
+    "noProjects": "Nenhum projeto cadastrado.",
+    "noTasks": "Nenhuma task encontrada.",
+    "noMeetings": "Nenhuma reunião agendada.",
+    "noReports": "Nenhum relatório gerado.",
+    "noDecisions": "Nenhuma decisão registrada.",
+    "noResults": "Nenhum resultado encontrado.",
+    "createFirstDoc": "Criar primeiro doc",
+    "createFirstProject": "Criar primeiro produto"
+  },
+  "confirmations": {
+    "deleteDoc": "Excluir este documento permanentemente?",
+    "deleteReport": "Excluir este relatório permanentemente?",
+    "deleteSnapshot": "Excluir este snapshot?"
+  },
+  "dialogs": {
+    "newDoc": "Novo documento",
+    "newProject": "Novo produto",
+    "newMeeting": "Nova reunião",
+    "editProject": "Editar projeto",
+    "editProfile": "Editar perfil",
+    "inviteUser": "Convidar ao time",
+    "addMember": "Adicionar membro",
+    "registerDecision": "Registrar decisão",
+    "generateReport": "Gerar relatório",
+    "blockTask": "Bloquear task",
+    "cancelMeeting": "Cancelar reunião"
+  },
   "dashboard": {
     "mrrConsolidated": "MRR consolidado",
     "editMrr": "Editar MRR"
@@ -78,6 +131,9 @@
     "placeholder": "Buscar tasks, docs, reuniões, projetos, pessoas...",
     "emptyState": "Digite pra buscar tasks, docs, reuniões, projetos ou pessoas",
     "noResults": "Nada encontrado pra \"{query}\"",
+    "searchPlaceholder": "Buscar...",
+    "searchByName": "Buscar por nome...",
+    "searchDocs": "Buscar em todos os documentos...",
     "footer": {
       "navigate": "navegar",
       "open": "abrir",

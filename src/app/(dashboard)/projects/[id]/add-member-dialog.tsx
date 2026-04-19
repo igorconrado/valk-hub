@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -26,6 +27,7 @@ export function AddMemberDialog({
   availableUsers: AvailableUser[];
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function AddMemberDialog({
       <ValkDialog
         open={open}
         onClose={handleClose}
-        title="Adicionar membro"
+        title={t("dialogs.addMember")}
         subtitle="Selecione um usuário para adicionar ao projeto"
         footer={
           <>
@@ -109,7 +111,7 @@ export function AddMemberDialog({
                 setSearch(e.target.value);
                 setSelectedUserId(null);
               }}
-              placeholder="Buscar por nome..."
+              placeholder={t("search.searchByName")}
             />
 
             {/* User list */}

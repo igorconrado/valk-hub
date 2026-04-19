@@ -32,6 +32,7 @@ import {
   ValkSelect,
   type ValkSelectOption,
 } from "@/components/ds";
+import { useTranslations } from "next-intl";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { DocumentEditor } from "@/components/editor/document-editor";
@@ -273,6 +274,7 @@ function CreateDecisionDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const t = useTranslations();
   const [selectedDeciders, setSelectedDeciders] = useState<string[]>([]);
   const [impact, setImpact] = useState("medium");
   const [decTitle, setDecTitle] = useState("");
@@ -285,7 +287,7 @@ function CreateDecisionDialog({
   }
 
   const projectOptions: ValkSelectOption[] = [
-    { value: "", label: "Nenhum" },
+    { value: "", label: t("common.none") },
     ...projects.map((p) => ({ value: p.id, label: p.name })),
   ];
 
@@ -323,7 +325,7 @@ function CreateDecisionDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Registrar decisao"
+        title={t("dialogs.registerDecision")}
         subtitle="Documente uma decisao tomada nesta reuniao"
         footer={
           <>
@@ -597,12 +599,13 @@ function InlineActionItemForm({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const t = useTranslations();
   const [itemTitle, setItemTitle] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
 
   const assigneeOptions: ValkSelectOption[] = [
-    { value: "", label: "Responsável" },
+    { value: "", label: t("fields.assignee") },
     ...users.map((u) => ({ value: u.id, label: u.name })),
   ];
 
@@ -654,7 +657,7 @@ function InlineActionItemForm({
           required
           value={itemTitle}
           onChange={(e) => setItemTitle(e.target.value)}
-          placeholder="Descrição do action item"
+          placeholder={t("fields.description")}
           disabled={isPending}
           autoFocus
         />
@@ -768,6 +771,7 @@ export function MeetingView({
   projects: Project[];
 }) {
   const router = useRouter();
+  const t = useTranslations();
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
   const [isPending, startTransition] = useTransition();
@@ -831,7 +835,7 @@ export function MeetingView({
       sections.push({
         items: [
           {
-            label: "Cancelar reunião",
+            label: t("dialogs.cancelMeeting"),
             icon: <MoreHorizontal size={13} strokeWidth={1.5} />,
             onClick: () => handleStatusChange("cancelled"),
             destructive: true,

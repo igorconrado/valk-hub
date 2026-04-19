@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { CreateDocumentDialog } from "./create-document-dialog";
@@ -106,6 +107,7 @@ export function DocsContent({
   projects: FilterProject[];
   users: FilterUser[];
 }) {
+  const t = useTranslations();
   const [filterProject, setFilterProject] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [filterAuthor, setFilterAuthor] = useState("all");
@@ -202,7 +204,7 @@ export function DocsContent({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar em todos os documentos..."
+          placeholder={t("search.searchDocs")}
           className="w-full rounded-lg border border-[#1A1A1A] bg-[#0A0A0A] py-2.5 pl-10 pr-4 text-[13px] text-[#ddd] placeholder-[#333] outline-none transition-colors duration-150 focus:border-[#E24B4A] focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]"
         />
         {searching && (
@@ -215,7 +217,7 @@ export function DocsContent({
       {/* Filters */}
       <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <FilterSelect
-          label="Produto"
+          label={t("fields.product")}
           value={filterProject}
           options={projectOptions}
           onChange={setFilterProject}
@@ -248,8 +250,8 @@ export function DocsContent({
             />
             <p className="mt-3 text-[13px] text-[#444]">
               {searchQuery
-                ? "Nenhum resultado encontrado."
-                : "Nenhum documento ainda."}
+                ? t("empty.noResults")
+                : t("empty.noDocs")}
             </p>
             {!searchQuery && (
               <CreateDocumentDialog>

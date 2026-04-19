@@ -14,6 +14,7 @@ import {
   ValkSelect,
   type ValkSelectOption,
 } from "@/components/ds";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { createMeeting } from "./actions";
 
@@ -52,6 +53,7 @@ export function CreateMeetingDialog({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -121,7 +123,7 @@ export function CreateMeetingDialog({
   }
 
   const projectOptions: ValkSelectOption[] = [
-    { value: "", label: "Nenhum" },
+    { value: "", label: t("common.none") },
     ...projects.map((p) => ({ value: p.id, label: p.name })),
   ];
 
@@ -159,7 +161,7 @@ export function CreateMeetingDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Nova reuniao"
+        title={t("dialogs.newMeeting")}
         subtitle="Agende uma reuniao e defina os participantes"
         footer={
           <>

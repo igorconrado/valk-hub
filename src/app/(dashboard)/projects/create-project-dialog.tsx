@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -30,6 +31,7 @@ export function CreateProjectDialog({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState("");
@@ -71,7 +73,7 @@ export function CreateProjectDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Novo produto"
+        title={t("dialogs.newProject")}
         subtitle="Adicione um novo produto ao portfólio da VALK"
         footer={
           <>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -26,6 +27,7 @@ export function InviteUserDialog({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [role, setRole] = useState("operator");
@@ -65,7 +67,7 @@ export function InviteUserDialog({
       <ValkDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Convidar ao time"
+        title={t("dialogs.inviteUser")}
         subtitle="Adicione um novo membro à VALK"
         footer={
           <>
