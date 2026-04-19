@@ -71,5 +71,23 @@
     "monthlySpend": "Average monthly spend (R$)",
     "runway": "Runway",
     "months": "months"
+  },
+  "search": {
+    "placeholder": "Search tasks, docs, meetings, projects, people...",
+    "emptyState": "Type to search tasks, docs, meetings, projects or people",
+    "noResults": "Nothing found for \"{query}\"",
+    "footer": {
+      "navigate": "navigate",
+      "open": "open",
+      "close": "close",
+      "results": "results"
+    },
+    "groups": {
+      "task": "Tasks",
+      "project": "Projects",
+      "document": "Docs",
+      "meeting": "Meetings",
+      "user": "People"
+    }
   }
 }

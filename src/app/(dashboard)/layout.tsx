@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { SearchCommandPalette } from "@/components/search/SearchCommandPalette";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -273,7 +274,7 @@ function MobileSidebar() {
 }
 
 /* ─── Topbar ─── */
-function Topbar() {
+function Topbar({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
@@ -349,6 +350,7 @@ function Topbar() {
 
       {/* Center: search bar (desktop only) */}
       <button
+        onClick={onSearchOpen}
         className="hidden items-center transition-all lg:flex"
         style={{
           gap: 10,
@@ -380,7 +382,7 @@ function Topbar() {
             color: "var(--text-tertiary)",
           }}
         >
-          ⌘K
+          {typeof navigator !== "undefined" && /Mac/.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       </button>
 
@@ -415,6 +417,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Global Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-0)" }}>
       <OnboardingWizard />
@@ -423,7 +439,7 @@ export default function DashboardLayout({
         data-print-layout
         className="flex min-h-screen flex-col lg:ml-[240px] lg:h-screen lg:overflow-y-auto"
       >
-        <Topbar />
+        <Topbar onSearchOpen={() => setSearchOpen(true)} />
         <motion.main
           className="mx-auto w-full max-w-[1080px] flex-1 overflow-x-hidden px-4 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-7"
           initial={{ opacity: 0, y: 6 }}
@@ -433,6 +449,7 @@ export default function DashboardLayout({
           {children}
         </motion.main>
       </div>
+      <SearchCommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
