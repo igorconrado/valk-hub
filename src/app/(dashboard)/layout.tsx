@@ -47,50 +47,25 @@ const navItems: { key: NavKey; icon: typeof LayoutDashboard; href: string }[] = 
 /* ─── Workspace Pill ─── */
 function WorkspacePill() {
   return (
-    <div style={{ padding: "0 16px 14px" }}>
+    <div className="mx-3 mt-4 mb-6">
       <button
-        className="flex w-full items-center gap-2.5 rounded-lg border transition-all"
-        style={{
-          padding: "8px 10px",
-          background: "rgba(255,255,255,0.02)",
-          borderColor: "var(--border-subtle)",
-          transition: "all 200ms var(--ease)",
-        }}
+        onClick={() => console.log("workspace dropdown: todo")}
+        className="flex w-full items-center gap-3 rounded-xl border border-[#1A1A1A] bg-[#0D0D0D] p-3 transition-all hover:border-[#2A2A2A]"
       >
-        {/* Gradient V icon */}
         <div
-          className="flex shrink-0 items-center justify-center font-display text-[10px] font-bold text-white"
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: 5,
-            background: "linear-gradient(135deg, #E24B4A 0%, #7a1a1a 100%)",
-          }}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: "linear-gradient(135deg, #E24B4A, #A32D2D)" }}
         >
-          V
+          <span className="font-display text-base font-bold text-white">V</span>
         </div>
-        <div className="min-w-0 flex-1 text-left" style={{ lineHeight: 1.2 }}>
-          <div
-            className="font-sans text-[12px] font-medium"
-            style={{ color: "var(--text-primary)" }}
-          >
+        <div className="flex flex-col items-start">
+          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
             VALK Software
-          </div>
-          <div
-            className="text-[9.5px]"
-            style={{
-              color: "var(--text-muted)",
-              letterSpacing: "0.08em",
-            }}
-          >
+          </span>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
             venture builder
-          </div>
+          </span>
         </div>
-        <ChevronDown
-          size={12}
-          strokeWidth={2}
-          style={{ color: "var(--text-muted)" }}
-        />
       </button>
     </div>
   );
@@ -227,44 +202,27 @@ function SidebarUser() {
   if (!user) return null;
 
   return (
-    <div
-      className="flex items-center"
-      style={{
-        padding: 14,
-        borderTop: "1px solid var(--border-subtle)",
-        gap: 10,
-      }}
-    >
+    <div className="mt-auto flex items-center gap-3 border-t border-[#1A1A1A] px-3 py-3">
       <ValkDropdown
         trigger={
-          <button className="flex w-full items-center" style={{ gap: 10 }}>
-            <UserAvatar name={user.name} size={26} />
-            <div
-              className="min-w-0 flex-1 text-left"
-              style={{ lineHeight: 1.2 }}
-            >
-              <div
-                className="truncate font-sans"
-                style={{
-                  fontSize: 12,
-                  color: "var(--text-primary)",
-                  fontWeight: 500,
-                }}
+          <button className="flex w-full items-center gap-3">
+            <UserAvatar name={user.name} size={32} />
+            <div className="min-w-0 flex-1 text-left flex flex-col gap-1">
+              <span
+                className="truncate font-sans text-sm font-medium leading-tight"
+                style={{ color: "var(--text-primary)" }}
               >
                 {user.name}
-              </div>
-              <div
-                className="truncate"
-                style={{ fontSize: 10, color: "var(--text-muted)" }}
+              </span>
+              <span
+                className="truncate text-xs leading-tight"
+                style={{ color: "var(--text-muted)" }}
               >
                 {user.company_role ?? user.role}
-              </div>
+              </span>
             </div>
-            <span
-              className="btn icon subtle"
-              style={{ opacity: 0.6 }}
-            >
-              <Settings size={14} />
+            <span className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#1A1A1A] bg-[#0D0D0D] transition-colors hover:border-[#2A2A2A]">
+              <Settings size={14} style={{ color: "var(--text-muted)" }} />
             </span>
           </button>
         }

@@ -10,8 +10,10 @@ interface ValkNumberInputProps {
   min?: number
   max?: number
   step?: number
+  decimals?: number
   prefix?: string
   suffix?: string
+  placeholder?: string
   className?: string
   disabled?: boolean
 }
@@ -21,25 +23,72 @@ export function ValkNumberInput({
   onChange,
   min,
   max,
-  step = 1,
+  step,
+  decimals = 0,
   prefix,
   suffix,
+  placeholder,
   className,
   disabled = false,
 }: ValkNumberInputProps) {
+  const resolvedStep = step ?? (decimals > 0 ? 1 / Math.pow(10, decimals) : 1)
+
   const clamp = (n: number) => {
     if (min !== undefined && n < min) return min
     if (max !== undefined && n > max) return max
     return n
   }
 
-  const decrement = () => onChange?.(clamp(value - step))
-  const increment = () => onChange?.(clamp(value + step))
+  const round = (n: number) => {
+    if (decimals <= 0) return Math.round(n)
+    const factor = Math.pow(10, decimals)
+    return Math.round(n * factor) / factor
+  }
+
+  const decrement = () => onChange?.(round(clamp(value - resolvedStep)))
+  const increment = () => onChange?.(round(clamp(value + resolvedStep)))
+
+  const formatDisplay = (v: number): string => {
+    if (decimals > 0) {
+      return v.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+    }
+    return v.toLocaleString("pt-BR")
+  }
+
+  const [inputValue, setInputValue] = React.useState(formatDisplay(value))
+  const [focused, setFocused] = React.useState(false)
+
+  // Sync display when value changes externally (not while user is typing)
+  React.useEffect(() => {
+    if (!focused) {
+      setInputValue(formatDisplay(value))
+    }
+  }, [value, focused, decimals])
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^\d.-]/g, "")
-    const num = parseFloat(raw)
-    if (!isNaN(num)) onChange?.(clamp(num))
+    const raw = e.target.value
+    setInputValue(raw)
+
+    // Parse pt-BR formatted input: "500.000,50" -> 500000.50
+    const cleaned = raw.replace(/[^\d,.-]/g, "")
+    let num: number
+    if (cleaned.includes(",") && cleaned.includes(".")) {
+      num = parseFloat(cleaned.replace(/\./g, "").replace(",", "."))
+    } else if (cleaned.includes(",")) {
+      num = parseFloat(cleaned.replace(",", "."))
+    } else {
+      num = parseFloat(cleaned)
+    }
+
+    if (!isNaN(num)) onChange?.(clamp(round(num)))
+  }
+
+  const handleBlur = () => {
+    setFocused(false)
+    setInputValue(formatDisplay(value))
   }
 
   const btnStyle: React.CSSProperties = {
@@ -88,9 +137,13 @@ export function ValkNumberInput({
         )}
         <input
           type="text"
-          value={value}
+          inputMode="decimal"
+          value={inputValue}
           onChange={handleInput}
+          onFocus={() => setFocused(true)}
+          onBlur={handleBlur}
           disabled={disabled}
+          placeholder={placeholder}
           className="font-mono"
           style={{
             background: "transparent",
