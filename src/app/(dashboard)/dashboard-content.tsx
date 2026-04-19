@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { formatBRL } from "@/lib/format";
 import {
   ValkDialog,
   ValkDialogContent,
@@ -86,13 +87,6 @@ function makeAvatarUser(name: string) {
     initials: name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase(),
     color: "#555",
   };
-}
-
-function formatMrr(value: number): string {
-  if (value >= 1000) {
-    return `R$ ${(value / 1000).toFixed(1).replace(".", ",")}`;
-  }
-  return `R$ ${value.toLocaleString("pt-BR")}`;
 }
 
 /* ─── Pending Item Row (handoff style) ─── */
@@ -217,11 +211,11 @@ function MetricsEditDialog({
           <div className="flex flex-col gap-4 px-7 py-5">
             <div>
               <label className="label">{tFin("currentCash")}</label>
-              <ValkNumberInput value={cash} onChange={setCash} prefix="R$" step={1000} min={0} disabled={isSaving} />
+              <ValkNumberInput value={cash} onChange={setCash} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 500000,00" disabled={isSaving} />
             </div>
             <div>
               <label className="label">{tFin("monthlySpend")}</label>
-              <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" step={1000} min={0} disabled={isSaving} />
+              <ValkNumberInput value={burnRate} onChange={setBurnRate} prefix="R$" decimals={2} step={1000} min={0} placeholder="Ex: 35000,00" disabled={isSaving} />
             </div>
           </div>
           <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "20px 28px" }}>
@@ -282,6 +276,7 @@ export function DashboardContent({
         {/* Left: date + hero MRR */}
         <div>
           <p
+            className="font-mono"
             style={{
               fontSize: 11,
               color: "var(--text-faint)",
@@ -292,10 +287,20 @@ export function DashboardContent({
           >
             {dateStr || "\u00A0"}
           </p>
-          <div className="hero-num">
-            {formatMrr(metrics.totalMrr)}
-            <span style={{ color: "var(--text-muted)", fontSize: "0.5em" }}>k</span>
-          </div>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 68,
+              fontWeight: 700,
+              lineHeight: 0.95,
+              letterSpacing: "-0.04em",
+              color: "var(--text-primary)",
+              fontFeatureSettings: '"tnum", "ss01"',
+              margin: 0,
+            }}
+          >
+            {formatBRL(metrics.totalMrr)}
+          </h1>
           <div className="flex items-center" style={{ gap: 14, marginTop: 14 }}>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
               {tDash("mrrConsolidated")}
@@ -315,7 +320,7 @@ export function DashboardContent({
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-ghost)")}
               >
-                <Pencil size={12} strokeWidth={1.5} />
+                <Pencil size={14} strokeWidth={1.5} />
               </button>
             </RoleGate>
           </div>
