@@ -16,6 +16,7 @@ import { Avatar } from "@/components/ds";
 import { TYPE_COLORS } from "@/lib/task-colors";
 import { getInitials } from "@/lib/color-hash";
 import { PriorityChip } from "./PriorityChip";
+import { SprintBadge } from "./SprintBadge";
 
 interface TaskCardProps {
   task: {
@@ -33,11 +34,13 @@ interface TaskCardProps {
     subtasks_count?: { total: number; done: number };
     comments_count?: number;
     attachments_count?: number;
+    sprint?: { id: string; number: number; name: string; status: string } | null;
   };
   onClick: () => void;
+  showSprintBadge?: boolean;
 }
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
+export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProps) {
   const tTypes = useTranslations("tasks.types");
   const tKanban = useTranslations("kanban");
 
@@ -110,6 +113,9 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       {/* Top row */}
       <div className="flex items-center gap-2">
         <PriorityChip priority={task.priority} />
+        {showSprintBadge && task.sprint && (
+          <SprintBadge sprint={task.sprint} />
+        )}
         <span
           className="font-mono text-[11px] text-[#555]"
           style={{ letterSpacing: "0.02em" }}

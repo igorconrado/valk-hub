@@ -42,9 +42,11 @@ export type KanbanTask = {
   updated_at: string;
   display_id?: string;
   ready_to_advance?: boolean | null;
+  sprint_id?: string | null;
   assignee: { id: string; name: string; avatar_url: string | null } | null;
   project: { id: string; name: string; logo_url: string | null; task_prefix?: string } | null;
   subtasks_count?: { total: number; done: number };
+  sprint?: { id: string; number: number; name: string; status: string } | null;
 };
 
 const COLUMN_DEFS = [
@@ -72,6 +74,7 @@ function toCardTask(task: KanbanTask) {
       ? { name: task.project.name, task_prefix: task.project.task_prefix ?? "" }
       : null,
     subtasks_count: task.subtasks_count,
+    sprint: task.sprint ?? undefined,
   };
 }
 
@@ -79,9 +82,11 @@ function toCardTask(task: KanbanTask) {
 function SortableCard({
   task,
   onTitleClick,
+  showSprintBadge = true,
 }: {
   task: KanbanTask;
   onTitleClick?: (taskId: string) => void;
+  showSprintBadge?: boolean;
 }) {
   const {
     attributes,
@@ -103,6 +108,7 @@ function SortableCard({
       <TaskCard
         task={toCardTask(task)}
         onClick={() => onTitleClick?.(task.id)}
+        showSprintBadge={showSprintBadge}
       />
     </div>
   );
@@ -113,10 +119,12 @@ function DroppableColumn({
   column,
   tasks,
   onTitleClick,
+  showSprintBadge = true,
 }: {
   column: { id: string; label: string };
   tasks: KanbanTask[];
   onTitleClick?: (taskId: string) => void;
+  showSprintBadge?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const statusColor = STATUS_COLORS[column.id] ?? "#6B7280";
@@ -163,7 +171,7 @@ function DroppableColumn({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: i * 0.04 }}
             >
-              <SortableCard task={task} onTitleClick={onTitleClick} />
+              <SortableCard task={task} onTitleClick={onTitleClick} showSprintBadge={showSprintBadge} />
             </motion.div>
           ))}
         </div>
@@ -177,10 +185,12 @@ export function TaskKanbanView({
   tasks,
   users,
   onTaskClick,
+  showSprintBadge = true,
 }: {
   tasks: KanbanTask[];
   users: { id: string; name: string }[];
   onTaskClick?: (taskId: string) => void;
+  showSprintBadge?: boolean;
 }) {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
@@ -273,6 +283,7 @@ export function TaskKanbanView({
               column={col}
               tasks={col.tasks}
               onTitleClick={onTaskClick}
+              showSprintBadge={showSprintBadge}
             />
           ))}
         </div>
