@@ -97,6 +97,59 @@
     "createFirstDoc": "Criar primeiro doc",
     "createFirstProject": "Criar primeiro produto"
   },
+  "projects": {
+    "title": "Projetos",
+    "subtitle": "Portfólio de produtos da venture builder",
+    "newProject": "Novo produto"
+  },
+  "triage": {
+    "title": "Triagem de produtos",
+    "subtitle": "Gate de tração de cada produto. Decisão semanal: escalar, manter ou matar.",
+    "tagHeader": "Triagem · Semanal",
+    "export": "Exportar",
+    "actions": {
+      "scheduleCommittee": "Agendar comitê",
+      "viewCommittee": "Comitê em {days} dias",
+      "enterCommittee": "Entrar no comitê",
+      "resumeCommittee": "Retomar comitê",
+      "committeeToday": "Comitê hoje"
+    },
+    "groups": {
+      "scale": "Escalar",
+      "on_track": "Manter",
+      "at_risk": "Em risco",
+      "kill": "Janela de kill"
+    },
+    "groupTaglines": {
+      "scale": "Tração comprovada — dobrar aposta",
+      "on_track": "Sinal moderado — continuar observando",
+      "at_risk": "Gate estagnado — decidir em janela",
+      "kill": "Sem tração — decisão de matar"
+    },
+    "metrics": {
+      "mrrScaling": "MRR Escalando",
+      "mrrAtRisk": "MRR em Risco",
+      "weekDecisions": "Decisões na Semana",
+      "killRate": "Taxa de Kill",
+      "decisionsDeadline": "deadline ≤ 3 dias"
+    },
+    "scheduleDialog": {
+      "title": "Agendar comitê de triagem",
+      "subtitle": "Define quando os sócios vão se reunir pra decidir os produtos.",
+      "dateLabel": "Data e hora",
+      "durationLabel": "Duração",
+      "durationOptions": {
+        "30min": "30 minutos",
+        "1h": "1 hora",
+        "1h30": "1h30",
+        "2h": "2 horas"
+      },
+      "notesLabel": "Pauta inicial (opcional)",
+      "notesPlaceholder": "Tópicos a revisar antes da reunião...",
+      "confirmCreate": "Agendar",
+      "nextTuesdayDefault": "Próxima terça às 14h"
+    }
+  },
   "confirmations": {
     "deleteDoc": "Excluir este documento permanentemente?",
     "deleteReport": "Excluir este relatório permanentemente?",

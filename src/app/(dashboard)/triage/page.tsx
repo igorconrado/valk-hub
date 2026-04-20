@@ -107,5 +107,35 @@ export default async function TriagePage() {
     };
   });
 
-  return <TriageContent summary={summary} projects={enriched} />;
+  // Fetch active committee
+  let activeCommittee: { id: string; date: string; status: string } | null = null;
+
+  const { data: inProgress } = await supabase
+    .from("meetings")
+    .select("id, date, status")
+    .eq("is_triage_committee", true)
+    .eq("status", "in_progress")
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (inProgress) {
+    activeCommittee = { id: inProgress.id as string, date: inProgress.date as string, status: inProgress.status as string };
+  } else {
+    const { data: nextScheduled } = await supabase
+      .from("meetings")
+      .select("id, date, status")
+      .eq("is_triage_committee", true)
+      .neq("status", "cancelled")
+      .gte("date", new Date().toISOString())
+      .order("date", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (nextScheduled) {
+      activeCommittee = { id: nextScheduled.id as string, date: nextScheduled.date as string, status: nextScheduled.status as string };
+    }
+  }
+
+  return <TriageContent summary={summary} projects={enriched} activeCommittee={activeCommittee} />;
 }

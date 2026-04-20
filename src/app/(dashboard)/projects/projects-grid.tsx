@@ -220,37 +220,6 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
           {filtered.map((project, i) => (
             <ProjectCard key={project.id} project={project} index={i} />
           ))}
-
-          {/* Ghost "new" card */}
-          <CreateProjectDialog>
-            <button
-              className="card flex flex-col items-center justify-center text-center"
-              style={{
-                padding: 22,
-                cursor: "pointer",
-                border: "1px dashed var(--border-default)",
-                background: "transparent",
-                color: "var(--text-muted)",
-                minHeight: 180,
-                gap: 8,
-                transition: "all 200ms",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--primary)";
-                e.currentTarget.style.color = "var(--primary)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--border-default)";
-                e.currentTarget.style.color = "var(--text-muted)";
-              }}
-            >
-              <Plus size={18} strokeWidth={1.5} />
-              <span style={{ fontSize: 12, fontWeight: 500 }}>Novo produto</span>
-              <span style={{ fontSize: 10.5, color: "var(--text-ghost)" }}>
-                começar um novo experimento
-              </span>
-            </button>
-          </CreateProjectDialog>
         </div>
       )}
     </div>
