@@ -1,37 +1,37 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { TriageHero, type TriageSummary } from "@/components/triage/TriageHero";
 import { TriageFilterTabs, type TriageTabValue } from "@/components/triage/TriageFilterTabs";
 import { TriageProductCard, type TriageProject } from "@/components/triage/TriageProductCard";
-import { createClient } from "@/lib/supabase/client";
-
-const GROUP_CONFIG: Record<string, { label: string; color: string; tagline: string }> = {
-  scale: { label: "Escalar", color: "#10B981", tagline: "Tracao comprovada — dobrar aposta" },
-  on_track: { label: "Manter", color: "#3B82F6", tagline: "Sinal moderado — continuar observando" },
-  at_risk: { label: "Em risco", color: "#F59E0B", tagline: "Gate estagnado — decidir em janela" },
-  kill: { label: "Janela de kill", color: "#E24B4A", tagline: "Sem tracao — decisao de matar" },
-};
+import { CommitteeActionButton } from "@/components/triage/CommitteeActionButton";
 
 const GROUP_ORDER = ["scale", "on_track", "at_risk", "kill"];
+const GROUP_COLORS: Record<string, string> = {
+  scale: "#10B981",
+  on_track: "#3B82F6",
+  at_risk: "#F59E0B",
+  kill: "#E24B4A",
+};
 
 export function TriageContent({
   summary,
   projects,
+  activeCommittee,
 }: {
   summary: TriageSummary;
   projects: TriageProject[];
+  activeCommittee: { id: string; date: string; status: string } | null;
 }) {
   const [filter, setFilter] = useState<TriageTabValue>("all");
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
+  const tGroups = useTranslations("triage.groups");
+  const tTaglines = useTranslations("triage.groupTaglines");
 
   const counts: Record<TriageTabValue, number> = {
     all: projects.length,
     scale: projects.filter((p) => p.triage_status === "scale").length,
-    on_track: projects.filter((p) => p.triage_status === "on_track" || p.triage_status === "discovery" || p.triage_status === "mvp").length,
+    on_track: projects.filter((p) => ["on_track", "discovery", "mvp"].includes(p.triage_status)).length,
     at_risk: projects.filter((p) => p.triage_status === "at_risk").length,
     kill: projects.filter((p) => p.triage_status === "kill").length,
   };
@@ -47,47 +47,22 @@ export function TriageContent({
       const items = key === "on_track"
         ? filtered.filter((p) => ["on_track", "discovery", "mvp"].includes(p.triage_status))
         : filtered.filter((p) => p.triage_status === key);
-      return { key, ...GROUP_CONFIG[key], items };
+      return {
+        key,
+        label: tGroups(key as "scale"),
+        color: GROUP_COLORS[key],
+        tagline: tTaglines(key as "scale"),
+        items,
+      };
     })
     .filter((g) => g.items.length > 0);
 
-  function handleOpenCommittee() {
-    startTransition(async () => {
-      const supabase = createClient();
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) { toast.error("Nao autenticado"); return; }
-
-      const { data: dbUser } = await supabase
-        .from("users")
-        .select("id")
-        .eq("auth_id", user.id)
-        .single();
-      if (!dbUser) { toast.error("Usuario nao encontrado"); return; }
-
-      const { data: meeting, error } = await supabase
-        .from("meetings")
-        .insert({
-          type: "biweekly",
-          title: "Comite de triagem",
-          date: new Date().toISOString(),
-          status: "scheduled",
-          created_by: dbUser.id,
-        })
-        .select("id")
-        .single();
-
-      if (error) { toast.error(error.message); return; }
-      toast.success("Comite criado");
-      router.push(`/meetings/${meeting.id}`);
-    });
-  }
-
   return (
     <div className="fadeUp space-y-8">
-      <TriageHero summary={summary} onOpenCommittee={handleOpenCommittee} />
+      <TriageHero
+        summary={summary}
+        committeeAction={<CommitteeActionButton activeCommittee={activeCommittee} />}
+      />
       <TriageFilterTabs value={filter} onChange={setFilter} counts={counts} />
 
       {groups.map((group) => (

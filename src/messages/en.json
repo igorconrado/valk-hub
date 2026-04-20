@@ -97,6 +97,59 @@
     "createFirstDoc": "Create first doc",
     "createFirstProject": "Create first project"
   },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Venture builder product portfolio",
+    "newProject": "New project"
+  },
+  "triage": {
+    "title": "Product triage",
+    "subtitle": "Traction gate for each product. Weekly decision: scale, keep or kill.",
+    "tagHeader": "Triage · Weekly",
+    "export": "Export",
+    "actions": {
+      "scheduleCommittee": "Schedule committee",
+      "viewCommittee": "Committee in {days} days",
+      "enterCommittee": "Enter committee",
+      "resumeCommittee": "Resume committee",
+      "committeeToday": "Committee today"
+    },
+    "groups": {
+      "scale": "Scale",
+      "on_track": "Keep",
+      "at_risk": "At risk",
+      "kill": "Kill window"
+    },
+    "groupTaglines": {
+      "scale": "Proven traction — double down",
+      "on_track": "Moderate signal — keep watching",
+      "at_risk": "Gate stagnant — decide within window",
+      "kill": "No traction — kill decision"
+    },
+    "metrics": {
+      "mrrScaling": "Scaling MRR",
+      "mrrAtRisk": "At-risk MRR",
+      "weekDecisions": "Decisions this week",
+      "killRate": "Kill rate",
+      "decisionsDeadline": "deadline ≤ 3 days"
+    },
+    "scheduleDialog": {
+      "title": "Schedule triage committee",
+      "subtitle": "Set when founders will meet to decide the products.",
+      "dateLabel": "Date and time",
+      "durationLabel": "Duration",
+      "durationOptions": {
+        "30min": "30 minutes",
+        "1h": "1 hour",
+        "1h30": "1h30",
+        "2h": "2 hours"
+      },
+      "notesLabel": "Initial agenda (optional)",
+      "notesPlaceholder": "Topics to review before the meeting...",
+      "confirmCreate": "Schedule",
+      "nextTuesdayDefault": "Next Tuesday at 2pm"
+    }
+  },
   "confirmations": {
     "deleteDoc": "Delete this document permanently?",
     "deleteReport": "Delete this report permanently?",
