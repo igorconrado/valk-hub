@@ -20,7 +20,6 @@ export default async function TasksPage() {
     .select("parent_task_id, status")
     .not("parent_task_id", "is", null);
 
-  // Build subtask count map: parent_task_id -> { total, done }
   const subtaskMap = new Map<string, { total: number; done: number }>();
   if (subtaskAgg) {
     for (const row of subtaskAgg) {
@@ -32,12 +31,34 @@ export default async function TasksPage() {
     }
   }
 
-  // Attach subtask counts to tasks
+  // Fetch sprints
+  const { data: sprints } = await supabase
+    .from("sprints")
+    .select("id, number, name, status, project_id, starts_at, ends_at")
+    .order("project_id", { ascending: true })
+    .order("number", { ascending: true });
+
+  // Build sprint map for quick lookup
+  const sprintMap = new Map<string, { id: string; number: number; name: string; status: string }>();
+  for (const s of sprints ?? []) {
+    sprintMap.set(s.id as string, {
+      id: s.id as string,
+      number: s.number as number,
+      name: s.name as string,
+      status: s.status as string,
+    });
+  }
+
+  // Attach subtask counts and sprint to tasks
   const enriched = (tasks ?? []).map((t) => ({
     ...t,
     display_id: (t as Record<string, unknown>).display_id as string | undefined,
     ready_to_advance: (t as Record<string, unknown>).ready_to_advance as boolean | null,
+    sprint_id: (t as Record<string, unknown>).sprint_id as string | null,
     subtasks_count: subtaskMap.get(t.id) ?? undefined,
+    sprint: (t as Record<string, unknown>).sprint_id
+      ? sprintMap.get((t as Record<string, unknown>).sprint_id as string) ?? null
+      : null,
   }));
 
   const { data: projects } = await supabase
@@ -55,6 +76,13 @@ export default async function TasksPage() {
       tasks={enriched}
       projects={projects ?? []}
       users={users ?? []}
+      sprints={(sprints ?? []).map((s) => ({
+        id: s.id as string,
+        number: s.number as number,
+        name: s.name as string,
+        status: s.status as string,
+        project_id: s.project_id as string,
+      }))}
     />
   );
 }

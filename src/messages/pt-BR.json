@@ -249,6 +249,19 @@
     "noDecisions": "Nenhuma decisão registrada.",
     "noMembers": "Nenhum membro no time ainda."
   },
+  "sprints": {
+    "label": "Sprint",
+    "all": "Todas",
+    "active": "Ativa",
+    "noSprint": "Sem sprint",
+    "status": {
+      "planned": "Planejada",
+      "active": "Ativa",
+      "completed": "Concluída",
+      "cancelled": "Cancelada"
+    },
+    "shortLabel": "S{number}"
+  },
   "notifications": {
     "title": "Notificações",
     "bellAriaLabel": "Abrir notificações",

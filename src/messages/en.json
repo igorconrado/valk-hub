@@ -249,6 +249,19 @@
     "noDecisions": "No decisions registered.",
     "noMembers": "No team members yet."
   },
+  "sprints": {
+    "label": "Sprint",
+    "all": "All",
+    "active": "Active",
+    "noSprint": "No sprint",
+    "status": {
+      "planned": "Planned",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "shortLabel": "S{number}"
+  },
   "notifications": {
     "title": "Notifications",
     "bellAriaLabel": "Open notifications",

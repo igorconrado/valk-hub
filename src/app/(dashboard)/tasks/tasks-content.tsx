@@ -179,20 +179,26 @@ function Segmented({
   );
 }
 
+type Sprint = { id: string; number: number; name: string; status: string; project_id: string };
+
 export function TasksContent({
   tasks,
   projects,
   users,
+  sprints = [],
 }: {
   tasks: KanbanTask[];
   projects: FilterProject[];
   users: FilterUser[];
+  sprints?: Sprint[];
 }) {
   const t = useTranslations("tasks");
   const tF = useTranslations("tasks.filters");
+  const tS = useTranslations("sprints");
   const { STATUS_OPTIONS, TYPE_OPTIONS, PRIORITY_OPTIONS } = useFilterOptions();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [filterProject, setFilterProject] = useState("all");
+  const [filterSprint, setFilterSprint] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [filterAssignee, setFilterAssignee] = useState("all");
@@ -216,20 +222,42 @@ export function TasksContent({
     ...projects.map((p) => [p.id, p.name] as [string, string]),
   ];
 
+  // Sprint options depend on selected project
+  const relevantSprints = filterProject !== "all" && filterProject !== "company"
+    ? sprints.filter((s) => s.project_id === filterProject)
+    : sprints;
+
+  const sprintOptions: [string, string][] = [
+    ["all", tS("all")],
+    ["active", `⚡ ${tS("active")}`],
+    ["none", tS("noSprint")],
+    ...relevantSprints.map((s) => [
+      s.id,
+      s.status === "active" ? `● ${s.name}` : s.name,
+    ] as [string, string]),
+  ];
+
   const assigneeOptions: [string, string][] = [
     ["all", tF("all")],
     ...users.map((u) => [u.id, u.name] as [string, string]),
   ];
 
+  const activeSprintIds = sprints.filter((s) => s.status === "active").map((s) => s.id);
+
   const filtered = tasks.filter((t) => {
     if (filterProject === "company" && t.project_id !== null) return false;
     if (filterProject !== "all" && filterProject !== "company" && t.project_id !== filterProject) return false;
+    if (filterSprint === "active" && !activeSprintIds.includes(t.sprint_id ?? "")) return false;
+    if (filterSprint === "none" && t.sprint_id != null) return false;
+    if (filterSprint !== "all" && filterSprint !== "active" && filterSprint !== "none" && t.sprint_id !== filterSprint) return false;
     if (filterStatus !== "all" && t.status !== filterStatus) return false;
     if (filterType !== "all" && t.type !== filterType) return false;
     if (filterAssignee !== "all" && t.assignee_id !== filterAssignee) return false;
     if (filterPriority !== "all" && t.priority !== filterPriority) return false;
     return true;
   });
+
+  const hideSprintBadge = filterSprint !== "all" && filterSprint !== "active";
 
   const doingCount = tasks.filter((t) => t.status === "doing").length;
   const holdCount = tasks.filter((t) => t.status === "on_hold").length;
@@ -271,6 +299,7 @@ export function TasksContent({
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>
         <Filter size={16} style={{ color: "#444" }} />
         <FilterPill label={tF("product")} value={filterProject} options={projectOptions} onChange={setFilterProject} />
+        <FilterPill label={tS("label")} value={filterSprint} options={sprintOptions} onChange={setFilterSprint} />
         <FilterPill label={tF("status")} value={filterStatus} options={STATUS_OPTIONS} onChange={setFilterStatus} />
         <FilterPill label={tF("type")} value={filterType} options={TYPE_OPTIONS} onChange={setFilterType} />
         <FilterPill label={tF("assignee")} value={filterAssignee} options={assigneeOptions} onChange={setFilterAssignee} />
@@ -290,7 +319,7 @@ export function TasksContent({
           <TaskListView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
         </div>
       ) : (
-        <TaskKanbanView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
+        <TaskKanbanView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} showSprintBadge={!hideSprintBadge} />
       )}
 
       <TaskDetailDialog taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
