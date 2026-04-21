@@ -4,6 +4,7 @@ import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Loader2, Pencil } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -147,26 +148,18 @@ export function FinanceiroContent({ history }: { history: HistoryRow[] }) {
 
   return (
     <div className="fadeUp space-y-8">
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1
-            className="display"
-            style={{ fontSize: 28, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
+      <PageHeader
+        title="Financeiro"
+        subtitle="Saude financeira da empresa"
+        action={
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="btn primary"
           >
-            Financeiro
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            Saude financeira da empresa
-          </p>
-        </div>
-        <button
-          onClick={() => setDialogOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#E24B4A] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#D4403F]"
-        >
-          <Pencil size={14} /> Atualizar
-        </button>
-      </div>
+            <Pencil size={14} strokeWidth={1.5} /> Atualizar
+          </button>
+        }
+      />
 
       {/* Big metrics */}
       {latest ? (

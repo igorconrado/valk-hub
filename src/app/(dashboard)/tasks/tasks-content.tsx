@@ -8,6 +8,7 @@ import { CreateTaskDialog } from "./create-task-dialog";
 import { TaskListView } from "./task-list-view";
 import { TaskKanbanView, type KanbanTask } from "./task-kanban-view";
 import { TaskDetailDialog } from "@/components/tasks/TaskDetailDialog";
+import { PageHeader } from "@/components/page-header";
 
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
@@ -302,36 +303,28 @@ export function TasksContent({
 
   return (
     <div className="fadeUp">
-      {/* Header */}
-      <div className="flex items-end justify-between" style={{ marginBottom: 22 }}>
-        <div>
-          <h1
-            className="display"
-            style={{ fontSize: 28, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            Tasks
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            {filtered.length} de {tasks.length} · {doingCount} em progresso · {holdCount} em espera
-          </p>
-        </div>
-        <div className="flex items-center" style={{ gap: 10 }}>
-          <Segmented
-            value={view}
-            onChange={handleViewChange}
-            options={[
-              { value: "list", label: t("list"), icon: <List size={12} /> },
-              { value: "kanban", label: t("kanban"), icon: <Kanban size={12} /> },
-            ]}
-          />
-          <CreateTaskDialog projects={projects} users={users}>
-            <button className="btn primary">
-              <Plus size={13} strokeWidth={2.5} />
-              {t("newTask")}
-            </button>
-          </CreateTaskDialog>
-        </div>
-      </div>
+      <PageHeader
+        title="Tasks"
+        subtitle={`${filtered.length} de ${tasks.length} · ${doingCount} em progresso · ${holdCount} em espera`}
+        action={
+          <>
+            <Segmented
+              value={view}
+              onChange={handleViewChange}
+              options={[
+                { value: "list", label: t("list"), icon: <List size={12} /> },
+                { value: "kanban", label: t("kanban"), icon: <Kanban size={12} /> },
+              ]}
+            />
+            <CreateTaskDialog projects={projects} users={users}>
+              <button className="btn primary">
+                <Plus size={13} strokeWidth={1.5} />
+                {t("newTask")}
+              </button>
+            </CreateTaskDialog>
+          </>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>

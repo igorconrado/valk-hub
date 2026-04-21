@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ReportsList } from "./reports-list";
 import { NewReportButton } from "./new-report-button";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
@@ -26,13 +27,11 @@ export default async function ReportsPage() {
 
   return (
     <div className="fadeUp">
-      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
-        <div>
-          <h1 className="display" style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>Relatórios</h1>
-          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>{total} relatórios gerados</p>
-        </div>
-        <NewReportButton />
-      </div>
+      <PageHeader
+        title="Relatórios"
+        subtitle={`${total} relatórios gerados`}
+        action={<NewReportButton />}
+      />
       <ReportsList
         reports={(reports as any[]) ?? []}
         projects={projects ?? []}
