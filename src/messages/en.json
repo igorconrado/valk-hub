@@ -269,6 +269,8 @@
     "viewAll": "View all",
     "empty": "No notifications yet.",
     "allRead": "All notifications read.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "unreadOne": "{count} unread",
+    "unreadMany": "{count} unread"
   }
 }

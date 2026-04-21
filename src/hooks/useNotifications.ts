@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useId } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export interface Notification {
@@ -16,6 +16,7 @@ export interface Notification {
 }
 
 export function useNotifications(limit: number = 20) {
+  const channelId = useId();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,7 @@ export function useNotifications(limit: number = 20) {
 
     const supabase = createClient();
     const channel = supabase
-      .channel("notifications-changes")
+      .channel(`notifications-${channelId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications" },
@@ -75,7 +76,7 @@ export function useNotifications(limit: number = 20) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [limit, fetchNotifications]);
+  }, [limit, fetchNotifications, channelId]);
 
   return {
     notifications,

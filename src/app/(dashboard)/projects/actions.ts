@@ -5,6 +5,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLinearClient } from "@/lib/linear/client";
 import { createNotification } from "@/lib/notifications/create";
+import {
+  requireAdmin,
+  requireProjectOwner,
+  requireProjectMember,
+  requireUser,
+} from "@/lib/auth/authz";
 
 type CreateProjectInput = {
   name: string;
@@ -17,25 +23,15 @@ type CreateProjectInput = {
 };
 
 export async function createProject(input: CreateProjectInput) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "Não autenticado" };
-  }
-
-  // Get the users table record for the auth user
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) {
-    return { error: "Usuário não encontrado" };
+  try {
+    const ctx = await requireAdmin();
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
   }
 
   const { data: project, error } = await supabase
@@ -91,24 +87,15 @@ type UpdateProjectInput = {
 };
 
 export async function updateProject(input: UpdateProjectInput) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "Não autenticado" };
-  }
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) {
-    return { error: "Usuário não encontrado" };
+  try {
+    const ctx = await requireProjectOwner(input.id);
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
   }
 
   const { error } = await supabase
@@ -144,21 +131,16 @@ export async function updateProject(input: UpdateProjectInput) {
 }
 
 export async function removeMember(projectId: string, userId: string) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Não autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuário não encontrado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   // Get the member name for the activity log
   const { data: member } = await supabase
@@ -193,21 +175,16 @@ export async function addMember(
   userId: string,
   roleInProject: string
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Não autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuário não encontrado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { data: member } = await supabase
     .from("users")
@@ -255,21 +232,16 @@ export async function addMember(
 }
 
 export async function deleteProject(projectId: string, projectName: string) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Não autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuário não encontrado" };
+  try {
+    const ctx = await requireAdmin();
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   // Delete activity_log entries for this project first
   await supabase
@@ -318,13 +290,14 @@ export async function connectLinearTeam(
   teamId: string,
   teamName: string
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { error } = await supabase.from("linear_sync_config").upsert(
     {
@@ -374,13 +347,14 @@ export async function updateLinearSyncEnabled(
   projectId: string,
   syncEnabled: boolean
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { error } = await supabase
     .from("linear_sync_config")
@@ -394,13 +368,14 @@ export async function updateLinearSyncEnabled(
 }
 
 export async function disconnectLinear(projectId: string) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   // Delete webhook from Linear if exists
   const { data: config } = await supabase
@@ -439,7 +414,13 @@ export async function syncLinearCycles(projectId: string) {
     return { error: null, skipped: true };
   }
 
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  try {
+    const ctx = await requireProjectMember(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão", skipped: false };
+  }
 
   const { data: syncConfig } = await supabase
     .from("linear_sync_config")
@@ -484,21 +465,16 @@ export async function saveMetricsSnapshot(
   date: string,
   data: Record<string, number | null>
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let dbUser: { id: string; role: string };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!dbUser) return { error: "Usuario nao encontrado" };
+  try {
+    const ctx = await requireProjectMember(projectId);
+    supabase = ctx.supabase;
+    dbUser = ctx.dbUser;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { error } = await supabase.from("metrics_snapshots").insert({
     project_id: projectId,
@@ -518,13 +494,14 @@ export async function deleteMetricsSnapshot(
   snapshotId: string,
   projectId: string
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { error } = await supabase
     .from("metrics_snapshots")
@@ -541,13 +518,14 @@ export async function saveStripeProductId(
   projectId: string,
   stripeProductId: string | null
 ) {
-  const supabase = await createClient();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Nao autenticado" };
+  try {
+    const ctx = await requireProjectOwner(projectId);
+    supabase = ctx.supabase;
+  } catch {
+    return { error: "Sem permissão" };
+  }
 
   const { error } = await supabase
     .from("projects")

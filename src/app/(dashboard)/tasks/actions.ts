@@ -9,6 +9,7 @@ import {
 } from "@/lib/linear/sync";
 import { createNotification } from "@/lib/notifications/create";
 import { formatActionError } from "@/lib/action-error";
+import { requireUser, requireAdmin, requireProjectMember } from "@/lib/auth/authz";
 
 type CreateTaskInput = {
   title: string;
@@ -30,13 +31,40 @@ async function getAuthUser() {
 
   const { data: dbUser } = await supabase
     .from("users")
-    .select("id")
+    .select("id, role")
     .eq("auth_id", user.id)
     .single();
 
   if (!dbUser)
     return { supabase, dbUser: null, error: "Usuario nao encontrado" };
   return { supabase, dbUser, error: null };
+}
+
+/** Check authz for a task mutation — returns error string or null. */
+async function checkTaskAuthz(
+  taskId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  dbUser: { id: string; role: string }
+): Promise<string | null> {
+  if (dbUser.role === "admin") return null;
+
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("project_id")
+    .eq("id", taskId)
+    .single();
+
+  if (!task) return "Task não encontrada";
+  if (!task.project_id) return "Sem permissão"; // company tasks = admin only
+
+  const { data: membership } = await supabase
+    .from("project_members")
+    .select("role_in_project")
+    .eq("project_id", task.project_id)
+    .eq("user_id", dbUser.id)
+    .single();
+
+  return membership ? null : "Sem permissão";
 }
 
 async function autoResolveBlocks(
@@ -63,23 +91,20 @@ async function autoResolveBlocks(
 
 export async function createTask(input: CreateTaskInput) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return { error: "Nao autenticado", synced: false };
-
-    const { data: dbUser } = await supabase
-      .from("users")
-      .select("id")
-      .eq("auth_id", user.id)
-      .single();
-
-    if (!dbUser) return { error: "Usuario nao encontrado", synced: false };
-
     const projectId = input.project_id || null;
+
+    // Authz: project tasks require membership; company tasks require admin
+    let supabase: Awaited<ReturnType<typeof createClient>>;
+    let dbUser: { id: string; role: string };
+    try {
+      const ctx = projectId
+        ? await requireProjectMember(projectId)
+        : await requireAdmin();
+      supabase = ctx.supabase;
+      dbUser = ctx.dbUser;
+    } catch {
+      return { error: "Sem permissão", synced: false };
+    }
     const tags = input.tags
       ? input.tags
           .split(",")
@@ -183,6 +208,9 @@ export async function updateTaskField(
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    const authzError = await checkTaskAuthz(taskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
+
     // If changing status from on_hold, auto-resolve blocks
     if (field === "status" && typeof value === "string" && value !== "on_hold") {
       const { data: currentTask } = await supabase
@@ -258,6 +286,17 @@ export async function resolveTaskBlock(blockId: string) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    // Look up the task to check authz
+    const { data: blockData } = await supabase
+      .from("task_blocks")
+      .select("task_id")
+      .eq("id", blockId)
+      .single();
+    if (blockData) {
+      const authzError = await checkTaskAuthz(blockData.task_id, supabase, dbUser);
+      if (authzError) return { error: authzError };
+    }
 
     const { error } = await supabase
       .from("task_blocks")
@@ -402,6 +441,9 @@ export async function updateTaskStatus(taskId: string, status: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    const authzError = await checkTaskAuthz(taskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
+
     // If moving FROM on_hold, auto-resolve blocks
     if (status !== "on_hold") {
       const { data: currentTask } = await supabase
@@ -450,6 +492,9 @@ export async function createTaskBlock(
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    const authzError = await checkTaskAuthz(taskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
 
     const { error: blockError } = await supabase.from("task_blocks").insert({
       task_id: taskId,
@@ -510,6 +555,9 @@ export async function createSubtask(parentTaskId: string, title: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    const authzError = await checkTaskAuthz(parentTaskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
+
     const { data: parent } = await supabase
       .from("tasks")
       .select("project_id, assignee_id")
@@ -545,6 +593,9 @@ export async function toggleSubtaskStatus(subtaskId: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    const authzError = await checkTaskAuthz(subtaskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
+
     const { data: subtask } = await supabase
       .from("tasks")
       .select("status")
@@ -575,6 +626,9 @@ export async function deleteSubtask(subtaskId: string) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    const authzError = await checkTaskAuthz(subtaskId, supabase, dbUser);
+    if (authzError) return { error: authzError };
 
     const { error } = await supabase
       .from("tasks")

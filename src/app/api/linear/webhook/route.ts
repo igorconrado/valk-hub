@@ -383,13 +383,19 @@ export async function POST(request: Request) {
   const signature = request.headers.get("linear-signature");
   const globalSecret = process.env.LINEAR_WEBHOOK_SECRET;
 
-  // Verify signature with global secret
-  if (globalSecret) {
-    const valid = verifySignature(rawBody, signature, globalSecret);
-    if (!valid) {
-      // Still return 200 to prevent retries
-      return NextResponse.json({ ok: false, error: "Invalid signature" });
-    }
+  // SECRET is MANDATORY — never skip verification
+  if (!globalSecret) {
+    console.error("[linear-webhook] LINEAR_WEBHOOK_SECRET not configured");
+    return new Response("Webhook secret not configured", { status: 500 });
+  }
+
+  if (!signature) {
+    return new Response("Missing signature", { status: 401 });
+  }
+
+  const valid = verifySignature(rawBody, signature, globalSecret);
+  if (!valid) {
+    return new Response("Invalid signature", { status: 401 });
   }
 
   let payload: Record<string, unknown>;
