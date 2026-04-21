@@ -3,7 +3,8 @@
 import { useState, useEffect, useTransition, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Check } from "lucide-react";
-import { formatDistanceToNow, isPast, parseISO, format, isToday } from "date-fns";
+import { formatDistanceToNow, parseISO, format } from "date-fns";
+import { getDueDateColor } from "@/lib/due-date-color";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -406,23 +407,13 @@ export function TaskDetailPanel({
                               e.target.value || null
                             )
                           }
-                          className={`border-none bg-transparent text-right text-[12px] outline-none ${
-                            task.due_date &&
-                            isPast(parseISO(task.due_date)) &&
-                            !isToday(parseISO(task.due_date))
-                              ? "text-[#E24B4A]"
-                              : "text-[#ccc]"
-                          }`}
+                          className="border-none bg-transparent text-right text-[12px] outline-none"
+                          style={{ color: task.due_date ? getDueDateColor(task.due_date, task.status) : "var(--text-secondary)" }}
                         />
                       ) : (
                         <span
-                          className={`text-[12px] ${
-                            task.due_date &&
-                            isPast(parseISO(task.due_date)) &&
-                            !isToday(parseISO(task.due_date))
-                              ? "text-[#E24B4A]"
-                              : "text-[#ccc]"
-                          }`}
+                          className="text-[12px]"
+                          style={{ color: task.due_date ? getDueDateColor(task.due_date, task.status) : "var(--text-secondary)" }}
                         >
                           {task.due_date
                             ? format(parseISO(task.due_date), "dd MMM yyyy", {

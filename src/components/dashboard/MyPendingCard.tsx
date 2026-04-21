@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { DashboardCard } from "./DashboardCard";
 import { PriorityChip } from "@/components/tasks/PriorityChip";
+import { getDueDateColor } from "@/lib/due-date-color";
 
 interface PendingItem {
   id: string;
@@ -15,13 +16,11 @@ interface PendingItem {
 
 function DueDate({ date }: { date: string }) {
   const d = new Date(date);
-  const dd = new Date(d);
-  dd.setHours(0, 0, 0, 0);
   return (
     <span
       suppressHydrationWarning
-      className="font-mono text-[10px]"
-      style={{ color: dd < new Date(new Date().setHours(0, 0, 0, 0)) ? "#E24B4A" : "#555" }}
+      className="font-mono text-[10px] num"
+      style={{ color: getDueDateColor(d) }}
     >
       {`${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`}
     </span>
