@@ -29,7 +29,7 @@ export default function NotificationsPage() {
           </h1>
           <p className="mt-1 text-[13px] text-[#888]">
             {unreadCount > 0
-              ? `${unreadCount} nao lida${unreadCount > 1 ? "s" : ""}`
+              ? t(unreadCount === 1 ? "unreadOne" : "unreadMany", { count: unreadCount })
               : t("allRead")}
           </p>
         </div>

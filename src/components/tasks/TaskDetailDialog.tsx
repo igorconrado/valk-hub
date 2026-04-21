@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useTransition, useCallback } from "react";
+import { useState, useEffect, useTransition, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -327,6 +328,7 @@ export function TaskDetailDialog({
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState("");
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { isAdmin, isOperator } = useRole();
   const canEdit = isAdmin || isOperator;
   const t = useTranslations();
@@ -370,10 +372,22 @@ export function TaskDetailDialog({
   useEffect(() => {
     if (taskId) {
       fetchData(taskId);
+      // Reset scroll when opening or switching tasks
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
     } else {
       setData(null);
     }
   }, [taskId, fetchData]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!taskId) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [taskId, onClose]);
 
   function handleFieldUpdate(field: string, value: string | string[] | null) {
     if (!taskId) return;
@@ -456,7 +470,7 @@ export function TaskDetailDialog({
 
   const typeColor = task ? (TYPE_COLORS[task.type] ?? { bg: "rgba(107,114,128,0.12)", text: "#9CA3AF" }) : null;
 
-  return (
+  const dialogContent = (
     <>
       <AnimatePresence>
         {taskId && (
@@ -486,7 +500,7 @@ export function TaskDetailDialog({
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#333] border-t-[#E24B4A]" />
                 </div>
               ) : (
-                <div className="flex flex-1 flex-col overflow-y-auto">
+                <div ref={scrollRef} className="flex flex-1 flex-col overflow-y-auto">
                   {/* Ready-to-advance banner */}
                   {readyToAdvance && isRoot && (
                     <div
@@ -810,4 +824,7 @@ export function TaskDetailDialog({
       )}
     </>
   );
+
+  if (typeof document === "undefined") return dialogContent;
+  return createPortal(dialogContent, document.body);
 }

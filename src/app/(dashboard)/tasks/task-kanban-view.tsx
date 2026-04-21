@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
@@ -202,10 +202,10 @@ export function TaskKanbanView({
 
   const COLUMNS = COLUMN_DEFS.map((c) => ({ ...c, label: tK(c.key) }));
 
-  // Sync when parent tasks change (e.g. after revalidation)
-  useState(() => {
+  // Sync when parent tasks change (e.g. filter change, revalidation)
+  useEffect(() => {
     setLocalTasks(tasks);
-  });
+  }, [tasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
