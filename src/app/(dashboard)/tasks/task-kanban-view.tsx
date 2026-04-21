@@ -154,7 +154,14 @@ function DroppableColumn({
         <span className="eyebrow">
           {column.label}
         </span>
-        <span className="ml-auto font-mono text-[11px] text-[#444] num">
+        <span
+          className="ml-auto inline-flex min-w-[22px] items-center justify-center rounded-md px-1.5 py-0.5 font-mono text-[10px] num"
+          style={{
+            border: `1px solid ${statusColor}40`,
+            color: statusColor,
+            background: `${statusColor}15`,
+          }}
+        >
           {tasks.length}
         </span>
       </div>

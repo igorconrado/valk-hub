@@ -12,6 +12,16 @@ import {
   FileText,
   Calendar,
   User,
+  LayoutDashboard,
+  Scale,
+  FolderKanban,
+  BarChart3,
+  Video,
+  Users,
+  Banknote,
+  Plus,
+  Sparkles,
+  Keyboard,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useGlobalSearch, type SearchResult } from "@/hooks/useGlobalSearch";
@@ -180,8 +190,66 @@ export function SearchCommandPalette({ open, onClose }: SearchCommandPaletteProp
                 style={{ maxHeight: "60vh" }}
               >
                 {isEmpty && (
-                  <div className="px-5 py-8 text-center text-[13px] text-[#555]">
-                    {t("emptyState")}
+                  <div className="p-3">
+                    {/* Quick Actions */}
+                    <div className="px-2 pb-2 pt-1">
+                      <span className="eyebrow">Acoes rapidas</span>
+                    </div>
+                    {[
+                      { icon: Plus, label: "Nova task", shortcut: "N", href: "/tasks" },
+                      { icon: Video, label: "Nova reuniao", href: "/meetings" },
+                      { icon: Sparkles, label: "Gerar relatorio", href: "/reports" },
+                    ].map((a) => (
+                      <button
+                        key={a.label}
+                        onClick={() => { router.push(a.href); onClose(); }}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] text-[#AAA] transition-colors hover:bg-[#141414] hover:text-white"
+                      >
+                        <a.icon size={14} strokeWidth={1.5} className="text-[#555]" />
+                        <span className="flex-1">{a.label}</span>
+                        {a.shortcut && (
+                          <kbd className="rounded border border-[#2A2A2A] bg-[#141414] px-1.5 py-0.5 font-mono text-[10px] text-[#555]">
+                            {a.shortcut}
+                          </kbd>
+                        )}
+                      </button>
+                    ))}
+
+                    <div className="mt-3 h-px bg-[#1A1A1A]" />
+
+                    {/* Navigation */}
+                    <div className="px-2 pb-2 pt-3">
+                      <span className="eyebrow">Navegar</span>
+                    </div>
+                    {[
+                      { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+                      { icon: Scale, label: "Triagem", href: "/triage" },
+                      { icon: FolderKanban, label: "Projetos", href: "/projects" },
+                      { icon: CheckSquare, label: "Tarefas", href: "/tasks" },
+                      { icon: FileText, label: "Docs", href: "/docs" },
+                      { icon: Video, label: "Reunioes", href: "/meetings" },
+                      { icon: BarChart3, label: "Relatorios", href: "/reports" },
+                      { icon: Banknote, label: "Financeiro", href: "/financeiro" },
+                      { icon: Users, label: "Pessoas", href: "/people" },
+                    ].map((n) => (
+                      <button
+                        key={n.href}
+                        onClick={() => { router.push(n.href); onClose(); }}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left text-[13px] text-[#888] transition-colors hover:bg-[#141414] hover:text-white"
+                      >
+                        <n.icon size={14} strokeWidth={1.5} className="text-[#444]" />
+                        <span>{n.label}</span>
+                      </button>
+                    ))}
+
+                    <div className="mt-3 h-px bg-[#1A1A1A]" />
+
+                    <div className="px-2 pb-1 pt-3">
+                      <span className="eyebrow">Dica</span>
+                    </div>
+                    <p className="px-3 py-1.5 text-[11px] text-[#444]">
+                      Pressione <kbd className="rounded border border-[#2A2A2A] bg-[#141414] px-1 py-0.5 font-mono text-[10px]">?</kbd> para ver todos os atalhos
+                    </p>
                   </div>
                 )}
 
