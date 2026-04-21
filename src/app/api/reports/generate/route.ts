@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ReportType = "sprint" | "monthly" | "experiment" | "quarterly";
 
@@ -330,6 +331,26 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  // Rate limit: 10 requests per minute per user
+  const { success, remaining, resetMs } = rateLimit(`reports:${user.id}`, {
+    maxRequests: 10,
+    windowMs: 60_000,
+  });
+
+  if (!success) {
+    const retryAfter = Math.ceil(resetMs / 1000);
+    return NextResponse.json(
+      { error: "Limite de requisições atingido. Tente novamente em breve." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": retryAfter.toString(),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;

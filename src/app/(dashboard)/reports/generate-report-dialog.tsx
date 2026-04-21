@@ -175,7 +175,16 @@ export function GenerateReportDialog({
 
         if (!res.ok) {
           const err = await res.json();
-          toast.error(err.error ?? "Erro ao gerar relatorio");
+          if (res.status === 429) {
+            const retryAfter = res.headers.get("Retry-After");
+            toast.error("Limite de relatórios atingido", {
+              description: retryAfter
+                ? `Tente novamente em ${retryAfter} segundos`
+                : "Tente novamente em alguns minutos",
+            });
+          } else {
+            toast.error(err.error ?? "Erro ao gerar relatorio");
+          }
           setGenerating(false);
           return;
         }
