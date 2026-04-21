@@ -108,7 +108,7 @@ export async function inviteUser(input: InviteUserInput) {
       return { error: "Apenas admins podem convidar", name: null };
     }
 
-    // Check if email already exists
+    // Check if email already exists (prevents orphan from race condition)
     const { data: existing } = await supabase
       .from("users")
       .select("id")
@@ -119,6 +119,7 @@ export async function inviteUser(input: InviteUserInput) {
       return { error: "Este email já está cadastrado", name: null };
     }
 
+    // Insert user — if concurrent insert creates duplicate, DB unique constraint catches it
     const { data: newUser, error } = await supabase
       .from("users")
       .insert({
@@ -131,8 +132,15 @@ export async function inviteUser(input: InviteUserInput) {
       .select("id")
       .single();
 
-    if (error) return { error: error.message, name: null };
+    if (error) {
+      // Unique violation = concurrent insert
+      if (error.code === "23505") {
+        return { error: "Este email já está cadastrado", name: null };
+      }
+      return { error: error.message, name: null };
+    }
 
+    // Activity log — failure here is non-critical, user already created
     await supabase.from("activity_log").insert({
       user_id: dbUser.id,
       action: "invited_user",

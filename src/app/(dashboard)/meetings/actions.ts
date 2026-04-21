@@ -302,44 +302,22 @@ export async function createActionItem(input: CreateActionItemInput) {
       catch { return { error: "Sem permissão" }; }
     }
 
-    // Create task first
-    const { data: task, error: taskError } = await supabase
-      .from("tasks")
-      .insert({
-        title: input.title,
-        type: "task",
-        project_id: input.project_id || null,
-        assignee_id: input.assignee_id,
-        status: "backlog",
-        priority: "medium",
-        due_date: input.due_date || null,
-        created_by: dbUser.id,
-      })
-      .select("id")
-      .single();
+    // Atomic: create task + action item + activity in one transaction
+    const { data: result, error } = await supabase.rpc(
+      "create_action_item_with_task",
+      {
+        p_meeting_id: input.meeting_id,
+        p_project_id: input.project_id || null,
+        p_title: input.title,
+        p_assignee_id: input.assignee_id,
+        p_due_date: input.due_date || null,
+        p_created_by: dbUser.id,
+      }
+    );
 
-    if (taskError) return { error: taskError.message };
+    if (error) return { error: error.message };
 
-    // Create action item linked to task
-    const { error: aiError } = await supabase.from("action_items").insert({
-      meeting_id: input.meeting_id,
-      task_id: task.id,
-      title: input.title,
-      assignee_id: input.assignee_id,
-      due_date: input.due_date || null,
-      status: "pending",
-      created_by: dbUser.id,
-    });
-
-    if (aiError) return { error: aiError.message };
-
-    await supabase.from("activity_log").insert({
-      user_id: dbUser.id,
-      action: "created_action_item",
-      entity_type: "meeting",
-      entity_id: input.meeting_id,
-      metadata: { title: input.title, assignee_id: input.assignee_id },
-    });
+    const taskId = (result as { task_id: string })?.task_id;
 
     // Notify assignee (if not self)
     if (input.assignee_id !== dbUser.id) {

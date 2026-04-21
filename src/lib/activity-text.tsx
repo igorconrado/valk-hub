@@ -98,6 +98,44 @@ export function getActionText(
         </>
       );
 
+    // Task triggers (from DB triggers)
+    case "status_changed":
+      return (
+        <>
+          mudou status de{" "}
+          <span className={highlight}>{metadata?.from}</span> para{" "}
+          <span className={highlight}>{metadata?.to}</span>
+        </>
+      );
+    case "assignee_changed":
+      return <>alterou responsável da task</>;
+    case "priority_changed":
+      return (
+        <>
+          mudou prioridade de{" "}
+          <span className={highlight}>{metadata?.from}</span> para{" "}
+          <span className={highlight}>{metadata?.to}</span>
+        </>
+      );
+    case "subtask_created":
+      return (
+        <>
+          adicionou subtask{" "}
+          <span className={highlight}>
+            {metadata?.subtask_title}
+          </span>
+        </>
+      );
+    case "subtask_completed":
+      return (
+        <>
+          concluiu subtask{" "}
+          <span className={highlight}>
+            {metadata?.subtask_title}
+          </span>
+        </>
+      );
+
     // Documents
     case "created_document":
       return (
