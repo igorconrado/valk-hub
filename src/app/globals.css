@@ -567,6 +567,13 @@
 .fadeUp { animation: fadeUp var(--t-med) var(--ease) both; }
 .pulse-dot { animation: tickerPulse 2s ease-in-out infinite; }
 
+/* ── Kanban horizontal scroll ── */
+.kanban-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+.kanban-scroll::-webkit-scrollbar { height: 6px; }
+.kanban-scroll::-webkit-scrollbar-track { background: transparent; }
+.kanban-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+.kanban-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
 /* ══════════════════════════════════════════════════════════
    Print styles
    ══════════════════════════════════════════════════════════ */

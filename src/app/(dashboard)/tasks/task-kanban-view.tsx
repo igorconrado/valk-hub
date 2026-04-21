@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -83,10 +84,12 @@ function SortableCard({
   task,
   onTitleClick,
   showSprintBadge = true,
+  isPending = false,
 }: {
   task: KanbanTask;
   onTitleClick?: (taskId: string) => void;
   showSprintBadge?: boolean;
+  isPending?: boolean;
 }) {
   const {
     attributes,
@@ -100,7 +103,7 @@ function SortableCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.4 : isPending ? 0.6 : 1,
   };
 
   return (
@@ -120,11 +123,13 @@ function DroppableColumn({
   tasks,
   onTitleClick,
   showSprintBadge = true,
+  pendingTaskId,
 }: {
   column: { id: string; label: string };
   tasks: KanbanTask[];
   onTitleClick?: (taskId: string) => void;
   showSprintBadge?: boolean;
+  pendingTaskId?: string | null;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const statusColor = STATUS_COLORS[column.id] ?? "#6B7280";
@@ -132,13 +137,12 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-1 shrink-0 flex-col rounded-xl border transition-colors duration-150"
+      className="flex w-[260px] shrink-0 flex-col rounded-xl border transition-colors duration-150 xl:flex-1"
       style={{
         background: isOver ? "rgba(255,255,255,0.015)" : "#0D0D0D",
         borderColor: isOver ? "var(--border-hover)" : "#1A1A1A",
         padding: 12,
         minHeight: "calc(100vh - 280px)",
-        minWidth: 220,
       }}
     >
       {/* Column header */}
@@ -171,7 +175,7 @@ function DroppableColumn({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: i * 0.04 }}
             >
-              <SortableCard task={task} onTitleClick={onTitleClick} showSprintBadge={showSprintBadge} />
+              <SortableCard task={task} onTitleClick={onTitleClick} showSprintBadge={showSprintBadge} isPending={pendingTaskId === task.id} />
             </motion.div>
           ))}
         </div>
@@ -194,6 +198,7 @@ export function TaskKanbanView({
 }) {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [blockDialog, setBlockDialog] = useState<{
     taskId: string;
     open: boolean;
@@ -242,11 +247,25 @@ export function TaskKanbanView({
         return;
       }
 
+      const previousStatus = task.status;
+
+      // Optimistic update
       setLocalTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: targetStatus } : t))
       );
+      setPendingTaskId(taskId);
 
-      await updateTaskStatus(taskId, targetStatus);
+      const result = await updateTaskStatus(taskId, targetStatus);
+
+      if (result.error) {
+        // Rollback
+        setLocalTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: previousStatus } : t))
+        );
+        toast.error("Falha ao mover task");
+      }
+
+      setPendingTaskId(null);
     },
     [localTasks]
   );
@@ -274,8 +293,7 @@ export function TaskKanbanView({
         onDragEnd={handleDragEnd}
       >
         <div
-          className="grid gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ gridTemplateColumns: "repeat(5, minmax(220px, 1fr))" }}
+          className="kanban-scroll flex gap-4 overflow-x-auto pb-4 [-webkit-overflow-scrolling:touch]"
         >
           {grouped.map((col) => (
             <DroppableColumn
@@ -284,6 +302,7 @@ export function TaskKanbanView({
               tasks={col.tasks}
               onTitleClick={onTaskClick}
               showSprintBadge={showSprintBadge}
+              pendingTaskId={pendingTaskId}
             />
           ))}
         </div>
