@@ -15,14 +15,14 @@ interface PendingItem {
 
 function DueDate({ date }: { date: string }) {
   const d = new Date(date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const dd = new Date(d);
   dd.setHours(0, 0, 0, 0);
-  const isOverdue = dd < today;
-  const color = isOverdue ? "#E24B4A" : "#555";
   return (
-    <span className="font-mono text-[10px]" style={{ color }}>
+    <span
+      suppressHydrationWarning
+      className="font-mono text-[10px]"
+      style={{ color: dd < new Date(new Date().setHours(0, 0, 0, 0)) ? "#E24B4A" : "#555" }}
+    >
       {`${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`}
     </span>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -8,14 +9,27 @@ import { createClient } from "@/lib/supabase/client";
 
 type State = "idle" | "loading" | "success";
 
-const embers = Array.from({ length: 10 }, (_, i) => ({
-  id: i,
-  left: `${12 + Math.random() * 58}%`,
-  bottom: `${10 + Math.random() * 20}%`,
-  size: 2 + Math.random() * 2,
-  duration: `${3 + Math.random() * 3}s`,
-  delay: `${Math.random() * 3}s`,
-}));
+// Seeded PRNG to produce identical values on server and client
+function seededRandom(seed: number) {
+  return () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+
+function createEmbers() {
+  const rand = seededRandom(42);
+  return Array.from({ length: 10 }, (_, i) => ({
+    id: i,
+    left: `${12 + rand() * 58}%`,
+    bottom: `${10 + rand() * 20}%`,
+    size: 2 + rand() * 2,
+    duration: `${3 + rand() * 3}s`,
+    delay: `${rand() * 3}s`,
+  }));
+}
+
+const embers = createEmbers();
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -30,6 +44,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>("idle");
   const supabase = createClient();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        auth_provider: "Falha na autenticação com o provedor",
+        missing_code: "Código de autenticação ausente",
+        auth_failed: "Autenticação falhou",
+      };
+      toast.error(errorMessages[error] || "Erro de autenticação", {
+        description: message || undefined,
+      });
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

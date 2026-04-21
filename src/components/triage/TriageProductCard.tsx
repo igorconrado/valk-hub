@@ -126,8 +126,8 @@ export function TriageProductCard({ project }: { project: TriageProject }) {
           style={{ borderColor: cfg.borderAccent ?? "#141414" }}
         >
           <Clock size={12} style={{ color: cfg.color }} />
-          <span className="font-mono text-[11px]" style={{ color: cfg.color }}>
-            Decisao em {new Date(project.decision_deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+          <span suppressHydrationWarning className="font-mono text-[11px]" style={{ color: cfg.color }}>
+            Decisao em {new Date(project.decision_deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" })}
           </span>
         </div>
       )}

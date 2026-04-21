@@ -41,7 +41,7 @@ export function CommitteeActionButton({ activeCommittee }: CommitteeActionButton
   }
 
   const committeeDate = new Date(activeCommittee.date);
-  const today = new Date();
+  const [today] = useState(() => new Date());
   const isToday = committeeDate.toDateString() === today.toDateString();
 
   if (isToday) {

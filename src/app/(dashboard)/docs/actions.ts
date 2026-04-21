@@ -138,25 +138,44 @@ export async function deleteDocument(docId: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
-    // Get title before deleting
+    // Get doc info for authz check and activity log
     const { data: doc } = await supabase
       .from("documents")
-      .select("title")
+      .select("title, project_id")
       .eq("id", docId)
       .single();
 
+    if (!doc) return { error: "Documento não encontrado" };
+
+    // Authz: project docs require ownership; company docs require admin
+    if (doc.project_id && dbUser.role !== "admin") {
+      try {
+        await requireProjectMember(doc.project_id);
+      } catch {
+        return { error: "Sem permissão" };
+      }
+    }
+
     // Delete versions first
-    await supabase
+    const { error: versionsError } = await supabase
       .from("document_versions")
       .delete()
       .eq("document_id", docId);
+    if (versionsError) {
+      console.error("[deleteDocument] versions:", versionsError);
+      return { error: versionsError.message };
+    }
 
     // Delete activity log entries
-    await supabase
+    const { error: activityError } = await supabase
       .from("activity_log")
       .delete()
       .eq("entity_type", "document")
       .eq("entity_id", docId);
+    if (activityError) {
+      console.error("[deleteDocument] activity_log:", activityError);
+      return { error: activityError.message };
+    }
 
     const { error } = await supabase
       .from("documents")
@@ -170,7 +189,7 @@ export async function deleteDocument(docId: string) {
       action: "deleted_document",
       entity_type: "document",
       entity_id: docId,
-      metadata: { title: doc?.title ?? "" },
+      metadata: { title: doc.title ?? "" },
     });
 
     revalidatePath("/docs");
