@@ -278,22 +278,67 @@ function MobileSidebar() {
 }
 
 /* ─── Topbar ─── */
+
+const ROUTE_LABELS: Record<string, string> = {
+  projects: "Projetos",
+  tasks: "Tarefas",
+  docs: "Docs",
+  meetings: "Reuniões",
+  reports: "Relatórios",
+  people: "Pessoas",
+  triage: "Triagem",
+  financeiro: "Financeiro",
+  settings: "Configurações",
+  notifications: "Notificações",
+};
+
+function useBreadcrumbEntityName(entityType: string | null, entityId: string | null) {
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!entityType || !entityId) { setName(null); return; }
+    const supabase = createClient();
+    const table = entityType === "docs" ? "documents" : entityType;
+    supabase
+      .from(table)
+      .select("title, name")
+      .eq("id", entityId)
+      .single()
+      .then(({ data }) => {
+        if (data) setName((data as Record<string, string>).name ?? (data as Record<string, string>).title ?? null);
+      });
+  }, [entityType, entityId]);
+
+  return name;
+}
+
 function Topbar({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
+  const parts = pathname.split("/").filter(Boolean);
+  const isDetailRoute = parts.length >= 2;
+  const parentRoute = parts[0] ?? null;
+  const entityId = isDetailRoute ? parts[1] : null;
+
+  // Resolve entity name for detail routes (projects/[id], docs/[id], etc.)
+  const entityName = useBreadcrumbEntityName(
+    isDetailRoute ? parentRoute : null,
+    entityId
+  );
+
   const segments: { label: string; href?: string }[] = [];
 
   if (pathname === "/") {
-    segments.push({ label: "Dashboard" });
-  } else {
-    const parts = pathname.split("/").filter(Boolean);
-    parts.forEach((part, i) => {
-      const href = "/" + parts.slice(0, i + 1).join("/");
-      const label = part.charAt(0).toUpperCase() + part.slice(1);
-      const isLast = i === parts.length - 1;
-      segments.push({ label, href: isLast ? undefined : href });
+    // Dashboard — no breadcrumb label (H1 owns it)
+  } else if (isDetailRoute && parentRoute) {
+    segments.push({
+      label: ROUTE_LABELS[parentRoute] ?? parentRoute,
+      href: `/${parentRoute}`,
     });
+    segments.push({ label: entityName ?? "..." });
+  } else if (parentRoute) {
+    // Top-level route — no label (H1 owns it)
   }
 
   return (

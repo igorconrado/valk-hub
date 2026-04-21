@@ -275,19 +275,7 @@ export function DocumentView({
         </span>
       </div>
 
-      {/* Breadcrumb */}
-      <nav data-print-hide className="mb-4 flex items-center gap-1.5 text-[12px]">
-        <Link
-          href="/docs"
-          className="font-medium text-[#444] transition-colors hover:text-[#888]"
-        >
-          Docs
-        </Link>
-        <span className="text-[#333]">/</span>
-        <span className="max-w-[200px] truncate font-medium text-[#ccc]">
-          {title || "Sem titulo"}
-        </span>
-      </nav>
+      {/* Breadcrumb removed — top bar owns it */}
 
       {/* Metadata bar */}
       <div data-print-hide className="flex flex-wrap items-center gap-2">

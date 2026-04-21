@@ -853,19 +853,7 @@ export function MeetingView({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1.5 text-[12px]">
-        <Link
-          href="/meetings"
-          className="font-medium text-[#444] transition-colors hover:text-[#888]"
-        >
-          Reuniões
-        </Link>
-        <span className="text-[#333]">/</span>
-        <span className="max-w-[240px] truncate font-medium text-[#ccc]">
-          {meeting.title}
-        </span>
-      </nav>
+      {/* Breadcrumb removed — top bar owns it */}
 
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
