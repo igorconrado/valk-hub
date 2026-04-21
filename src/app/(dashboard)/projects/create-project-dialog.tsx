@@ -37,6 +37,7 @@ export function CreateProjectDialog({
   const [logoUrl, setLogoUrl] = useState("");
   const [phase, setPhase] = useState("discovery");
   const [thesisType, setThesisType] = useState("");
+  const [taskPrefix, setTaskPrefix] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,6 +52,7 @@ export function CreateProjectDialog({
         thesis_hypothesis: formData.get("thesis_hypothesis") as string,
         launch_target: formData.get("launch_target") as string,
         logo_url: logoUrl,
+        task_prefix: taskPrefix,
       });
 
       if (result.error) {
@@ -61,6 +63,7 @@ export function CreateProjectDialog({
       toast.success("Produto criado. Bora.");
       setOpen(false);
       setLogoUrl("");
+      setTaskPrefix("");
     });
   }
 
@@ -101,24 +104,44 @@ export function CreateProjectDialog({
         }
       >
         <form id="create-project-form" onSubmit={handleSubmit} className="flex flex-col gap-4.5">
-          {/* Logo + Nome */}
+          {/* Logo + Nome + Prefixo */}
           <div className="flex flex-col gap-4 sm:flex-row sm:gap-4">
             <LogoUpload
               value={logoUrl || null}
               onChange={setLogoUrl}
               projectId={`new-project`}
             />
-            <div className="flex-1">
-              <label htmlFor="name" className="label">
-                Nome
-              </label>
-              <ValkInput
-                id="name"
-                name="name"
-                required
-                placeholder="Ex: Vecto"
-                disabled={isPending}
-              />
+            <div className="flex flex-1 flex-col gap-3">
+              <div>
+                <label htmlFor="name" className="label">
+                  Nome
+                </label>
+                <ValkInput
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Ex: Vecto"
+                  disabled={isPending}
+                />
+              </div>
+              <div>
+                <label htmlFor="task_prefix" className="label">
+                  Prefixo de tasks
+                </label>
+                <ValkInput
+                  id="task_prefix"
+                  name="task_prefix"
+                  required
+                  placeholder="Ex: VCT"
+                  maxLength={5}
+                  value={taskPrefix}
+                  onChange={(e) => setTaskPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                  disabled={isPending}
+                />
+                <p className="mt-1 text-[10px] text-[#444]">
+                  3-5 letras. Usado nos IDs das tasks (ex: VCT-001)
+                </p>
+              </div>
             </div>
           </div>
 
