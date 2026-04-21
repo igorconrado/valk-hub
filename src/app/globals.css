@@ -361,6 +361,13 @@
 .transition-base   { transition: all var(--motion-base); }
 .transition-drawer { transition: all var(--motion-drawer); }
 
+/* ── Brand motif: gradient divider ── */
+.hr-gradient {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-default), transparent);
+}
+
 /* ── Badges ── */
 .badge {
   display: inline-flex;

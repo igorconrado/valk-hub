@@ -491,18 +491,6 @@ export function ProjectDetail({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      {/* Breadcrumb */}
-      <nav className="mb-5 flex items-center gap-1.5 text-[12px]">
-        <Link
-          href="/projects"
-          className="font-medium text-[#444] transition-colors hover:text-[#888]"
-        >
-          Produtos
-        </Link>
-        <span className="text-[#333]">/</span>
-        <span className="font-medium text-[#ccc]">{project.name}</span>
-      </nav>
-
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-4">

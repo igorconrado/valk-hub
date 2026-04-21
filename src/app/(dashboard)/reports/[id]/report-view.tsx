@@ -426,22 +426,7 @@ export function ReportView({
         </span>
       </div>
 
-      {/* Breadcrumb */}
-      <nav
-        data-print-hide
-        className="mb-4 flex items-center gap-1.5 text-[12px]"
-      >
-        <Link
-          href="/reports"
-          className="font-medium text-[#444] transition-colors hover:text-[#888]"
-        >
-          Relatórios
-        </Link>
-        <span className="text-[#333]">/</span>
-        <span className="max-w-[240px] truncate font-medium text-[#ccc]">
-          {title || "Sem título"}
-        </span>
-      </nav>
+      {/* Breadcrumb removed — top bar owns it */}
 
       {/* Metadata bar */}
       <div
