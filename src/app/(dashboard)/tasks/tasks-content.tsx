@@ -11,6 +11,11 @@ import { TaskDetailDialog } from "@/components/tasks/TaskDetailDialog";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/ds";
 import { EmptyTasksIllustration } from "@/components/ds/illustrations/EmptyTasks";
+import { ViewBar } from "@/components/tasks/views/ViewBar";
+import { useTaskViews } from "@/hooks/useTaskViews";
+import { useUser } from "@/lib/hooks/use-user";
+import { applyViewFilters } from "@/lib/task-views/apply-filters";
+import type { TaskView, ViewFilters } from "@/types/task-view";
 
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
@@ -204,6 +209,8 @@ export function TasksContent({
   const router = useRouter();
   const pathname = usePathname();
   const [view, setView] = useState<"list" | "kanban">("list");
+  const { user } = useUser();
+  const { views: taskViews, refetch: refetchViews } = useTaskViews();
 
   // URL-backed filter state
   const filterProject = searchParams.get("product") ?? "all";
@@ -285,7 +292,34 @@ export function TasksContent({
 
   const activeSprintIds = sprints.filter((s) => s.status === "active").map((s) => s.id);
 
-  const filtered = tasks.filter((t) => {
+  // Task views system
+  const activeViewSlug = searchParams.get("view") ?? null;
+  const activeView = taskViews.find(
+    (v) => v.slug === activeViewSlug || v.id === activeViewSlug
+  );
+
+  // Apply view filters first (if a view is active), then pill filters on top
+  const viewFiltered = activeView && user
+    ? applyViewFilters(tasks, activeView.filters, {
+        currentUserId: user.id,
+        activeSprintIds,
+      })
+    : tasks;
+
+  const currentFilters: ViewFilters = {
+    ...(filterProject !== "all" && { product_id: filterProject }),
+    ...(filterSprint !== "all" && { sprint_id: filterSprint }),
+    ...(filterAssignee !== "all" && { assignee_id: filterAssignee }),
+  };
+
+  function handleSelectView(v: TaskView) {
+    const identifier = v.slug ?? v.id;
+    updateParams({ view: identifier });
+    localStorage.setItem("valk:lastView", identifier);
+  }
+
+  // Apply pill filters on top of view-filtered tasks
+  const filtered = viewFiltered.filter((t) => {
     if (filterProject === "company" && t.project_id !== null) return false;
     if (filterProject !== "all" && filterProject !== "company" && t.project_id !== filterProject) return false;
     if (filterSprint === "active" && !activeSprintIds.includes(t.sprint_id ?? "")) return false;
@@ -327,6 +361,21 @@ export function TasksContent({
           </>
         }
       />
+
+      {/* Views */}
+      {user && taskViews.length > 0 && (
+        <ViewBar
+          views={taskViews}
+          tasks={tasks}
+          activeViewId={activeView?.id ?? null}
+          activeSprintIds={activeSprintIds}
+          currentUserId={user.id}
+          currentUserIsAdmin={user.role === "admin"}
+          currentFilters={currentFilters}
+          onSelectView={handleSelectView}
+          onRefresh={refetchViews}
+        />
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 22 }}>
