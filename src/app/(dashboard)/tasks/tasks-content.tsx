@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { List, Kanban, Plus, Filter, ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CreateTaskDialog } from "./create-task-dialog";
@@ -196,14 +197,51 @@ export function TasksContent({
   const tF = useTranslations("tasks.filters");
   const tS = useTranslations("sprints");
   const { STATUS_OPTIONS, TYPE_OPTIONS, PRIORITY_OPTIONS } = useFilterOptions();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [view, setView] = useState<"list" | "kanban">("list");
-  const [filterProject, setFilterProject] = useState("all");
-  const [filterSprint, setFilterSprint] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterType, setFilterType] = useState("all");
-  const [filterAssignee, setFilterAssignee] = useState("all");
-  const [filterPriority, setFilterPriority] = useState("all");
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // URL-backed filter state
+  const filterProject = searchParams.get("product") ?? "all";
+  const filterSprint = searchParams.get("sprint") ?? "all";
+  const filterStatus = searchParams.get("status") ?? "all";
+  const filterType = searchParams.get("type") ?? "all";
+  const filterAssignee = searchParams.get("assignee") ?? "all";
+  const filterPriority = searchParams.get("priority") ?? "all";
+  const selectedTaskId = searchParams.get("taskId") ?? null;
+
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === "all") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
+
+  const setFilterProject = (v: string) => updateParams({ product: v });
+  const setFilterSprint = (v: string) => updateParams({ sprint: v });
+  const setFilterStatus = (v: string) => updateParams({ status: v });
+  const setFilterType = (v: string) => updateParams({ type: v });
+  const setFilterAssignee = (v: string) => updateParams({ assignee: v });
+  const setFilterPriority = (v: string) => updateParams({ priority: v });
+
+  const openTask = useCallback(
+    (id: string) => updateParams({ taskId: id }),
+    [updateParams]
+  );
+  const closeTask = useCallback(
+    () => updateParams({ taskId: null }),
+    [updateParams]
+  );
 
   useEffect(() => {
     const saved = localStorage.getItem("valk-tasks-view");
@@ -316,13 +354,13 @@ export function TasksContent({
         </div>
       ) : view === "list" ? (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          <TaskListView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} />
+          <TaskListView tasks={filtered} users={users} onTaskClick={openTask} />
         </div>
       ) : (
-        <TaskKanbanView tasks={filtered} users={users} onTaskClick={setSelectedTaskId} showSprintBadge={!hideSprintBadge} />
+        <TaskKanbanView tasks={filtered} users={users} onTaskClick={openTask} showSprintBadge={!hideSprintBadge} />
       )}
 
-      <TaskDetailDialog taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
+      <TaskDetailDialog taskId={selectedTaskId} onClose={closeTask} />
     </div>
   );
 }

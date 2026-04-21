@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { Loader2, ArrowUpRight } from "lucide-react";
+import { Loader2, ArrowUpRight, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import {
@@ -59,6 +59,7 @@ export function CreateTaskDialog({
   const [priority, setPriority] = useState("medium");
   const [projects, setProjects] = useState<Project[]>(externalProjects ?? []);
   const [users, setUsers] = useState<User[]>(externalUsers ?? []);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [linearSyncStatus, setLinearSyncStatus] = useState<
     "loading" | "synced" | "not_synced" | "none"
   >("none");
@@ -117,15 +118,42 @@ export function CreateTaskDialog({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    // Client-side validation
+    const title = (formData.get("title") as string).trim();
+    const dueDate = formData.get("due_date") as string;
+    const validationErrors: Record<string, string> = {};
+
+    if (!title) {
+      validationErrors.title = "Titulo é obrigatório";
+    }
+    if (!assigneeId) {
+      validationErrors.assignee_id = "Responsável é obrigatório";
+    }
+    if (dueDate) {
+      const selected = new Date(dueDate + "T00:00:00");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selected < today) {
+        validationErrors.due_date = "Data não pode ser no passado";
+      }
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+
     startTransition(async () => {
       const result = await createTask({
-        title: formData.get("title") as string,
+        title,
         description: formData.get("description") as string,
         type,
         project_id: projectId,
-        assignee_id: formData.get("assignee_id") as string,
+        assignee_id: assigneeId,
         priority: formData.get("priority") as string,
-        due_date: formData.get("due_date") as string,
+        due_date: dueDate,
         tags: formData.get("tags") as string,
       });
 
@@ -134,11 +162,11 @@ export function CreateTaskDialog({
         return;
       }
 
-      if (result.synced) {
-        toast.success("Task criada e sincronizada com o Linear");
-      } else {
-        toast.success("Task criada");
-      }
+      toast.success(
+        result.synced
+          ? "Task criada e sincronizada com o Linear"
+          : "Task criada"
+      );
 
       setOpen(false);
       resetForm();
@@ -151,6 +179,7 @@ export function CreateTaskDialog({
     setAssigneeId("");
     setPriority("medium");
     setLinearSyncStatus("none");
+    setErrors({});
   }
 
   function handleClose() {
@@ -200,10 +229,15 @@ export function CreateTaskDialog({
             <ValkInput
               id="title"
               name="title"
-              required
               placeholder="Ex: Implementar autenticacao"
               disabled={isPending}
+              onChange={() => errors.title && setErrors((e) => { const { title: _, ...rest } = e; return rest; })}
             />
+            {errors.title && (
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-[#E24B4A]">
+                <AlertCircle size={11} /> {errors.title}
+              </p>
+            )}
           </div>
 
           {/* Descricao */}
@@ -276,7 +310,10 @@ export function CreateTaskDialog({
               <ValkSelect
                 name="assignee_id"
                 value={assigneeId}
-                onValueChange={setAssigneeId}
+                onValueChange={(v) => {
+                  setAssigneeId(v);
+                  if (errors.assignee_id) setErrors((e) => { const { assignee_id: _, ...rest } = e; return rest; });
+                }}
                 placeholder="Selecione..."
                 options={users.map((u) => ({
                   value: u.id,
@@ -284,6 +321,11 @@ export function CreateTaskDialog({
                 }))}
                 disabled={isPending}
               />
+              {errors.assignee_id && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#E24B4A]">
+                  <AlertCircle size={11} /> {errors.assignee_id}
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Prioridade</label>
@@ -311,7 +353,13 @@ export function CreateTaskDialog({
                 name="due_date"
                 type="date"
                 disabled={isPending}
+                onChange={() => errors.due_date && setErrors((e) => { const { due_date: _, ...rest } = e; return rest; })}
               />
+              {errors.due_date && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#E24B4A]">
+                  <AlertCircle size={11} /> {errors.due_date}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="tags" className="label">
