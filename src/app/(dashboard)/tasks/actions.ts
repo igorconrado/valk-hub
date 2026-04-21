@@ -348,7 +348,7 @@ export async function resolveTaskBlock(blockId: string) {
 
 export async function getTaskDetail(taskId: string) {
   try {
-    const supabase = await createClient();
+    const { supabase } = await getAuthUser();
 
     const { data: task } = await supabase
       .from("tasks")
