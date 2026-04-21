@@ -583,7 +583,7 @@ export function TaskDetailDialog({
 
                   {/* Details */}
                   <div className="px-6 pt-4">
-                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Detalhes</h2>
+                    <h2 className="eyebrow">Detalhes</h2>
                     <div className="mt-2 flex flex-col">
                       <InlineSelect
                         label="Responsavel"
@@ -644,7 +644,7 @@ export function TaskDetailDialog({
 
                   {/* 3. Description */}
                   <div className="px-6 pt-4">
-                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Descricao</h2>
+                    <h2 className="eyebrow">Descricao</h2>
                     <div className="mt-2">
                       {editingDesc && canEdit ? (
                         <div>
@@ -689,11 +689,11 @@ export function TaskDetailDialog({
                   {isRoot && (
                     <div className="px-6 pt-4">
                       <div className="flex items-center gap-2">
-                        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                        <h2 className="eyebrow">
                           {tTasks("subtasks")}
                         </h2>
                         {totalCount > 0 && (
-                          <span className="font-mono text-[10px] text-[#444]">
+                          <span className="font-mono text-[10px] text-[#444] num">
                             {doneCount}/{totalCount}
                           </span>
                         )}
@@ -733,7 +733,7 @@ export function TaskDetailDialog({
                   {/* Blocks (if on_hold) */}
                   {task.status === "on_hold" && blocks.length > 0 && (
                     <div className="px-6 pt-4">
-                      <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Bloqueios</h2>
+                      <h2 className="eyebrow">Bloqueios</h2>
                       <div className="mt-2 flex flex-col gap-2">
                         {blocks.map((block) => {
                           const createdBy = Array.isArray(block.created_by_user) ? block.created_by_user[0] : block.created_by_user;
@@ -767,7 +767,7 @@ export function TaskDetailDialog({
 
                   {/* 5. Activity (placeholder) */}
                   <div className="px-6 pb-6 pt-4">
-                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Atividade</h2>
+                    <h2 className="eyebrow">Atividade</h2>
                     {activities.length === 0 ? (
                       <p className="mt-3 text-[11px] text-[#333]">Sem atividade registrada</p>
                     ) : (

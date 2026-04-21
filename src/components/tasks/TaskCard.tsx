@@ -188,8 +188,8 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
         {/* Middle: indicators */}
         <div className="ml-auto flex items-center gap-2.5">
           {hasSubtasks && (
-            <span className="flex items-center gap-1 font-mono text-[11px] text-[#555]">
-              <CircleDot size={11} strokeWidth={1.5} />
+            <span className="flex items-center gap-1 font-mono text-[11px] text-[#555] num">
+              <CircleDot size={11} strokeWidth={1.5} aria-hidden="true" />
               {task.subtasks_count!.done}/{task.subtasks_count!.total}
             </span>
           )}

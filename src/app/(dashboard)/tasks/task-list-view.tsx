@@ -85,7 +85,7 @@ export function TaskListView({
     <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     <div className="min-w-[640px]">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-[#0F0F0F] px-1 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+      <div className="eyebrow flex items-center gap-3 border-b border-[#0F0F0F] px-1 pb-2">
         <div className="w-5" />
         <div className="w-3" />
         <div className="flex-1">Titulo</div>

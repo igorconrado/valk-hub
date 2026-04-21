@@ -41,8 +41,7 @@ const TIMEZONES = [
 const sectionClass =
   "rounded-xl border border-[#141414] bg-[#0A0A0A] p-6";
 
-const sectionTitle =
-  "text-[10px] font-semibold uppercase tracking-wider text-[#333]";
+const sectionTitle = "eyebrow";
 
 const inputClass =
   "w-full rounded-lg border border-[#1A1A1A] bg-[#050505] px-3.5 py-2.5 text-[13px] text-[#ddd] transition-all duration-200 focus:border-[#E24B4A] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(226,75,74,0.06)]";
