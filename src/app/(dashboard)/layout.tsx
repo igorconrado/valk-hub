@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { SearchCommandPalette } from "@/components/search/SearchCommandPalette";
+import { ShortcutsModal } from "@/components/search/ShortcutsModal";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   LayoutDashboard,
@@ -405,13 +406,28 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  // Global Cmd+K / Ctrl+K shortcut
+  // Global keyboard shortcuts
   useEffect(() => {
     function handler(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+
+      // Cmd+K — always works
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setSearchOpen(true);
+        return;
+      }
+
+      // Skip text shortcuts when typing in inputs
+      if (isInput) return;
+
+      // ? — show shortcuts
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen(true);
       }
     }
     window.addEventListener("keydown", handler);
@@ -444,6 +460,7 @@ export default function DashboardLayout({
         </motion.main>
       </div>
       <SearchCommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   );
 }

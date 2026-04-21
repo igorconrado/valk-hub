@@ -11,11 +11,23 @@ import { NOTIFICATION_ROUTES, NOTIFICATION_ICONS } from "@/lib/notification-util
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [wiggle, setWiggle] = useState(false);
+  const prevUnread = useRef(0);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const t = useTranslations("notifications");
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications(10);
+
+  // Wiggle when new notifications arrive
+  useEffect(() => {
+    if (unreadCount > prevUnread.current && prevUnread.current >= 0) {
+      setWiggle(true);
+      const timer = setTimeout(() => setWiggle(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevUnread.current = unreadCount;
+  }, [unreadCount]);
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +55,7 @@ export function NotificationBell() {
         className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#1F1F1F] bg-transparent transition hover:bg-[#141414]"
         aria-label={t("bellAriaLabel")}
       >
-        <Bell size={16} className="text-[#888]" />
+        <Bell size={16} className={`text-[#888] ${wiggle ? "animate-wiggle" : ""}`} />
         {unreadCount > 0 && (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E24B4A] px-1 font-mono text-[9px] font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
