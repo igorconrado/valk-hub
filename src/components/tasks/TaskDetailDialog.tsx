@@ -769,7 +769,9 @@ export function TaskDetailDialog({
                   <div className="px-6 pb-6 pt-4">
                     <h2 className="eyebrow">Atividade</h2>
                     {activities.length === 0 ? (
-                      <p className="mt-3 text-[11px] text-[#333]">Sem atividade registrada</p>
+                      <p className="mt-3 text-[11px]" style={{ color: "var(--text-faint)" }}>
+                        Mudanças de status, subtasks e comentários aparecerão aqui.
+                      </p>
                     ) : (
                       <div className="mt-2">
                         {activities.map((activity, i) => {

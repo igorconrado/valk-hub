@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Video } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
-import { Avatar } from "@/components/ds";
+import { Avatar, EmptyState } from "@/components/ds";
+import { EmptyMeetingsIllustration } from "@/components/ds/illustrations/EmptyMeetings";
 
 type Participant = {
   user_id: string;
@@ -186,19 +186,13 @@ function MeetingCard({ meeting, index }: { meeting: Meeting; index: number }) {
   );
 }
 
-function EmptyState() {
+function MeetingsEmptyState() {
   return (
-    <motion.div
-      className="flex flex-col items-center py-20"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <Video size={40} strokeWidth={1} className="text-[#222]" />
-      <p className="mt-4 text-[13px] text-[#555]">
-        Nenhuma reunião registrada. Agende a primeira.
-      </p>
-    </motion.div>
+    <EmptyState
+      illustration={<EmptyMeetingsIllustration />}
+      title="Nenhuma reunião registrada"
+      description="Comitê semanal, 1:1s, decisões de produto — todas ficam aqui com action items."
+    />
   );
 }
 
@@ -217,7 +211,7 @@ export function MeetingsList({
   upcoming: Meeting[];
   past: Meeting[];
 }) {
-  if (upcoming.length === 0 && past.length === 0) return <EmptyState />;
+  if (upcoming.length === 0 && past.length === 0) return <MeetingsEmptyState />;
 
   return (
     <div className="space-y-8">

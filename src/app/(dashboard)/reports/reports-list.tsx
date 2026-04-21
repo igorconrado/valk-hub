@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BarChart3 } from "lucide-react";
+import { EmptyState } from "@/components/ds";
+import { EmptyReportsIllustration } from "@/components/ds/illustrations/EmptyReports";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
@@ -121,19 +122,13 @@ function ReportCard({ report, index }: { report: Report; index: number }) {
   );
 }
 
-function EmptyState() {
+function ReportsEmptyState() {
   return (
-    <motion.div
-      className="flex flex-col items-center py-20"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <BarChart3 size={40} strokeWidth={1} className="text-[#222]" />
-      <p className="mt-4 text-[13px] text-[#555]">
-        Nenhum relatório gerado. Crie o primeiro.
-      </p>
-    </motion.div>
+    <EmptyState
+      illustration={<EmptyReportsIllustration />}
+      title="Nenhum relatório ainda"
+      description="Relatórios de sprint, mensais e por produto são gerados com base nos seus dados."
+    />
   );
 }
 
@@ -230,7 +225,7 @@ export function ReportsList({
       {/* List */}
       <div className="mt-5">
         {filtered.length === 0 ? (
-          <EmptyState />
+          <ReportsEmptyState />
         ) : (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {filtered.map((report, i) => (

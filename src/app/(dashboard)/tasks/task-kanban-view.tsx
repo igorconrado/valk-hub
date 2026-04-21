@@ -165,6 +165,14 @@ function DroppableColumn({
         strategy={verticalListSortingStrategy}
       >
         <div className="flex flex-col gap-2">
+          {tasks.length === 0 && (
+            <div
+              className="rounded-lg border border-dashed p-6 text-center"
+              style={{ borderColor: "var(--border-default)", color: "var(--text-faint)", fontSize: 12 }}
+            >
+              Arraste uma task aqui
+            </div>
+          )}
           {tasks.map((task, i) => (
             <motion.div
               key={task.id}

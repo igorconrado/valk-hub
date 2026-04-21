@@ -30,9 +30,14 @@ export function UpcomingMeetingsCard({ meetings }: { meetings: MeetingItem[] }) 
   if (meetings.length === 0) {
     return (
       <DashboardCard title="Proximas reunioes">
-        <p className="py-6 text-center text-[13px] text-[#666]">
-          Nenhuma reuniao agendada.
-        </p>
+        <div className="flex flex-col items-center py-8 text-center">
+          <p className="text-[13px] font-display" style={{ color: "var(--text-muted)" }}>
+            Nenhuma reuniao agendada
+          </p>
+          <p className="mt-1 text-[11px]" style={{ color: "var(--text-faint)" }}>
+            Reuniões agendadas aparecem aqui automaticamente.
+          </p>
+        </div>
       </DashboardCard>
     );
   }

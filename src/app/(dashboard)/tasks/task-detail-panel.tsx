@@ -601,8 +601,8 @@ export function TaskDetailPanel({
                     Atividade
                   </h2>
                   {activities.length === 0 ? (
-                    <p className="mt-3 text-[11px] text-[#333]">
-                      Sem atividade registrada
+                    <p className="mt-3 text-[11px]" style={{ color: "var(--text-faint)" }}>
+                      Mudanças de status e subtasks aparecerão aqui.
                     </p>
                   ) : (
                     <div className="mt-2">
