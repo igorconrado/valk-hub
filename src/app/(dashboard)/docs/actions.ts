@@ -138,16 +138,16 @@ export async function deleteDocument(docId: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
-    // Get doc info for authz check and activity log
+    // Get doc info for authz check
     const { data: doc } = await supabase
       .from("documents")
-      .select("title, project_id")
+      .select("project_id")
       .eq("id", docId)
       .single();
 
     if (!doc) return { error: "Documento não encontrado" };
 
-    // Authz: project docs require ownership; company docs require admin
+    // Authz: project docs require membership; company docs ok for any auth user
     if (doc.project_id && dbUser.role !== "admin") {
       try {
         await requireProjectMember(doc.project_id);
@@ -156,41 +156,16 @@ export async function deleteDocument(docId: string) {
       }
     }
 
-    // Delete versions first
-    const { error: versionsError } = await supabase
-      .from("document_versions")
-      .delete()
-      .eq("document_id", docId);
-    if (versionsError) {
-      console.error("[deleteDocument] versions:", versionsError);
-      return { error: versionsError.message };
-    }
-
-    // Delete activity log entries
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .delete()
-      .eq("entity_type", "document")
-      .eq("entity_id", docId);
-    if (activityError) {
-      console.error("[deleteDocument] activity_log:", activityError);
-      return { error: activityError.message };
-    }
-
-    const { error } = await supabase
-      .from("documents")
-      .delete()
-      .eq("id", docId);
-
-    if (error) return { error: error.message };
-
-    await supabase.from("activity_log").insert({
-      user_id: dbUser.id,
-      action: "deleted_document",
-      entity_type: "document",
-      entity_id: docId,
-      metadata: { title: doc.title ?? "" },
+    // Atomic delete via RPC (versions → activity → document in one transaction)
+    const { error } = await supabase.rpc("delete_document_transactional", {
+      p_document_id: docId,
+      p_user_id: dbUser.id,
     });
+
+    if (error) {
+      console.error("[deleteDocument]", error);
+      return { error: error.message };
+    }
 
     revalidatePath("/docs");
     redirect("/docs");

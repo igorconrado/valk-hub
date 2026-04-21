@@ -245,27 +245,17 @@ export async function deleteProject(projectId: string, projectName: string) {
     return { error: "Sem permissão" };
   }
 
-  // Delete activity_log entries for this project first
-  await supabase
-    .from("activity_log")
-    .delete()
-    .eq("entity_type", "project")
-    .eq("entity_id", projectId);
-
-  const { error } = await supabase
-    .from("projects")
-    .delete()
-    .eq("id", projectId);
-
-  if (error) return { error: error.message };
-
-  await supabase.from("activity_log").insert({
-    user_id: dbUser.id,
-    action: "deleted_project",
-    entity_type: "project",
-    entity_id: projectId,
-    metadata: { project_name: projectName },
+  // Atomic delete via RPC (activity → project in one transaction)
+  const { error } = await supabase.rpc("delete_project_transactional", {
+    p_project_id: projectId,
+    p_user_id: dbUser.id,
+    p_project_name: projectName,
   });
+
+  if (error) {
+    console.error("[deleteProject]", error);
+    return { error: error.message };
+  }
 
   revalidatePath("/projects");
   redirect("/projects");
