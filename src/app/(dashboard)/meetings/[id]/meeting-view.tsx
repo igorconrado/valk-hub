@@ -161,7 +161,7 @@ function Badge({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+    <h2 className="eyebrow">
       {children}
     </h2>
   );

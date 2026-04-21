@@ -330,7 +330,7 @@ function SprintTabContent({
       {/* Stats row */}
       <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+          <span className="eyebrow">
             Concluidas
           </span>
           <p className="mt-1 font-display text-[20px] font-semibold text-[#10B981]">
@@ -338,7 +338,7 @@ function SprintTabContent({
           </p>
         </div>
         <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+          <span className="eyebrow">
             Em andamento
           </span>
           <p className="mt-1 font-display text-[20px] font-semibold text-[#3B82F6]">
@@ -346,7 +346,7 @@ function SprintTabContent({
           </p>
         </div>
         <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+          <span className="eyebrow">
             Bloqueadas
           </span>
           <p className="mt-1 font-display text-[20px] font-semibold text-[#F59E0B]">
@@ -354,7 +354,7 @@ function SprintTabContent({
           </p>
         </div>
         <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-3.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+          <span className="eyebrow">
             Restantes
           </span>
           <p className="mt-1 font-display text-[20px] font-semibold text-[#888]">
@@ -628,7 +628,7 @@ export function ProjectDetail({
           {/* Header with view toggle + create button */}
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+              <span className="eyebrow">
                 {tasks.length} task{tasks.length !== 1 ? "s" : ""}
               </span>
               <div className="flex items-center gap-0.5 rounded-lg border border-[#1A1A1A] p-0.5">
@@ -804,7 +804,7 @@ export function ProjectDetail({
 
       {/* Members */}
       <div className="mt-9">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+        <h3 className="eyebrow">
           Time
         </h3>
 

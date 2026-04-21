@@ -130,22 +130,60 @@
   --font-body: 'General Sans', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 
+  /* ── Spacing (4px grid) ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
   /* ── Motion ── */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --t-fast: 150ms;
-  --t-med: 250ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 120ms;
+  --t-med: 180ms;
   --t-slow: 400ms;
+  --motion-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-drawer: 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* ── Radii ── */
-  --r-sm: 4px;
+  --r-sm: 6px;
   --r-md: 8px;
   --r-lg: 12px;
   --r-xl: 14px;
+  --r-full: 999px;
 
-  /* ── Shadows ── */
+  /* ── Elevation / Shadows ── */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --elev-2: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --elev-3: 0 16px 32px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.4);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-primary: 0 4px 24px rgba(226, 75, 74, 0.15);
   --shadow-panel: -24px 0 48px rgba(0, 0, 0, 0.5);
+
+  /* ── Semantic colors ── */
+  --danger: #DC2626;
+  --danger-hover: #B91C1C;
+  --warning: #F59E0B;
+  --success: #10B981;
+  --info: #3B82F6;
+
+  /* ── Type chip palette ── */
+  --chip-dev: #3B82F6;
+  --chip-design: #8B5CF6;
+  --chip-research: #14B8A6;
+  --chip-task: #6B7280;
+  --chip-decision: #F59E0B;
+  --chip-ops: #EC4899;
+  --chip-growth: #10B981;
+  --chip-meeting-prep: #F97316;
+  --chip-report: #6366F1;
 
   /* ── Shadcn compatibility aliases ── */
   --background: #0A0A0A;
@@ -260,10 +298,13 @@
     scrollbar-color: #1a1a1a transparent;
   }
 
-  /* Focus ring */
+  /* Focus ring — keyboard only */
   :focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 
   button {
@@ -297,6 +338,28 @@
   font-family: var(--font-display);
   letter-spacing: -0.01em;
 }
+
+/* ── Tabular nums — for any numeric display ── */
+.num, .kpi, .currency, .count,
+[data-numeric="true"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Eyebrow — section labels ── */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ── Motion utilities ── */
+.transition-fast   { transition: all var(--motion-fast); }
+.transition-base   { transition: all var(--motion-base); }
+.transition-drawer { transition: all var(--motion-drawer); }
 
 /* ── Badges ── */
 .badge {

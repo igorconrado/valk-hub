@@ -151,13 +151,10 @@ function DroppableColumn({
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ background: statusColor }}
         />
-        <span
-          className="font-sans text-[11px] font-semibold uppercase text-[#888]"
-          style={{ letterSpacing: "0.08em" }}
-        >
+        <span className="eyebrow">
           {column.label}
         </span>
-        <span className="ml-auto font-mono text-[11px] text-[#444]">
+        <span className="ml-auto font-mono text-[11px] text-[#444] num">
           {tasks.length}
         </span>
       </div>

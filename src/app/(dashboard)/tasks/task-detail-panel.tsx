@@ -366,7 +366,7 @@ export function TaskDetailPanel({
 
                 {/* Details */}
                 <div className="px-6 pt-4">
-                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="eyebrow">
                     Detalhes
                   </h2>
                   <div className="mt-2 flex flex-col">
@@ -472,7 +472,7 @@ export function TaskDetailPanel({
 
                 {/* Description */}
                 <div className="px-6 pt-4">
-                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="eyebrow">
                     Descricao
                   </h2>
                   <div className="mt-2">
@@ -528,7 +528,7 @@ export function TaskDetailPanel({
                 {/* Blocks (if on_hold) */}
                 {task.status === "on_hold" && blocks.length > 0 && (
                   <div className="px-6 pt-4">
-                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                    <h2 className="eyebrow">
                       Bloqueios
                     </h2>
                     <div className="mt-2 flex flex-col gap-2">
@@ -597,7 +597,7 @@ export function TaskDetailPanel({
 
                 {/* Activity */}
                 <div className="px-6 pb-6 pt-4">
-                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="eyebrow">
                     Atividade
                   </h2>
                   {activities.length === 0 ? (

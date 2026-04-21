@@ -237,7 +237,7 @@ function MetricChart({
 
   return (
     <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
-      <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+      <h2 className="eyebrow mb-4">
         {title}
       </h2>
       <ResponsiveContainer width="100%" height={240}>
@@ -431,7 +431,7 @@ export function MetricsTab({
 
       {/* History */}
       <div>
-        <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+        <h2 className="eyebrow mb-3">
           Historico
         </h2>
         <div className="overflow-x-auto">
