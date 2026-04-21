@@ -8,6 +8,7 @@ import {
   Avatar,
   StatusBadge,
   PriorityDot,
+  ValkCheckbox,
   type TaskStatus,
   type Priority,
 } from "@/components/ds";
@@ -107,9 +108,9 @@ export function TaskListView({
         >
           {/* Checkbox */}
           <div className="flex w-5 items-center justify-center">
-            <input
-              type="checkbox"
-              className="h-3.5 w-3.5 rounded border-[#222] bg-transparent accent-[#E24B4A]"
+            <ValkCheckbox
+              checked={task.status === "done"}
+              onCheckedChange={() => {}}
             />
           </div>
 
