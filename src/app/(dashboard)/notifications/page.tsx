@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
@@ -10,6 +11,10 @@ import { NOTIFICATION_ROUTES, NOTIFICATION_ICONS } from "@/lib/notification-util
 export default function NotificationsPage() {
   const router = useRouter();
   const t = useTranslations("notifications");
+
+  useEffect(() => {
+    document.title = "Notificações · VALK Hub";
+  }, []);
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } =
     useNotifications(50);
 

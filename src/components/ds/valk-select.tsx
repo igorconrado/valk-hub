@@ -34,8 +34,12 @@ export function ValkSelect({
 }: ValkSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  const [activeIndex, setActiveIndex] = React.useState(-1)
   const containerRef = React.useRef<HTMLDivElement>(null)
   const searchRef = React.useRef<HTMLInputElement>(null)
+  const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const autoId = React.useId()
+  const listboxId = `valk-select-${autoId}-listbox`
 
   const selected = options.find((o) => o.value === value)
 
@@ -47,7 +51,10 @@ export function ValkSelect({
     if (open && searchable) {
       setTimeout(() => searchRef.current?.focus(), 0)
     }
-    if (!open) setSearch("")
+    if (!open) {
+      setSearch("")
+      setActiveIndex(-1)
+    }
   }, [open, searchable])
 
   React.useEffect(() => {
@@ -60,11 +67,40 @@ export function ValkSelect({
     return () => document.removeEventListener("mousedown", handler)
   }, [])
 
+  // Keyboard navigation
+  React.useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setActiveIndex((i) => Math.min(i + 1, filtered.length - 1))
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setActiveIndex((i) => Math.max(i - 1, 0))
+      } else if (e.key === "Enter" && activeIndex >= 0) {
+        e.preventDefault()
+        onValueChange?.(filtered[activeIndex].value)
+        setOpen(false)
+        buttonRef.current?.focus()
+      } else if (e.key === "Escape") {
+        setOpen(false)
+        buttonRef.current?.focus()
+      }
+    }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [open, activeIndex, filtered, onValueChange])
+
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {name && <input type="hidden" name={name} value={value ?? ""} />}
       <button
+        ref={buttonRef}
         type="button"
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
         disabled={disabled}
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between gap-2 font-sans"
@@ -94,6 +130,7 @@ export function ValkSelect({
         </span>
         <ChevronDown
           size={14}
+          aria-hidden="true"
           style={{
             color: "var(--text-muted)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
@@ -138,42 +175,44 @@ export function ValkSelect({
             </div>
           )}
 
-          <div className="max-h-[200px] overflow-y-auto py-1">
+          <ul id={listboxId} role="listbox" className="max-h-[200px] overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <div
+              <li
                 className="px-3 py-2 font-sans"
                 style={{ color: "var(--text-muted)", fontSize: 12 }}
               >
                 Nenhum resultado
-              </div>
+              </li>
             )}
-            {filtered.map((option) => (
-              <button
+            {filtered.map((option, idx) => (
+              <li
                 key={option.value}
-                type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 font-sans"
+                role="option"
+                aria-selected={option.value === value}
+                className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 font-sans"
                 style={{
                   fontSize: 13,
                   color: "var(--text-primary)",
-                  background: "transparent",
+                  background: idx === activeIndex ? "var(--bg-elev)" : "transparent",
                   transition: `background var(--t-fast) var(--ease)`,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-elev)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                onMouseEnter={() => setActiveIndex(idx)}
+                onMouseLeave={() => setActiveIndex(-1)}
                 onClick={() => {
                   onValueChange?.(option.value)
                   setOpen(false)
+                  buttonRef.current?.focus()
                 }}
               >
                 {option.icon}
                 <span className="flex-1 truncate text-left">{option.label}</span>
                 {option.badge}
                 {option.value === value && (
-                  <Check size={14} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                  <Check size={14} aria-hidden="true" style={{ color: "var(--primary)", flexShrink: 0 }} />
                 )}
-              </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

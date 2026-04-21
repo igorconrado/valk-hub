@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { MeetingsList } from "./meetings-list";
 import { NewMeetingButton } from "./new-meeting-button";
+
+export const metadata: Metadata = { title: "Reuniões" };
 
 export default async function MeetingsPage() {
   const supabase = await createClient();

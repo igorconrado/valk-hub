@@ -175,7 +175,7 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
             Projetos
           </h1>
           <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            {projects.length} produtos · {activeCount} ativos · {pausedCount} pausados
+            {projects.length} produtos · {activeCount} ativos · {pausedCount} em espera
           </p>
         </div>
         <CreateProjectDialog>
