@@ -1,21 +1,51 @@
-type PageHeaderProps = {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-};
+import { cn } from "@/lib/utils";
 
-export function PageHeader({ title, description, action }: PageHeaderProps) {
+interface PageHeaderProps {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  className?: string;
+}
+
+export function PageHeader({
+  title,
+  subtitle,
+  action,
+  className,
+}: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between">
+    <div
+      className={cn(
+        "flex items-end justify-between",
+        className
+      )}
+      style={{ marginBottom: 24 }}
+    >
       <div>
-        <h1 className="font-display text-[22px] font-semibold text-white">
+        <h1
+          className="display"
+          style={{
+            fontSize: 28,
+            fontWeight: 600,
+            margin: 0,
+            letterSpacing: "-0.01em",
+          }}
+        >
           {title}
         </h1>
-        {description && (
-          <p className="mt-1 text-[13px] text-[#666]">{description}</p>
+        {subtitle && (
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--text-faint)",
+              margin: "6px 0 0",
+            }}
+          >
+            {subtitle}
+          </p>
         )}
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="flex items-center gap-2.5">{action}</div>}
     </div>
   );
 }

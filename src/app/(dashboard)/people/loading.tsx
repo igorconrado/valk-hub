@@ -6,7 +6,7 @@ export default function PeopleLoading() {
     <div>
       <PageHeader
         title="Time"
-        description="Quem faz a VALK acontecer"
+        subtitle="Quem faz a VALK acontecer"
       />
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 4 }).map((_, i) => (

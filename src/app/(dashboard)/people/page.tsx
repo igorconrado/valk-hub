@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PeopleGrid } from "./people-grid";
 import { InviteButton } from "./invite-button";
 import { getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Pessoas" };
 
@@ -107,20 +108,11 @@ export default async function PeoplePage() {
 
   return (
     <div className="fadeUp">
-      <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
-        <div>
-          <h1
-            className="display"
-            style={{ fontSize: 28, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            {t("title")}
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            {t("subtitle")}
-          </p>
-        </div>
-        <InviteButton />
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        action={<InviteButton />}
+      />
       <PeopleGrid people={people} />
     </div>
   );

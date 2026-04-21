@@ -9,6 +9,7 @@ import Link from "next/link";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { ProjectLogo } from "@/components/project-logo";
 import { Avatar, PhaseBadge, type Phase } from "@/components/ds";
+import { PageHeader } from "@/components/page-header";
 
 type Project = {
   id: string;
@@ -165,26 +166,18 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
 
   return (
     <div className="fadeUp">
-      {/* Header */}
-      <div className="flex items-end justify-between" style={{ marginBottom: 28 }}>
-        <div>
-          <h1
-            className="display"
-            style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            Projetos
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            {projects.length} produtos · {activeCount} ativos · {pausedCount} em espera
-          </p>
-        </div>
-        <CreateProjectDialog>
-          <button className="btn primary">
-            <Plus size={13} strokeWidth={2.5} />
-            Novo produto
-          </button>
-        </CreateProjectDialog>
-      </div>
+      <PageHeader
+        title="Projetos"
+        subtitle={`${projects.length} produtos · ${activeCount} ativos · ${pausedCount} em espera`}
+        action={
+          <CreateProjectDialog>
+            <button className="btn primary">
+              <Plus size={13} strokeWidth={1.5} />
+              Novo produto
+            </button>
+          </CreateProjectDialog>
+        }
+      />
 
       {/* Phase filter chips */}
       <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 22 }}>
