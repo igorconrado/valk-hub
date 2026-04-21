@@ -39,11 +39,6 @@ const roleOptions: ValkSelectOption[] = [
   { value: "stakeholder", label: "Stakeholder" },
 ];
 
-const dedicationOptions: ValkSelectOption[] = [
-  { value: "", label: "\u2014" },
-  { value: "full_time", label: "Full-time" },
-  { value: "partial", label: "Parcial" },
-];
 
 function AvatarUpload({
   value,
@@ -169,7 +164,6 @@ export function EditProfileDialog({
   const [isPending, startTransition] = useTransition();
   const [avatarUrl, setAvatarUrl] = useState(person.avatar_url ?? "");
   const [role, setRole] = useState(person.role);
-  const [dedication, setDedication] = useState(person.dedication ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -186,7 +180,6 @@ export function EditProfileDialog({
           ? {
               role: fd.get("role") as string,
               company_role: (fd.get("company_role") as string) || null,
-              dedication: (fd.get("dedication") as string) || null,
             }
           : {}),
       });
@@ -320,17 +313,6 @@ export function EditProfileDialog({
                 />
               </div>
 
-              {/* Dedication */}
-              <div>
-                <label className="label">Dedicacao</label>
-                <ValkSelect
-                  value={dedication}
-                  onValueChange={setDedication}
-                  options={dedicationOptions}
-                  name="dedication"
-                  disabled={isPending}
-                />
-              </div>
             </>
           )}
         </form>
