@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { isPast, parseISO, format, isToday } from "date-fns";
+import { parseISO, format } from "date-fns";
+import { getDueDateColor } from "@/lib/due-date-color";
 import { ptBR } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import {
@@ -56,18 +57,17 @@ function AssigneeAvatar({
   );
 }
 
-function DueDate({ date }: { date: string | null }) {
+function DueDate({ date, status }: { date: string | null; status?: string }) {
   if (!date) return <span className="w-[60px]" />;
 
   const parsed = parseISO(date);
-  const overdue = isPast(parsed) && !isToday(parsed);
   const formatted = format(parsed, "dd MMM", { locale: ptBR });
 
   return (
     <span
-      className={`w-[60px] text-right text-[11px] ${
-        overdue ? "font-medium text-[#E24B4A]" : "text-[#444]"
-      }`}
+      suppressHydrationWarning
+      className="w-[60px] text-right text-[11px] num"
+      style={{ color: getDueDateColor(parsed, status) }}
     >
       {formatted}
     </span>
@@ -141,7 +141,7 @@ export function TaskListView({
           <AssigneeAvatar assignee={task.assignee} size={22} />
 
           {/* Due Date */}
-          <DueDate date={task.due_date} />
+          <DueDate date={task.due_date} status={task.status} />
 
           {/* Status */}
           <div className="flex w-[72px] justify-end">
