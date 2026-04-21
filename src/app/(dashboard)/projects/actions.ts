@@ -20,6 +20,7 @@ type CreateProjectInput = {
   thesis_hypothesis: string;
   launch_target: string;
   logo_url: string;
+  task_prefix: string;
 };
 
 export async function createProject(input: CreateProjectInput) {
@@ -44,6 +45,7 @@ export async function createProject(input: CreateProjectInput) {
       thesis_hypothesis: input.thesis_hypothesis || null,
       launch_target: input.launch_target || null,
       logo_url: input.logo_url || null,
+      task_prefix: input.task_prefix.toUpperCase() || null,
       owner_id: dbUser.id,
     })
     .select("id")

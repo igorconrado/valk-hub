@@ -4,7 +4,10 @@ export type TaskType =
   | "meeting_prep"
   | "report"
   | "research"
-  | "decision";
+  | "decision"
+  | "growth"
+  | "design"
+  | "ops";
 
 export type TaskStatus =
   | "backlog"
@@ -28,6 +31,10 @@ export type Task = {
   due_date: string | null;
   tags: string[];
   linear_issue_id: string | null;
+  display_id: string | null;
+  parent_task_id: string | null;
+  ready_to_advance: boolean | null;
+  sprint_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -59,4 +66,5 @@ type Project = {
   id: string;
   name: string;
   logo_url: string | null;
+  task_prefix: string | null;
 };
