@@ -25,6 +25,29 @@ export default async function PeoplePage() {
     )
     .order("name");
 
+  // Fetch last activity per user
+  const lastActivityMap = new Map<string, string>();
+  if (users && users.length > 0) {
+    for (const u of users) {
+      const { data: activity } = await supabase
+        .from("activity_log")
+        .select("created_at")
+        .eq("user_id", u.id as string)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activity?.created_at) {
+        lastActivityMap.set(u.id as string, activity.created_at as string);
+      }
+    }
+  }
+
+  // Count total active projects (for ownership visibility logic)
+  const { count: totalProjectCount } = await supabase
+    .from("projects")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+
   const userIds = (users ?? []).map((u) => u.id as string);
 
   // Fetch owned projects per user
@@ -95,6 +118,7 @@ export default async function PeoplePage() {
       joined_at: (u as Record<string, unknown>).joined_at as string | null,
       owned_projects: ownedMap.get(uid) ?? [],
       recent_decisions: decisionMap.get(uid) ?? [],
+      last_activity_at: lastActivityMap.get(uid) ?? null,
     };
   });
 
@@ -113,7 +137,7 @@ export default async function PeoplePage() {
         subtitle={t("subtitle")}
         action={<InviteButton />}
       />
-      <PeopleGrid people={people} />
+      <PeopleGrid people={people} totalProjectCount={totalProjectCount ?? 0} />
     </div>
   );
 }

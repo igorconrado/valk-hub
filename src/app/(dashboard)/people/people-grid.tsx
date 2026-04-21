@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { formatDistanceToNowStrict } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Avatar } from "@/components/ds";
 import { ProjectLogo } from "@/components/project-logo";
 
@@ -23,6 +25,7 @@ type Person = {
   joined_at: string | null;
   owned_projects: { id: string; name: string; logo_url: string | null }[];
   recent_decisions: { id: string; description: string; impact_level: string }[];
+  last_activity_at: string | null;
 };
 
 const IMPACT_COLOR: Record<string, string> = {
@@ -32,44 +35,15 @@ const IMPACT_COLOR: Record<string, string> = {
   critical: "#E24B4A",
 };
 
-function VestingProgress({
-  vested,
-  total,
-  status,
-  statusLabel,
+function PersonCard({
+  person,
+  index,
+  totalProjectCount,
 }: {
-  vested: number;
-  total: number;
-  status: string;
-  statusLabel: string;
+  person: Person;
+  index: number;
+  totalProjectCount: number;
 }) {
-  const pct = total > 0 ? (vested / total) * 100 : 0;
-  const color =
-    status === "cliff"
-      ? "#F59E0B"
-      : status === "fully_vested"
-        ? "#10B981"
-        : "#3B82F6";
-
-  return (
-    <div className="mt-1.5 flex flex-col gap-1">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[#666]">{statusLabel}</span>
-        <span className="font-mono text-[10px]" style={{ color }}>
-          {vested.toFixed(1)}%
-        </span>
-      </div>
-      <div className="h-1 overflow-hidden rounded-full bg-[#141414]">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function PersonCard({ person, index }: { person: Person; index: number }) {
   const t = useTranslations("people");
 
   const initials = person.name
@@ -78,6 +52,28 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  // Partnership type chip
+  const partnershipLabel =
+    person.partnership_type &&
+    ["founder_operator", "founder_investor"].includes(person.partnership_type)
+      ? t(`partnershipType.${person.partnership_type}` as "partnershipType.founder_operator")
+      : null;
+
+  // Activity signal
+  const lastActivity = person.last_activity_at
+    ? new Date(person.last_activity_at)
+    : null;
+  const isActiveRecently =
+    lastActivity && Date.now() - lastActivity.getTime() < 24 * 60 * 60 * 1000;
+  const activityLabel = lastActivity
+    ? `Ativo há ${formatDistanceToNowStrict(lastActivity, { locale: ptBR })}`
+    : "Sem atividade registrada";
+
+  // Only show ownership if user owns a subset of projects, not all
+  const showOwnership =
+    person.owned_projects.length > 0 &&
+    person.owned_projects.length < totalProjectCount;
 
   return (
     <motion.div
@@ -92,7 +88,12 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
         {/* Identity */}
         <div className="flex items-center gap-3">
           <Avatar
-            user={{ name: person.name, initials, color: "#555", avatar_url: person.avatar_url }}
+            user={{
+              name: person.name,
+              initials,
+              color: "#555",
+              avatar_url: person.avatar_url,
+            }}
             size={48}
           />
           <div className="min-w-0 flex-1">
@@ -100,13 +101,15 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
               {person.name}
             </h3>
             {person.company_role && (
-              <p className="mt-0.5 truncate text-[12px] text-[#888]">{person.company_role}</p>
+              <p className="mt-0.5 truncate text-[12px] text-[#888]">
+                {person.company_role}
+              </p>
             )}
           </div>
         </div>
 
-        {/* Area tags + dedication */}
-        {(person.areas.length > 0 || person.dedication) && (
+        {/* Area tags + partnership type chip */}
+        {(person.areas.length > 0 || partnershipLabel) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {person.areas.map((area) => (
               <span
@@ -116,9 +119,9 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
                 {t(`areas.${area}` as "areas.tech")}
               </span>
             ))}
-            {person.dedication && (
-              <span className="rounded-md border border-[#1F1F1F] bg-transparent px-2 py-0.5 text-[10px] text-[#666]">
-                {t(`dedication.${person.dedication}` as "dedication.full_time")}
+            {partnershipLabel && (
+              <span className="rounded-md border border-[var(--border-default)] bg-transparent px-2 py-0.5 text-[10px] text-[#888]">
+                {partnershipLabel}
               </span>
             )}
           </div>
@@ -126,40 +129,19 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
 
         <div className="border-t border-[#141414]" />
 
-        {/* Equity + vesting */}
-        {person.equity_percent != null && (
-          <div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#444]">
-                {t("equityLabel")}
-              </span>
-              {person.partnership_type && (
-                <span className="text-[11px] text-[#666]">
-                  {t(`partnershipType.${person.partnership_type}` as "partnershipType.founder_operator")}
-                </span>
-              )}
-            </div>
-            <div className="mt-1.5 flex items-baseline gap-2">
-              <span className="font-display text-[24px] font-bold text-white">
-                {Number(person.equity_percent).toFixed(0)}%
-              </span>
-            </div>
-            {person.vesting_status && person.vesting_status !== "not_applicable" && (
-              <VestingProgress
-                vested={person.vested_percent}
-                total={Number(person.equity_percent)}
-                status={person.vesting_status}
-                statusLabel={t(`vesting.${person.vesting_status}` as "vesting.cliff")}
-              />
-            )}
-            {person.vesting_status === "not_applicable" && (
-              <p className="mt-1 text-[10px] text-[#555]">{t("vesting.not_applicable")}</p>
-            )}
-          </div>
-        )}
+        {/* Activity signal */}
+        <div
+          suppressHydrationWarning
+          className="flex items-center gap-2 text-[12px] text-[var(--text-muted)]"
+        >
+          {isActiveRecently && (
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--success)]" />
+          )}
+          <span>{activityLabel}</span>
+        </div>
 
-        {/* Owned projects */}
-        {person.owned_projects.length > 0 && (
+        {/* Owned projects (only if subset) */}
+        {showOwnership && (
           <div>
             <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#444]">
               {t("ownerOf")}
@@ -170,8 +152,15 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
                   key={project.id}
                   className="flex items-center gap-1.5 rounded-md bg-[#141414] px-2 py-1"
                 >
-                  <ProjectLogo name={project.name} logoUrl={project.logo_url} size={16} fontSize={8} />
-                  <span className="text-[11px] text-[#AAA]">{project.name}</span>
+                  <ProjectLogo
+                    name={project.name}
+                    logoUrl={project.logo_url}
+                    size={16}
+                    fontSize={8}
+                  />
+                  <span className="text-[11px] text-[#AAA]">
+                    {project.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -189,9 +178,13 @@ function PersonCard({ person, index }: { person: Person; index: number }) {
                 <li key={d.id} className="flex items-start gap-2">
                   <span
                     className="mt-1.5 h-1 w-1 shrink-0 rounded-full"
-                    style={{ backgroundColor: IMPACT_COLOR[d.impact_level] ?? "#666" }}
+                    style={{
+                      backgroundColor: IMPACT_COLOR[d.impact_level] ?? "#666",
+                    }}
                   />
-                  <span className="line-clamp-1 text-[12px] text-[#888]">{d.description}</span>
+                  <span className="line-clamp-1 text-[12px] text-[#888]">
+                    {d.description}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -217,13 +210,24 @@ function EmptyState() {
   );
 }
 
-export function PeopleGrid({ people }: { people: Person[] }) {
+export function PeopleGrid({
+  people,
+  totalProjectCount,
+}: {
+  people: Person[];
+  totalProjectCount: number;
+}) {
   if (people.length === 0) return <EmptyState />;
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {people.map((person, i) => (
-        <PersonCard key={person.id} person={person} index={i} />
+        <PersonCard
+          key={person.id}
+          person={person}
+          index={i}
+          totalProjectCount={totalProjectCount}
+        />
       ))}
     </div>
   );
