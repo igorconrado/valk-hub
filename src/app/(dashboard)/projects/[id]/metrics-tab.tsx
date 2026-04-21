@@ -237,9 +237,9 @@ function MetricChart({
 
   return (
     <div className="rounded-[10px] border border-[#141414] bg-[#0A0A0A] p-5">
-      <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+      <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
         {title}
-      </h3>
+      </h2>
       <ResponsiveContainer width="100%" height={240}>
         <AreaChart data={data}>
           <defs>
@@ -431,9 +431,9 @@ export function MetricsTab({
 
       {/* History */}
       <div>
-        <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
+        <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[#444]">
           Historico
-        </h3>
+        </h2>
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
             {/* Header */}

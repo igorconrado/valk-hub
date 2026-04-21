@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { PeopleGrid } from "./people-grid";
 import { InviteButton } from "./invite-button";
 import { getTranslations } from "next-intl/server";
+
+export const metadata: Metadata = { title: "Pessoas" };
 
 const PARTNERSHIP_ORDER: Record<string, number> = {
   founder_investor: 0,

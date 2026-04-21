@@ -366,9 +366,9 @@ export function TaskDetailPanel({
 
                 {/* Details */}
                 <div className="px-6 pt-4">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
                     Detalhes
-                  </h3>
+                  </h2>
                   <div className="mt-2 flex flex-col">
                     <InlineSelect
                       label="Responsavel"
@@ -472,9 +472,9 @@ export function TaskDetailPanel({
 
                 {/* Description */}
                 <div className="px-6 pt-4">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
                     Descricao
-                  </h3>
+                  </h2>
                   <div className="mt-2">
                     {editingDesc && canEdit ? (
                       <div>
@@ -528,9 +528,9 @@ export function TaskDetailPanel({
                 {/* Blocks (if on_hold) */}
                 {task.status === "on_hold" && blocks.length > 0 && (
                   <div className="px-6 pt-4">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
                       Bloqueios
-                    </h3>
+                    </h2>
                     <div className="mt-2 flex flex-col gap-2">
                       {blocks.map((block) => {
                         const createdBy = Array.isArray(block.created_by_user)
@@ -597,9 +597,9 @@ export function TaskDetailPanel({
 
                 {/* Activity */}
                 <div className="px-6 pb-6 pt-4">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
                     Atividade
-                  </h3>
+                  </h2>
                   {activities.length === 0 ? (
                     <p className="mt-3 text-[11px] text-[#333]">
                       Sem atividade registrada

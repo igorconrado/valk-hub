@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { TriageContent } from "./triage-content";
+
+export const metadata: Metadata = { title: "Triagem" };
 
 export default async function TriagePage() {
   const supabase = await createClient();

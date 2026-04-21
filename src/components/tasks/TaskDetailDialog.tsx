@@ -154,6 +154,7 @@ function SubtaskRow({
   onDelete: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const tK = useTranslations("kanban");
   const isDone = subtask.status === "done";
   const initials = subtask.assignee
     ? subtask.assignee.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
@@ -207,7 +208,7 @@ function SubtaskRow({
             color: STATUS_COLORS[subtask.status] ?? "#444",
           }}
         >
-          {subtask.status === "done" ? "done" : subtask.status}
+          {tK((subtask.status === "on_hold" ? "onHold" : subtask.status) as "backlog" | "doing" | "onHold" | "review" | "done")}
         </span>
 
         {/* Assignee */}
@@ -556,9 +557,10 @@ export function TaskDetailDialog({
                       </div>
                       <button
                         onClick={onClose}
+                        aria-label="Fechar painel"
                         className="shrink-0 rounded-md p-1 text-[#444] transition-colors hover:bg-white/[0.04] hover:text-[#888]"
                       >
-                        <X size={16} strokeWidth={1.5} />
+                        <X size={16} strokeWidth={1.5} aria-hidden="true" />
                       </button>
                     </div>
 
@@ -581,7 +583,7 @@ export function TaskDetailDialog({
 
                   {/* Details */}
                   <div className="px-6 pt-4">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Detalhes</h3>
+                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Detalhes</h2>
                     <div className="mt-2 flex flex-col">
                       <InlineSelect
                         label="Responsavel"
@@ -642,7 +644,7 @@ export function TaskDetailDialog({
 
                   {/* 3. Description */}
                   <div className="px-6 pt-4">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Descricao</h3>
+                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Descricao</h2>
                     <div className="mt-2">
                       {editingDesc && canEdit ? (
                         <div>
@@ -687,9 +689,9 @@ export function TaskDetailDialog({
                   {isRoot && (
                     <div className="px-6 pt-4">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">
                           {tTasks("subtasks")}
-                        </h3>
+                        </h2>
                         {totalCount > 0 && (
                           <span className="font-mono text-[10px] text-[#444]">
                             {doneCount}/{totalCount}
@@ -731,7 +733,7 @@ export function TaskDetailDialog({
                   {/* Blocks (if on_hold) */}
                   {task.status === "on_hold" && blocks.length > 0 && (
                     <div className="px-6 pt-4">
-                      <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Bloqueios</h3>
+                      <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Bloqueios</h2>
                       <div className="mt-2 flex flex-col gap-2">
                         {blocks.map((block) => {
                           const createdBy = Array.isArray(block.created_by_user) ? block.created_by_user[0] : block.created_by_user;
@@ -765,7 +767,7 @@ export function TaskDetailDialog({
 
                   {/* 5. Activity (placeholder) */}
                   <div className="px-6 pb-6 pt-4">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Atividade</h3>
+                    <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#333]">Atividade</h2>
                     {activities.length === 0 ? (
                       <p className="mt-3 text-[11px] text-[#333]">Sem atividade registrada</p>
                     ) : (

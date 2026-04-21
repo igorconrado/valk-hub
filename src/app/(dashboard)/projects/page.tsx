@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectsGrid } from "./projects-grid";
+
+export const metadata: Metadata = { title: "Projetos" };
 
 export default async function ProjectsPage() {
   const supabase = await createClient();

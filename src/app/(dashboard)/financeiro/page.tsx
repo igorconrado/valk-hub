@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { FinanceiroContent } from "./financeiro-content";
+
+export const metadata: Metadata = { title: "Financeiro" };
 
 export default async function FinanceiroPage() {
   const supabase = await createClient();

@@ -6,8 +6,11 @@ import { ValkToaster } from "@/components/ds";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Valk Hub",
-  description: "Valk Hub - Your centralized platform",
+  title: {
+    default: "VALK Hub",
+    template: "%s · VALK Hub",
+  },
+  description: "VALK Hub - Plataforma de gestão interna",
 };
 
 export default async function RootLayout({

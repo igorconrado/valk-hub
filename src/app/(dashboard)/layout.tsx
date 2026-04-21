@@ -420,6 +420,12 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-0)" }}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[#E24B4A] focus:px-4 focus:py-2 focus:text-sm focus:text-white focus:outline-none"
+      >
+        Pular para o conteúdo
+      </a>
       <OnboardingWizard />
       <Sidebar />
       <div
@@ -428,6 +434,7 @@ export default function DashboardLayout({
       >
         <Topbar onSearchOpen={() => setSearchOpen(true)} />
         <motion.main
+          id="main-content"
           className="mx-auto w-full max-w-[1080px] flex-1 overflow-x-hidden px-4 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-7"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}

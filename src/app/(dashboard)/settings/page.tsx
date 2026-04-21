@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsView } from "./settings-view";
+
+export const metadata: Metadata = { title: "Configurações" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();

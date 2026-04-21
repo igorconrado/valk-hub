@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { TasksContent } from "./tasks-content";
+
+export const metadata: Metadata = { title: "Tarefas" };
 
 export default async function TasksPage() {
   const supabase = await createClient();

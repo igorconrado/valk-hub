@@ -312,7 +312,7 @@ export function TasksContent({
             Tasks
           </h1>
           <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "6px 0 0" }}>
-            {filtered.length} de {tasks.length} · {doingCount} em progresso · {holdCount} pausadas
+            {filtered.length} de {tasks.length} · {doingCount} em progresso · {holdCount} em espera
           </p>
         </div>
         <div className="flex items-center" style={{ gap: 10 }}>

@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ReportsList } from "./reports-list";
 import { NewReportButton } from "./new-report-button";
+
+export const metadata: Metadata = { title: "Relatórios" };
 
 export default async function ReportsPage() {
   const supabase = await createClient();

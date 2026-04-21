@@ -78,24 +78,27 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
         <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); console.log("todo: status menu"); }}
+            aria-label="Alterar status"
+            onClick={(e) => { e.stopPropagation(); }}
             className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] text-[#555] transition-colors hover:text-[#888]"
           >
-            <Circle size={12} />
+            <Circle size={12} aria-hidden="true" />
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); console.log("todo: priority menu"); }}
+            aria-label="Alterar prioridade"
+            onClick={(e) => { e.stopPropagation(); }}
             className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] text-[#555] transition-colors hover:text-[#888]"
           >
-            <Flag size={12} />
+            <Flag size={12} aria-hidden="true" />
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); console.log("todo: assignee menu"); }}
+            aria-label="Alterar responsável"
+            onClick={(e) => { e.stopPropagation(); }}
             className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] text-[#555] transition-colors hover:text-[#888]"
           >
-            <User size={12} />
+            <User size={12} aria-hidden="true" />
           </button>
         </div>
       )}
