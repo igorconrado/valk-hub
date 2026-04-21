@@ -13,13 +13,8 @@ import {
 import { inviteUser } from "./actions";
 
 const roleOptions: ValkSelectOption[] = [
-  { value: "operator", label: "Operator" },
-  { value: "stakeholder", label: "Stakeholder" },
-];
-
-const dedicationOptions: ValkSelectOption[] = [
-  { value: "full_time", label: "Full-time" },
-  { value: "partial", label: "Parcial" },
+  { value: "operator", label: "Operador" },
+  { value: "stakeholder", label: "Investidor" },
 ];
 
 export function InviteUserDialog({
@@ -31,7 +26,6 @@ export function InviteUserDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [role, setRole] = useState("operator");
-  const [dedication, setDedication] = useState("full_time");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,7 +37,7 @@ export function InviteUserDialog({
         email: fd.get("email") as string,
         role: fd.get("role") as string,
         company_role: (fd.get("company_role") as string) || null,
-        dedication: (fd.get("dedication") as string) || null,
+        dedication: null,
       });
 
       if (result.error) {
@@ -149,17 +143,6 @@ export function InviteUserDialog({
             />
           </div>
 
-          {/* Dedication */}
-          <div>
-            <label className="label">Dedicação</label>
-            <ValkSelect
-              value={dedication}
-              onValueChange={setDedication}
-              options={dedicationOptions}
-              name="dedication"
-              disabled={isPending}
-            />
-          </div>
         </form>
       </ValkDialog>
     </>

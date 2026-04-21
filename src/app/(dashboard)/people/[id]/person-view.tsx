@@ -64,9 +64,9 @@ const roleConfig: Record<string, { label: string; color: string }> = {
   stakeholder: { label: "Stakeholder", color: "#888" },
 };
 
-const dedicationConfig: Record<string, { label: string; color: string }> = {
-  full_time: { label: "Full-time", color: "#10B981" },
-  partial: { label: "Parcial", color: "#F59E0B" },
+const partnershipLabels: Record<string, string> = {
+  admin: "Sócio operador",
+  stakeholder: "Sócio investidor",
 };
 
 const phaseStyles: Record<string, { bg: string; text: string; border: string }> = {
@@ -311,9 +311,7 @@ export function PersonView({
   activities: Activity[];
 }) {
   const roleCfg = roleConfig[person.role] ?? roleConfig.stakeholder;
-  const dedCfg = person.dedication
-    ? dedicationConfig[person.dedication]
-    : null;
+  const partnerLabel = partnershipLabels[person.role] ?? null;
 
   const { isAdmin } = useRole();
   const isOwnProfile = currentUserId === person.id;
@@ -357,8 +355,11 @@ export function PersonView({
               </p>
             )}
             <div className="mt-2 flex items-center gap-2">
-              <Badge label={roleCfg.label} color={roleCfg.color} />
-              {dedCfg && <Badge label={dedCfg.label} color={dedCfg.color} />}
+              {partnerLabel && (
+                <span className="rounded-md border border-[var(--border-default)] bg-transparent px-2 py-0.5 text-[10px] text-[#888]">
+                  {partnerLabel}
+                </span>
+              )}
             </div>
             <p className="mt-2 font-mono text-[12px] text-[#555]">
               {person.email}
