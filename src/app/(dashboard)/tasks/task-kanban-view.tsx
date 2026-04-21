@@ -137,7 +137,7 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex w-[260px] shrink-0 flex-col rounded-xl border transition-colors duration-150 xl:flex-1"
+      className="flex w-[280px] shrink-0 flex-col rounded-xl border transition-colors duration-150 xl:flex-1"
       style={{
         background: isOver ? "rgba(255,255,255,0.015)" : "#0D0D0D",
         borderColor: isOver ? "var(--border-hover)" : "#1A1A1A",

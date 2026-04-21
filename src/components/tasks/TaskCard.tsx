@@ -75,7 +75,7 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
     >
       {/* Hover toolbar */}
       {showToolbar && (
-        <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+        <div className="absolute right-1.5 top-1.5 z-10 flex gap-1 rounded-md bg-[#0A0A0A]/90 p-0.5 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100">
           <button
             type="button"
             aria-label="Alterar status"
@@ -150,19 +150,22 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
       </p>
 
       {/* Tags row */}
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      <div className="mt-2 flex items-center gap-1.5">
         <span
-          className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium"
+          className="inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-[11px] font-medium"
           style={{ background: typeColor.bg, color: typeColor.text }}
         >
           {typeLabel}
         </span>
         {task.project ? (
-          <span className="inline-flex items-center rounded-md border border-[#1F1F1F] bg-[#141414] px-2 py-0.5 text-[11px] text-[#888]">
-            {task.project.name}
+          <span
+            className="inline-flex shrink-0 items-center rounded-md border border-[#1F1F1F] bg-[#141414] px-1.5 py-0.5 text-[10px] font-medium text-[#888]"
+            title={task.project.name}
+          >
+            {task.project.task_prefix || task.project.name}
           </span>
         ) : (
-          <span className="inline-flex items-center rounded-md border border-[#1F1F1F] bg-[#141414] px-2 py-0.5 text-[11px]" style={{ color: "rgba(226,75,74,0.4)" }}>
+          <span className="inline-flex shrink-0 items-center rounded-md border border-[#1F1F1F] bg-[#141414] px-1.5 py-0.5 text-[10px] font-medium" style={{ color: "rgba(226,75,74,0.4)" }}>
             VALK
           </span>
         )}

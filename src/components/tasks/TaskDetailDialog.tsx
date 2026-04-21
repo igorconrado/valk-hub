@@ -17,7 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useRole } from "@/lib/hooks/use-role";
-import { Avatar } from "@/components/ds";
+import { Avatar, ValkCheckbox } from "@/components/ds";
 import { STATUS_COLORS } from "@/lib/task-colors";
 import { TYPE_COLORS } from "@/lib/task-colors";
 import {
@@ -164,28 +164,11 @@ function SubtaskRow({
     <div>
       <div className="group flex items-center gap-2 rounded-md px-1 py-1.5 transition-colors hover:bg-white/[0.02]">
         {/* Checkbox */}
-        {canEdit ? (
-          <button
-            onClick={onToggle}
-            className="flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors"
-            style={{
-              borderColor: isDone ? "#10B981" : "#333",
-              background: isDone ? "rgba(16,185,129,0.15)" : "transparent",
-            }}
-          >
-            {isDone && <Check size={10} style={{ color: "#10B981" }} />}
-          </button>
-        ) : (
-          <div
-            className="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-            style={{
-              borderColor: isDone ? "#10B981" : "#333",
-              background: isDone ? "rgba(16,185,129,0.15)" : "transparent",
-            }}
-          >
-            {isDone && <Check size={10} style={{ color: "#10B981" }} />}
-          </div>
-        )}
+        <ValkCheckbox
+          checked={isDone}
+          onCheckedChange={canEdit ? onToggle : undefined}
+          disabled={!canEdit}
+        />
 
         {/* Display ID */}
         <span className="font-mono text-[11px] text-[#555]">{subtask.display_id}</span>
