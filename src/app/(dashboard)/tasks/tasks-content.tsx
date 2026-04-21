@@ -297,8 +297,8 @@ export function TasksContent({
 
   const hideSprintBadge = filterSprint !== "all" && filterSprint !== "active";
 
-  const doingCount = tasks.filter((t) => t.status === "doing").length;
-  const holdCount = tasks.filter((t) => t.status === "on_hold").length;
+  const doingCount = filtered.filter((t) => t.status === "doing").length;
+  const holdCount = filtered.filter((t) => t.status === "on_hold").length;
 
   return (
     <div className="fadeUp">

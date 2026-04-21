@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar } from "@/components/ds";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ds/ValkTooltip";
 import { TYPE_COLORS } from "@/lib/task-colors";
 import { getInitials } from "@/lib/color-hash";
 import { PriorityChip } from "./PriorityChip";
@@ -72,17 +73,6 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
       }}
       className="group relative cursor-pointer rounded-xl border border-[#141414] bg-[#0A0A0A] p-3 transition-all duration-150 hover:-translate-y-0.5 hover:border-[#2A2A2A] hover:shadow-md"
     >
-      {/* Ready badge */}
-      {showReadyBadge && (
-        <span
-          className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-          style={{ background: "rgba(16,185,129,0.12)", color: "#10B981" }}
-        >
-          <span style={{ fontSize: 8 }}>●</span>
-          {tKanban("readyToAdvance")}
-        </span>
-      )}
-
       {/* Hover toolbar */}
       {showToolbar && (
         <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -122,6 +112,21 @@ export function TaskCard({ task, onClick, showSprintBadge = true }: TaskCardProp
         >
           {task.display_id}
         </span>
+        {showReadyBadge && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="inline-flex h-4 w-4 items-center justify-center rounded-full"
+                style={{ background: "rgba(16,185,129,0.15)", color: "#10B981", fontSize: 8 }}
+              >
+                ●
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[11px]">
+              {tKanban("readyToAdvance")}
+            </TooltipContent>
+          </Tooltip>
+        )}
         <span className="ml-auto" />
         {task.linear_issue_id && (
           <a
