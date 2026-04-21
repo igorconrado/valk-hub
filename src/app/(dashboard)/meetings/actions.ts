@@ -7,6 +7,7 @@ import {
   createNotifications,
 } from "@/lib/notifications/create";
 import { formatActionError } from "@/lib/action-error";
+import { requireProjectMember } from "@/lib/auth/authz";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ async function getAuthUser() {
 
   const { data: dbUser } = await supabase
     .from("users")
-    .select("id")
+    .select("id, role")
     .eq("auth_id", user.id)
     .single();
 
@@ -41,6 +42,14 @@ export async function createMeeting(input: CreateMeetingInput) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError, id: null };
+
+    if (input.project_id && dbUser.role !== "admin") {
+      try {
+        await requireProjectMember(input.project_id);
+      } catch {
+        return { error: "Sem permissão", id: null };
+      }
+    }
 
     const { data: meeting, error } = await supabase
       .from("meetings")
@@ -115,6 +124,19 @@ export async function updateMeetingStatus(meetingId: string, status: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    // Authz: check meeting's project membership
+    if (dbUser.role !== "admin") {
+      const { data: meeting } = await supabase
+        .from("meetings")
+        .select("project_id")
+        .eq("id", meetingId)
+        .single();
+      if (meeting?.project_id) {
+        try { await requireProjectMember(meeting.project_id); }
+        catch { return { error: "Sem permissão" }; }
+      }
+    }
+
     const { error } = await supabase
       .from("meetings")
       .update({ status, updated_at: new Date().toISOString() })
@@ -158,6 +180,18 @@ export async function saveMeetingNotes(meetingId: string, notes: string) {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
 
+    if (dbUser.role !== "admin") {
+      const { data: meeting } = await supabase
+        .from("meetings")
+        .select("project_id")
+        .eq("id", meetingId)
+        .single();
+      if (meeting?.project_id) {
+        try { await requireProjectMember(meeting.project_id); }
+        catch { return { error: "Sem permissão" }; }
+      }
+    }
+
     const { error } = await supabase
       .from("meetings")
       .update({ notes, updated_at: new Date().toISOString() })
@@ -186,6 +220,11 @@ export async function createDecision(input: CreateDecisionInput) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    if (input.project_id && dbUser.role !== "admin") {
+      try { await requireProjectMember(input.project_id); }
+      catch { return { error: "Sem permissão" }; }
+    }
 
     const { data: decision, error } = await supabase
       .from("decisions")
@@ -257,6 +296,11 @@ export async function createActionItem(input: CreateActionItemInput) {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    if (input.project_id && dbUser.role !== "admin") {
+      try { await requireProjectMember(input.project_id); }
+      catch { return { error: "Sem permissão" }; }
+    }
 
     // Create task first
     const { data: task, error: taskError } = await supabase

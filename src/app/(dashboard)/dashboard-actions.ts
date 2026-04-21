@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/lib/action-error";
+import { requireAdmin } from "@/lib/auth/authz";
 
 export async function completePendingItem(
   id: string,
@@ -83,12 +84,13 @@ export async function completePendingItem(
 
 export async function saveCompanyMetrics(cash: number, burnRate: number) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return { error: "Não autenticado" };
+    let supabase: Awaited<ReturnType<typeof createClient>>;
+    try {
+      const ctx = await requireAdmin();
+      supabase = ctx.supabase;
+    } catch {
+      return { error: "Sem permissão" };
+    }
 
     const runwayMonths =
       burnRate > 0 ? Math.round((cash / burnRate) * 10) / 10 : null;

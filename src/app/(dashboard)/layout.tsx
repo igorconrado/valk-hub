@@ -32,6 +32,7 @@ import {
 } from "@/components/ds/ValkSheet";
 import { useUser } from "@/lib/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
+import { signOutAction } from "./auth-actions";
 import { OnboardingWizard } from "./onboarding-wizard";
 
 type NavKey = "dashboard" | "triage" | "projects" | "tasks" | "docs" | "meetings" | "reports" | "financial" | "people";
@@ -171,9 +172,7 @@ function SidebarUser() {
   const router = useRouter();
 
   async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    await signOutAction();
   }
 
   if (!user) return null;

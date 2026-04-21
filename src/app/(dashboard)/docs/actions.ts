@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/lib/action-error";
+import { requireProjectMember } from "@/lib/auth/authz";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ async function getAuthUser() {
 
   const { data: dbUser } = await supabase
     .from("users")
-    .select("id")
+    .select("id, role")
     .eq("auth_id", user.id)
     .single();
 
@@ -31,6 +32,15 @@ export async function createDocument(input: {
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError, id: null };
+
+    // Authz: project docs require membership
+    if (input.project_id) {
+      try {
+        await requireProjectMember(input.project_id);
+      } catch {
+        return { error: "Sem permissão", id: null };
+      }
+    }
 
     const { data: doc, error } = await supabase
       .from("documents")
@@ -74,6 +84,20 @@ export async function saveDocument(
   try {
     const { supabase, dbUser, error: authError } = await getAuthUser();
     if (authError || !dbUser) return { error: authError };
+
+    // Authz: check doc's project membership
+    const { data: doc } = await supabase
+      .from("documents")
+      .select("project_id")
+      .eq("id", docId)
+      .single();
+    if (doc?.project_id && dbUser.role !== "admin") {
+      try {
+        await requireProjectMember(doc.project_id);
+      } catch {
+        return { error: "Sem permissão" };
+      }
+    }
 
     const { error } = await supabase
       .from("documents")
