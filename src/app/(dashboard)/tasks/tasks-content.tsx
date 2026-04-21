@@ -9,6 +9,8 @@ import { TaskListView } from "./task-list-view";
 import { TaskKanbanView, type KanbanTask } from "./task-kanban-view";
 import { TaskDetailDialog } from "@/components/tasks/TaskDetailDialog";
 import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ds";
+import { EmptyTasksIllustration } from "@/components/ds/illustrations/EmptyTasks";
 
 type FilterProject = { id: string; name: string };
 type FilterUser = { id: string; name: string };
@@ -339,12 +341,12 @@ export function TasksContent({
 
       {/* Content */}
       {filtered.length === 0 ? (
-        <div
-          className="card"
-          style={{ padding: 48, textAlign: "center", color: "var(--text-ghost)", fontSize: 12 }}
-        >
-          Nenhuma task encontrada com esses filtros.
-        </div>
+        <EmptyState
+          variant="card"
+          illustration={<EmptyTasksIllustration />}
+          title="Nenhuma task encontrada"
+          description="Tente ajustar os filtros ou crie uma nova task."
+        />
       ) : view === "list" ? (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <TaskListView tasks={filtered} users={users} onTaskClick={openTask} />

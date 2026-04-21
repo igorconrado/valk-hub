@@ -21,9 +21,14 @@ export function RecentDecisionsCard({ decisions }: { decisions: DecisionItem[] }
   if (decisions.length === 0) {
     return (
       <DashboardCard title="Decisoes recentes">
-        <p className="py-6 text-center text-[13px] text-[#666]">
-          Nenhuma decisao registrada ainda.
-        </p>
+        <div className="flex flex-col items-center py-8 text-center">
+          <p className="text-[13px] font-display" style={{ color: "var(--text-muted)" }}>
+            Nenhuma decisao registrada
+          </p>
+          <p className="mt-1 text-[11px]" style={{ color: "var(--text-faint)" }}>
+            Decisões tomadas em reuniões aparecem aqui.
+          </p>
+        </div>
       </DashboardCard>
     );
   }

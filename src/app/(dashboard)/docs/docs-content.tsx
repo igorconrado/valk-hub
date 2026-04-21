@@ -21,6 +21,8 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { CreateDocumentDialog } from "./create-document-dialog";
 import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ds";
+import { EmptyDocsIllustration } from "@/components/ds/illustrations/EmptyDocs";
 
 type DocRow = {
   id: string;
@@ -242,26 +244,21 @@ export function DocsContent({
       {/* Document list */}
       <div className="mt-4">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <FileText
-              size={28}
-              strokeWidth={1.2}
-              className="text-[#1A1A1A]"
-            />
-            <p className="mt-3 text-[13px] text-[#444]">
-              {searchQuery
-                ? t("empty.noResults")
-                : t("empty.noDocs")}
-            </p>
-            {!searchQuery && (
-              <CreateDocumentDialog>
-                <button className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#E24B4A] px-4 py-2 text-[12px] font-medium text-white transition-colors duration-150 hover:bg-[#D4403F]">
-                  <Plus size={14} strokeWidth={1.5} />
-                  Criar primeiro doc
-                </button>
-              </CreateDocumentDialog>
-            )}
-          </div>
+          <EmptyState
+            illustration={<EmptyDocsIllustration />}
+            title={searchQuery ? t("empty.noResults") : t("empty.noDocs")}
+            description={searchQuery ? undefined : "Documentos compartilham contexto com o time — specs, decisões, aprendizados."}
+            action={
+              !searchQuery ? (
+                <CreateDocumentDialog>
+                  <button className="btn primary">
+                    <Plus size={14} strokeWidth={1.5} />
+                    Criar primeiro doc
+                  </button>
+                </CreateDocumentDialog>
+              ) : undefined
+            }
+          />
         ) : (
           filtered.map((doc, i) => {
             const timeAgo = formatDistanceToNow(new Date(doc.updated_at), {
