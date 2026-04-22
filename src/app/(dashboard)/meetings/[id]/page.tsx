@@ -13,7 +13,7 @@ export default async function MeetingDetailPage({
   const { data: meeting, error: meetingError } = await supabase
     .from("meetings")
     .select(
-      "*, project:projects!meetings_project_id_fkey(id, name), meeting_participants(user_id, role, user:users(id, name, company_role))"
+      "*, project:projects!meetings_project_id_fkey(id, name), meeting_participants(user_id, attended, user:users(id, name, company_role))"
     )
     .eq("id", id)
     .maybeSingle();
