@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Trash2,
   Loader2,
+  PenLine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -143,9 +144,11 @@ export function DocumentView({
   );
   const [versionPanelOpen, setVersionPanelOpen] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const [isEditing, setIsEditing] = useState(false);
   const t = useTranslations();
   const { isAdmin, isOperator, isStakeholder } = useRole();
-  const canEdit = isAdmin || isOperator;
+  const hasEditPermission = isAdmin || isOperator;
+  const canEdit = hasEditPermission && isEditing;
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectOptions = [
@@ -329,7 +332,7 @@ export function DocumentView({
             <Clock size={12} strokeWidth={1.5} />
             Historico
           </button>
-          <RoleGate allowed={["admin"]}>
+          {(hasEditPermission || isAdmin) && (
             <ValkDropdown
               trigger={
                 <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#1F1F1F] text-[#555] transition-colors hover:border-[#2A2A2A] hover:bg-white/[0.02] hover:text-[#888]">
@@ -339,18 +342,23 @@ export function DocumentView({
               sections={[
                 {
                   items: [
-                    {
+                    ...(hasEditPermission ? [{
+                      label: isEditing ? "Finalizar edição" : "Editar documento",
+                      icon: isEditing ? <Check size={13} /> : <PenLine size={13} />,
+                      onClick: () => setIsEditing(!isEditing),
+                    }] : []),
+                    ...(isAdmin ? [{
                       label: t("common.delete"),
                       icon: <Trash2 size={13} />,
                       onClick: handleDelete,
                       destructive: true,
                       disabled: isDeleting,
-                    },
+                    }] : []),
                   ],
                 },
               ]}
             />
-          </RoleGate>
+          )}
         </div>
       </div>
 

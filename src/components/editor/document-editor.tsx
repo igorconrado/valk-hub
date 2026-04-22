@@ -266,9 +266,9 @@ export function DocumentEditor({
   });
 
   return (
-    <div className="valk-editor flex flex-col overflow-hidden rounded-xl border border-[#1A1A1A]">
+    <div className={`valk-editor flex flex-col overflow-hidden ${editable ? "rounded-xl border border-[#1A1A1A]" : ""}`}>
       {editable && <Toolbar editor={editor} />}
-      <div className={editable ? "min-h-[200px] px-5 py-4" : "px-1 py-2"}>
+      <div className={editable ? "min-h-[200px] px-5 py-4" : "px-0 py-2"}>
         <EditorContent editor={editor} />
       </div>
 
