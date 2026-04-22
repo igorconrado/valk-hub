@@ -10,25 +10,34 @@ export default async function MeetingsPage() {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const [{ data: upcoming }, { data: past }] = await Promise.all([
+  const [upcomingResponse, pastResponse] = await Promise.all([
     supabase
       .from("meetings")
       .select(
         "id, title, type, status, scheduled_at, project:projects(name), meeting_participants(user_id, user:users(name))"
       )
       .gte("scheduled_at", now)
-      .not("status", "in", '("completed","cancelled")')
+      .not("status", "in", ["completed", "cancelled"])
       .order("scheduled_at", { ascending: true }),
     supabase
       .from("meetings")
       .select(
         "id, title, type, status, scheduled_at, project:projects(name), meeting_participants(user_id, user:users(name))"
       )
-      .or(`scheduled_at.lt.${now},status.in.("completed","cancelled")`)
+      .or(`scheduled_at.lt.${now},status.in.(completed,cancelled)`)
       .order("scheduled_at", { ascending: false }),
   ]);
 
-  const total = (upcoming?.length ?? 0) + (past?.length ?? 0);
+  if (upcomingResponse.error) {
+    console.error("[Meetings Upcoming Error]:", upcomingResponse.error);
+  }
+  if (pastResponse.error) {
+    console.error("[Meetings Past Error]:", pastResponse.error);
+  }
+
+  const upcoming = upcomingResponse.data ?? [];
+  const past = pastResponse.data ?? [];
+  const total = upcoming.length + past.length;
 
   return (
     <div className="fadeUp">
