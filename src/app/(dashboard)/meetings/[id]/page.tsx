@@ -10,13 +10,17 @@ export default async function MeetingDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: meeting } = await supabase
+  const { data: meeting, error: meetingError } = await supabase
     .from("meetings")
     .select(
-      "*, project:projects(id, name), meeting_participants(user_id, role, user:users(id, name, company_role))"
+      "*, project:projects!meetings_project_id_fkey(id, name), meeting_participants(user_id, role, user:users(id, name, company_role))"
     )
     .eq("id", id)
-    .single();
+    .maybeSingle();
+
+  if (meetingError) {
+    console.error("[meeting-detail] error:", meetingError.message, meetingError.code);
+  }
 
   if (!meeting) notFound();
 
