@@ -128,6 +128,35 @@ function MetadataDropdown({
   );
 }
 
+function buildDocMenuItems(opts: {
+  hasEditPermission: boolean;
+  isAdmin: boolean;
+  isEditing: boolean;
+  isDeleting: boolean;
+  t: (key: string) => string;
+  onToggleEdit: () => void;
+  onDelete: () => void;
+}) {
+  const items: { label: string; icon: React.ReactNode; onClick: () => void; destructive?: boolean; disabled?: boolean }[] = [];
+  if (opts.hasEditPermission) {
+    items.push({
+      label: opts.isEditing ? "Finalizar edição" : "Editar documento",
+      icon: opts.isEditing ? <Check size={13} /> : <PenLine size={13} />,
+      onClick: opts.onToggleEdit,
+    });
+  }
+  if (opts.isAdmin) {
+    items.push({
+      label: opts.t("common.delete"),
+      icon: <Trash2 size={13} />,
+      onClick: opts.onDelete,
+      destructive: true,
+      disabled: opts.isDeleting,
+    });
+  }
+  return items;
+}
+
 export function DocumentView({
   doc,
   projects,
@@ -341,20 +370,15 @@ export function DocumentView({
               }
               sections={[
                 {
-                  items: [
-                    ...(hasEditPermission ? [{
-                      label: isEditing ? "Finalizar edição" : "Editar documento",
-                      icon: isEditing ? <Check size={13} /> : <PenLine size={13} />,
-                      onClick: () => setIsEditing(!isEditing),
-                    }] : []),
-                    ...(isAdmin ? [{
-                      label: t("common.delete"),
-                      icon: <Trash2 size={13} />,
-                      onClick: handleDelete,
-                      destructive: true,
-                      disabled: isDeleting,
-                    }] : []),
-                  ],
+                  items: buildDocMenuItems({
+                    hasEditPermission,
+                    isAdmin,
+                    isEditing,
+                    isDeleting,
+                    t,
+                    onToggleEdit: () => setIsEditing(!isEditing),
+                    onDelete: handleDelete,
+                  }),
                 },
               ]}
             />
@@ -407,6 +431,8 @@ export function DocumentView({
         >
           VALK SOFTWARE
         </span>
+      </div>
+
       {/* Version history panel */}
       <VersionHistoryPanel
         docId={doc.id}

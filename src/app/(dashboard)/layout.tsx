@@ -292,20 +292,30 @@ const ROUTE_LABELS: Record<string, string> = {
   notifications: "Notificações",
 };
 
+const BREADCRUMB_TABLE_CONFIG: Record<string, { table: string; field: string }> = {
+  projects: { table: "projects", field: "name" },
+  docs: { table: "documents", field: "title" },
+  meetings: { table: "meetings", field: "title" },
+  reports: { table: "reports", field: "title" },
+  people: { table: "users", field: "name" },
+};
+
 function useBreadcrumbEntityName(entityType: string | null, entityId: string | null) {
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!entityType || !entityId) { setName(null); return; }
+    const config = BREADCRUMB_TABLE_CONFIG[entityType];
+    if (!config) { setName(null); return; }
+
     const supabase = createClient();
-    const table = entityType === "docs" ? "documents" : entityType;
     supabase
-      .from(table)
-      .select("title, name")
+      .from(config.table)
+      .select(config.field)
       .eq("id", entityId)
       .single()
       .then(({ data }) => {
-        if (data) setName((data as Record<string, string>).name ?? (data as Record<string, string>).title ?? null);
+        if (data) setName((data as unknown as Record<string, string>)[config.field] ?? null);
       });
   }, [entityType, entityId]);
 
