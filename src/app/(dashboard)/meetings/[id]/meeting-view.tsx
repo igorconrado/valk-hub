@@ -533,7 +533,13 @@ function ActionItemRow({
   meetingId: string;
   canEdit: boolean;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const assignee = resolve(item.assignee);
   const isDone = item.status === "done";
   const isOverdue =
@@ -584,10 +590,10 @@ function ActionItemRow({
             <span
               suppressHydrationWarning
               className={`flex items-center gap-1 text-[11px] ${
-                isOverdue ? "text-[#E24B4A]" : "text-[#444]"
+                mounted && isOverdue ? "text-[#E24B4A]" : "text-[#444]"
               }`}
             >
-              {isOverdue && <AlertCircle size={10} strokeWidth={2} />}
+              {mounted && isOverdue && <AlertCircle size={10} strokeWidth={2} />}
               {format(new Date(item.due_date), "dd MMM", { locale: ptBR })}
             </span>
           )}

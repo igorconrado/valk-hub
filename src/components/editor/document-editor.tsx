@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -265,9 +266,14 @@ export function DocumentEditor({
     },
   });
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className={`valk-editor flex flex-col overflow-hidden ${editable ? "rounded-xl border border-[#1A1A1A]" : ""}`}>
-      {editable && <Toolbar editor={editor} />}
+      {editable && mounted && <Toolbar editor={editor} />}
       <div className={editable ? "min-h-[200px] px-5 py-4" : "px-0 py-2"}>
         <EditorContent editor={editor} />
       </div>
