@@ -100,7 +100,7 @@ export default async function ProjectDetailPage({
     .from("meetings")
     .select("id, title")
     .eq("project_id", id)
-    .order("scheduled_at", { ascending: false });
+    .order("date", { ascending: false });
 
   // Fetch reports for this project
   const { data: projectReports } = await supabase

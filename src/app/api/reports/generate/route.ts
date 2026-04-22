@@ -108,9 +108,9 @@ async function fetchMonthlyData(
       .lte("created_at", periodEnd),
     supabase
       .from("meetings")
-      .select("title, type, status, scheduled_at")
-      .gte("scheduled_at", periodStart)
-      .lte("scheduled_at", periodEnd),
+      .select("title, type, status, date")
+      .gte("date", periodStart)
+      .lte("date", periodEnd),
     supabase
       .from("metrics_snapshots")
       .select(

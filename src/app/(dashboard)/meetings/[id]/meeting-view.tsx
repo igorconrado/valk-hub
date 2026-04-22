@@ -57,7 +57,7 @@ type Meeting = {
   title: string;
   type: string;
   status: string;
-  scheduled_at: string;
+  date: string;
   notes: string | null;
   description: string | null;
   project_id: string | null;
@@ -781,7 +781,7 @@ export function MeetingView({
   const statusCfg = statusConfig[meeting.status] ?? statusConfig.scheduled;
 
   const dateStr = format(
-    new Date(meeting.scheduled_at),
+    new Date(meeting.date),
     "EEEE, d 'de' MMMM 'de' yyyy · HH:mm",
     { locale: ptBR }
   );

@@ -17,7 +17,7 @@ type Meeting = {
   title: string;
   type: string;
   status: string;
-  scheduled_at: string;
+  date: string;
   project: { name: string } | { name: string }[] | null;
   meeting_participants: Participant[];
 };
@@ -135,7 +135,7 @@ function resolveRelation<T>(val: T | T[] | null): T | null {
 
 function MeetingCard({ meeting, index }: { meeting: Meeting; index: number }) {
   const dateStr = format(
-    new Date(meeting.scheduled_at),
+    new Date(meeting.date),
     "EEEE, d MMM yyyy · HH:mm",
     { locale: ptBR }
   );

@@ -56,7 +56,7 @@ export async function createMeeting(input: CreateMeetingInput) {
       .insert({
         title: input.title,
         type: input.type,
-        scheduled_at: input.scheduled_at,
+        date: input.scheduled_at,
         project_id: input.project_id || null,
         description: input.description || null,
         created_by: dbUser.id,

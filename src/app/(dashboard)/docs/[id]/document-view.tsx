@@ -407,8 +407,6 @@ export function DocumentView({
         >
           VALK SOFTWARE
         </span>
-      </div>
-
       {/* Version history panel */}
       <VersionHistoryPanel
         docId={doc.id}

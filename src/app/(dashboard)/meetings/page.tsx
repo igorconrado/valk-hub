@@ -14,18 +14,18 @@ export default async function MeetingsPage() {
     supabase
       .from("meetings")
       .select(
-        "id, title, type, status, scheduled_at, project:projects(name), meeting_participants(user_id, user:users(name))"
+        "id, title, type, status, date, project:projects(name), meeting_participants(user_id, user:users(name))"
       )
-      .gte("scheduled_at", now)
+      .gte("date", now)
       .not("status", "in", ["completed", "cancelled"])
-      .order("scheduled_at", { ascending: true }),
+      .order("date", { ascending: true }),
     supabase
       .from("meetings")
       .select(
-        "id, title, type, status, scheduled_at, project:projects(name), meeting_participants(user_id, user:users(name))"
+        "id, title, type, status, date, project:projects(name), meeting_participants(user_id, user:users(name))"
       )
-      .or(`scheduled_at.lt.${now},status.in.(completed,cancelled)`)
-      .order("scheduled_at", { ascending: false }),
+      .or(`date.lt.${now},status.in.(completed,cancelled)`)
+      .order("date", { ascending: false }),
   ]);
 
   if (upcomingResponse.error) {
