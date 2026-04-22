@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Clock } from "lucide-react";
 import { ProjectLogo } from "@/components/project-logo";
@@ -45,6 +46,10 @@ function formatGateValue(value: number, metric: string): string {
 }
 
 export function TriageProductCard({ project }: { project: TriageProject }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const cfg = STATUS_CONFIG[project.triage_status] ?? STATUS_CONFIG.on_track;
   const hasGate = project.gate_metric && project.gate_current != null && project.gate_target != null;
   const progress = hasGate ? Math.min((project.gate_current! / project.gate_target!) * 100, 100) : 0;
@@ -120,13 +125,13 @@ export function TriageProductCard({ project }: { project: TriageProject }) {
       </div>
 
       {/* Deadline */}
-      {project.decision_deadline && (
+      {project.decision_deadline && mounted && (
         <div
           className="mt-3 flex items-center gap-2 rounded-lg border px-3 py-2"
           style={{ borderColor: cfg.borderAccent ?? "#141414" }}
         >
           <Clock size={12} style={{ color: cfg.color }} />
-          <span suppressHydrationWarning className="font-mono text-[11px]" style={{ color: cfg.color }}>
+          <span className="font-mono text-[11px]" style={{ color: cfg.color }}>
             Decisao em {new Date(project.decision_deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" })}
           </span>
         </div>

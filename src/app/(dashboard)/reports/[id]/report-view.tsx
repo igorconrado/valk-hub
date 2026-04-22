@@ -293,6 +293,12 @@ export function ReportView({
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">(
     "idle"
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [isPublishing, startPublishTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
   const t = useTranslations();
@@ -540,15 +546,17 @@ export function ReportView({
         data-print-footer
         className="mt-12 hidden items-center justify-between border-t border-[#ddd] pt-3"
       >
-        <span suppressHydrationWarning style={{ fontSize: 9, color: "#999" }}>
-          Gerado em{" "}
-          {new Date().toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })}{" "}
-          · {report.ai_generated ? "AI ✦" : "Manual"} · Confidencial
-        </span>
+        {mounted && (
+          <span style={{ fontSize: 9, color: "#999" }}>
+            Gerado em{" "}
+            {new Date().toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}{" "}
+            · {report.ai_generated ? "AI ✦" : "Manual"} · Confidencial
+          </span>
+        )}
         <span style={{ fontSize: 9, color: "#999" }}>VALK SOFTWARE</span>
       </div>
     </motion.div>

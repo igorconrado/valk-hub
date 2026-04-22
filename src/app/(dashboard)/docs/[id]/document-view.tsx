@@ -179,6 +179,11 @@ export function DocumentView({
   const hasEditPermission = isAdmin || isOperator;
   const canEdit = hasEditPermission && isEditing;
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const projectOptions = [
     { value: "", label: "Empresa" },
@@ -414,15 +419,17 @@ export function DocumentView({
         data-print-footer
         className="mt-12 hidden items-center justify-between border-t border-[#ddd] pt-3"
       >
-        <span suppressHydrationWarning style={{ fontSize: 9, color: "#999" }}>
-          Gerado em{" "}
-          {new Date().toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })}{" "}
-          · Versao {doc.version} · Confidencial
-        </span>
+        {mounted && (
+          <span style={{ fontSize: 9, color: "#999" }}>
+            Gerado em{" "}
+            {new Date().toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}{" "}
+            · Versao {doc.version} · Confidencial
+          </span>
+        )}
         <span
           style={{
             fontSize: 9,

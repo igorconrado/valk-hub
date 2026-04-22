@@ -325,6 +325,11 @@ function useBreadcrumbEntityName(entityType: string | null, entityId: string | n
 function Topbar({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const parts = pathname.split("/").filter(Boolean);
   const isDetailRoute = parts.length >= 2;
@@ -441,7 +446,7 @@ function Topbar({ onSearchOpen }: { onSearchOpen: () => void }) {
             color: "var(--text-tertiary)",
           }}
         >
-          {typeof navigator !== "undefined" && /Mac/.test(navigator.platform) ? "⌘K" : "Ctrl K"}
+          {mounted ? (/Mac/.test(navigator.platform) ? "⌘K" : "Ctrl K") : "Ctrl K"}
         </kbd>
       </button>
 
