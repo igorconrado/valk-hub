@@ -36,6 +36,7 @@ import { useTranslations } from "next-intl";
 import { RoleGate } from "@/components/role-gate";
 import { useRole } from "@/lib/hooks/use-role";
 import { DocumentEditor } from "@/components/editor/document-editor";
+import { MarkdownBlock } from "@/components/markdown/MarkdownBlock";
 import {
   updateMeetingStatus,
   saveMeetingNotes,
@@ -247,12 +248,18 @@ function NotesSection({
           )}
         </span>
       </div>
-      <DocumentEditor
-        content={notes}
-        onChange={handleChange}
-        editable={canEdit}
-        placeholder="Registre a pauta e anotações da reunião..."
-      />
+      {/* If content looks like markdown (no HTML tags), render with MarkdownBlock.
+          Otherwise use TipTap editor for HTML content. */}
+      {!canEdit && notes && !notes.includes("<p>") && !notes.includes("<h") ? (
+        <MarkdownBlock content={notes} />
+      ) : (
+        <DocumentEditor
+          content={notes}
+          onChange={handleChange}
+          editable={canEdit}
+          placeholder="Registre a pauta e anotações da reunião..."
+        />
+      )}
     </div>
   );
 }
@@ -787,7 +794,10 @@ export function MeetingView({
     { locale: ptBR }
   );
 
-  const initialNotes = meeting.notes || meeting.description || "";
+  // Prefer notes_md (markdown) over notes (HTML/TipTap) over description
+  const m = meeting as Record<string, unknown>;
+  const initialNotes =
+    (m.notes_md as string) || meeting.notes || meeting.description || "";
 
   function handleStatusChange(newStatus: string) {
     startTransition(async () => {
