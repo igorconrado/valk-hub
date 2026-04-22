@@ -17,7 +17,8 @@ type Meeting = {
   title: string;
   type: string;
   status: string;
-  date: string;
+  date: string | null;
+  scheduled_at?: string | null;
   project: { name: string } | { name: string }[] | null;
   meeting_participants: Participant[];
 };
@@ -134,11 +135,12 @@ function resolveRelation<T>(val: T | T[] | null): T | null {
 }
 
 function MeetingCard({ meeting, index }: { meeting: Meeting; index: number }) {
-  const dateStr = format(
-    new Date(meeting.date),
-    "EEEE, d MMM yyyy · HH:mm",
-    { locale: ptBR }
-  );
+  // Support both 'date' and 'scheduled_at' column names
+  const rawDate = meeting.date ?? meeting.scheduled_at;
+  const parsed = rawDate ? new Date(rawDate) : null;
+  const dateStr = parsed && !isNaN(parsed.getTime())
+    ? format(parsed, "EEEE, d MMM yyyy · HH:mm", { locale: ptBR })
+    : "Data não disponível";
 
   const project = resolveRelation(meeting.project);
 

@@ -58,7 +58,8 @@ type Meeting = {
   title: string;
   type: string;
   status: string;
-  date: string;
+  date: string | null;
+  scheduled_at?: string | null;
   notes: string | null;
   description: string | null;
   project_id: string | null;
@@ -788,11 +789,11 @@ export function MeetingView({
   const typeCfg = typeConfig[meeting.type] ?? typeConfig.adhoc;
   const statusCfg = statusConfig[meeting.status] ?? statusConfig.scheduled;
 
-  const dateStr = format(
-    new Date(meeting.date),
-    "EEEE, d 'de' MMMM 'de' yyyy · HH:mm",
-    { locale: ptBR }
-  );
+  const rawDate = meeting.date ?? meeting.scheduled_at;
+  const parsedDate = rawDate ? new Date(rawDate) : null;
+  const dateStr = parsedDate && !isNaN(parsedDate.getTime())
+    ? format(parsedDate, "EEEE, d 'de' MMMM 'de' yyyy · HH:mm", { locale: ptBR })
+    : "Data não disponível";
 
   // Prefer notes_md (markdown) over notes (HTML/TipTap) over description
   const m = meeting as Record<string, unknown>;
