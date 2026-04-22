@@ -498,7 +498,7 @@ function DecisionsSection({
                     </div>
                   )}
                   {d.decided_at && (
-                    <span className="text-[11px] text-[#333]">
+                    <span suppressHydrationWarning className="text-[11px] text-[#333]">
                       {format(new Date(d.decided_at), "dd MMM yyyy", {
                         locale: ptBR,
                       })}
@@ -574,6 +574,7 @@ function ActionItemRow({
           )}
           {item.due_date && (
             <span
+              suppressHydrationWarning
               className={`flex items-center gap-1 text-[11px] ${
                 isOverdue ? "text-[#E24B4A]" : "text-[#444]"
               }`}
@@ -868,7 +869,7 @@ export function MeetingView({
           </div>
 
           {/* Date */}
-          <p className="mt-1.5 text-[13px] capitalize text-[#555]">
+          <p suppressHydrationWarning className="mt-1.5 text-[13px] capitalize text-[#555]">
             {dateStr}
           </p>
 

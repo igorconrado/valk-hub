@@ -166,7 +166,7 @@ function MeetingCard({ meeting, index }: { meeting: Meeting; index: number }) {
 
         {/* Row 2: Date + Status */}
         <div className="mt-2.5 flex items-center gap-2.5">
-          <span className="text-[12px] text-[#555]">{dateStr}</span>
+          <span suppressHydrationWarning className="text-[12px] text-[#555]">{dateStr}</span>
           <StatusBadge status={meeting.status} />
         </div>
 
